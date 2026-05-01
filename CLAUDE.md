@@ -1,5 +1,7 @@
 # tplink-deco-api
 
+SDK Python para acesso e controle de roteadores **TP-Link Deco** (mesh Wi-Fi) via API HTTP interna. A API do Deco usa autenticação proprietária com RSA/AES. O objetivo é permitir automação programática sem depender do app oficial.
+
 ## Instruções de commit
 
 Sempre use commits semânticos em **português do Brasil**.
