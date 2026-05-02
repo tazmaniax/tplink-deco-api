@@ -10,14 +10,12 @@ from ..models.session_keys import SessionKeys
 
 
 def build_payload(keys: SessionKeys, sign_key: RsaKey, data: dict[str, Any]) -> str:
-    """Monta sign=<rsa_hex>&data=<url_encoded_base64_aes>."""
     data_b64 = _encode_data(keys, data)
     sign     = _encode_sign(keys, sign_key, len(data_b64))
     return f"sign={sign}&data={quote_plus(data_b64)}"
 
 
 def parse_response(raw: dict[str, Any], keys: SessionKeys) -> dict[str, Any]:
-    """Decifra e valida resposta cifrada {data: '<b64>'}."""
     data_b64 = raw.get("data", "")
     if not data_b64:
         raise ApiError(-1)
@@ -30,8 +28,6 @@ def parse_plain_response(raw: dict[str, Any]) -> dict[str, Any]:
     _check_error(raw)
     return raw.get("result", {})
 
-
-# ── Internal ──────────────────────────────────────────────────────────────────
 
 def _encode_data(keys: SessionKeys, data: dict[str, Any]) -> str:
     return aes_encrypt(keys.aes_key, keys.aes_iv, json.dumps(data, separators=(",", ":")))

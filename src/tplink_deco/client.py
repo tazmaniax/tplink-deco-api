@@ -32,16 +32,12 @@ class DecoClient:
         self._transport = HttpTransport(timeout=timeout)
         self._session:  SessionContext | None = None
 
-    # ── Context manager ───────────────────────────────────────────────────────
-
     def __enter__(self) -> "DecoClient":
         self.login()
         return self
 
     def __exit__(self, *_) -> None:
         self.logout()
-
-    # ── Session ───────────────────────────────────────────────────────────────
 
     def login(self) -> LoginResult:
         auth_raw = self._transport.post_json(
@@ -89,16 +85,12 @@ class DecoClient:
     def is_authenticated(self) -> bool:
         return self._session is not None and self._session.is_authenticated()
 
-    # ── Generic request ───────────────────────────────────────────────────────
-
     def request(self, path: str, form: str, data: dict[str, Any]) -> dict[str, Any]:
         self._require_auth()
         url  = endpoints.admin_url(self._host, self._session.stok, path, form)
         body = build_payload(self._session.keys, self._session.sign_key, data)
         raw  = self._transport.post_form(url, body)
         return parse_response(raw, self._session.keys)
-
-    # ── Domain methods ────────────────────────────────────────────────────────
 
     def get_device_list(self) -> list[Device]:
         result = self.request("admin/device", "device_list", {"operation": "read"})
@@ -122,8 +114,6 @@ class DecoClient:
             {"operation": "read", "params": {"device_mac": deco_mac}},
         )
         return [ClientDevice.from_api(c) for c in result.get("client_list", [])]
-
-    # ── Internal ──────────────────────────────────────────────────────────────
 
     def _require_auth(self) -> None:
         if not self.is_authenticated():

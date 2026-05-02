@@ -15,11 +15,9 @@ class HttpTransport:
         self._cookie: str | None = None
 
     def post_json(self, url: str, body: dict[str, Any]) -> dict[str, Any]:
-        """POST com corpo JSON (endpoints sem criptografia)."""
         return self._post(url, json.dumps(body).encode())
 
     def post_form(self, url: str, body: str) -> dict[str, Any]:
-        """POST com corpo sign=...&data=... (endpoints cifrados)."""
         return self._post(url, body.encode())
 
     def _post(self, url: str, data: bytes) -> dict[str, Any]:

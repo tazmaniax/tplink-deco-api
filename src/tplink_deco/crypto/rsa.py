@@ -5,7 +5,6 @@ from ..exceptions.crypto import CryptoError
 
 
 def rsa_encrypt(n: int, e: int, plaintext: bytes) -> str:
-    """RSA PKCS#1 v1.5 — divide em blocos de (key_bytes - 11) bytes. Retorna hex."""
     block_size      = (int(math.log2(n)) + 8) >> 3
     bytes_per_block = block_size - 11
     result = ""
