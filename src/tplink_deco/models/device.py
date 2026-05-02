@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+from ._utils import decode_b64
 from .signal_level import SignalLevel
 
 
@@ -40,7 +41,7 @@ class Device:
             device_type=data.get("device_type", ""),
             role=data.get("role", ""),
             nickname=data.get("nickname", ""),
-            custom_nickname=data.get("custom_nickname", ""),
+            custom_nickname=decode_b64(data.get("custom_nickname", "")),
             hardware_ver=data.get("hardware_ver", ""),
             software_ver=data.get("software_ver", ""),
             oem_id=data.get("oem_id", ""),

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+from ._utils import decode_b64
+
 
 @dataclass(frozen=True)
 class WlanHost:
@@ -15,8 +17,8 @@ class WlanHost:
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> "WlanHost":
         return cls(
-            ssid=data.get("ssid", ""),
-            password=data.get("password", ""),
+            ssid=decode_b64(data.get("ssid", "")),
+            password=decode_b64(data.get("password", "")),
             channel=int(data.get("channel", 0)),
             enable=bool(data.get("enable", False)),
             mode=data.get("mode", ""),
@@ -36,8 +38,8 @@ class WlanGuest:
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> "WlanGuest":
         return cls(
-            ssid=data.get("ssid", ""),
-            password=data.get("password", ""),
+            ssid=decode_b64(data.get("ssid", "")),
+            password=decode_b64(data.get("password", "")),
             enable=bool(data.get("enable", False)),
             vlan_id=int(data["vlan_id"]) if "vlan_id" in data else None,
             need_set_vlan=bool(data["need_set_vlan"]) if "need_set_vlan" in data else None,
@@ -80,8 +82,8 @@ class IotHost:
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> "IotHost":
         return cls(
-            ssid=data.get("ssid", ""),
-            password=data.get("password", ""),
+            ssid=decode_b64(data.get("ssid", "")),
+            password=decode_b64(data.get("password", "")),
             encryption_mode=data.get("encryption_mode", ""),
             enable=bool(data.get("enable", False)),
             enable_2g=bool(data.get("enable_2g", False)),
@@ -100,8 +102,8 @@ class MloHost:
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> "MloHost":
         return cls(
-            ssid=data.get("ssid", ""),
-            password=data.get("password", ""),
+            ssid=decode_b64(data.get("ssid", "")),
+            password=decode_b64(data.get("password", "")),
             enable=bool(data.get("enable", False)),
             band=tuple(data.get("band", [])),
             enable_hide_ssid=bool(data.get("enable_hide_ssid", False)),

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+from ._utils import decode_b64
+
 
 @dataclass(frozen=True)
 class ClientDevice:
@@ -26,7 +28,7 @@ class ClientDevice:
         return cls(
             mac=data["mac"],
             ip=data.get("ip", ""),
-            name=data.get("name", ""),
+            name=decode_b64(data.get("name", "")),
             up_speed=int(data.get("up_speed", 0)),
             down_speed=int(data.get("down_speed", 0)),
             wire_type=data.get("wire_type", ""),
