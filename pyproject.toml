@@ -1,6 +1,6 @@
 [project]
 name = "tplink-deco-api"
-version = "0.1.0"
+version = "1.0.0"
 description = "SDK Python para controle de roteadores TP-Link Deco via API HTTP interna"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Rodrigo Roque", email = "rodrigogoncalvesroque@gmail.com" }]
 keywords = ["tplink", "deco", "mesh", "wifi", "router", "api", "sdk"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
