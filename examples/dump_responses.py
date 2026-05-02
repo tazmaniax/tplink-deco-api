@@ -55,7 +55,7 @@ def main() -> None:
         print("Erro: DECO_PASSWORD não definido em .env")
         sys.exit(1)
 
-    from tplink_deco import DecoClient
+    from tplink_deco_api import DecoClient
 
     with DecoClient(host, username, password) as deco:
         _save("login",        deco.login())

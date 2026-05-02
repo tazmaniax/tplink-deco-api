@@ -42,8 +42,8 @@ def main() -> None:
         print("Erro: senha não fornecida. Use --password ou defina DECO_PASSWORD no .env")
         sys.exit(1)
 
-    from tplink_deco import DecoClient
-    from tplink_deco.models import ClientDevice
+    from tplink_deco_api import DecoClient
+    from tplink_deco_api.models import ClientDevice
 
     with DecoClient(args.host, args.user, args.password) as deco:
         clients: list[ClientDevice] = deco.get_client_list(args.deco)

@@ -11,7 +11,7 @@ pip install tplink-deco-api
 ## Uso
 
 ```python
-from tplink_deco import DecoClient
+from tplink_deco_api import DecoClient
 
 with DecoClient("192.168.68.1", "admin", "sua-senha") as deco:
     for client in deco.get_client_list():

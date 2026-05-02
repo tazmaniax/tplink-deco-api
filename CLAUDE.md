@@ -43,14 +43,14 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 feat(auth): adiciona autenticação por token na API Deco
 
 Implementa o fluxo de login com geração e validação de token AES.
-Afeta: tplink_deco/auth.py, tplink_deco/client.py
+Afeta: tplink_deco_api/auth.py, tplink_deco_api/client.py
 ```
 
 ```
 fix(client): corrige timeout em requisições longas
 
 O cliente HTTP não respeitava o parâmetro de timeout configurado.
-Afeta: tplink_deco/client.py
+Afeta: tplink_deco_api/client.py
 ```
 
 ```

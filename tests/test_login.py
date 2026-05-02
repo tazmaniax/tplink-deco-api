@@ -9,8 +9,8 @@ import pathlib
 
 import pytest
 
-from tplink_deco import AuthenticationError, DecoClient
-from tplink_deco.models import ClientDevice, Device, DeviceMode, Performance, WlanConfig
+from tplink_deco_api import AuthenticationError, DecoClient
+from tplink_deco_api.models import ClientDevice, Device, DeviceMode, Performance, WlanConfig
 
 
 def _load_env() -> dict[str, str]:

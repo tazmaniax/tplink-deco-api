@@ -1,6 +1,6 @@
 [project]
 name = "tplink-deco-api"
-version = "1.0.0"
+version = "1.0.1"
 description = "SDK Python para controle de roteadores TP-Link Deco via API HTTP interna"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,7 +32,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tplink_deco"]
+packages = ["src/tplink_deco_api"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -3,14 +3,14 @@ from base64 import b64decode
 
 import pytest
 
-from tplink_deco.crypto import (
+from tplink_deco_api.crypto import (
     aes_decrypt,
     aes_encrypt,
     generate_aes_pair,
     md5_session_hash,
     rsa_encrypt,
 )
-from tplink_deco.exceptions import CryptoError
+from tplink_deco_api.exceptions import CryptoError
 
 
 # ── generate_aes_pair ─────────────────────────────────────────────────────────
