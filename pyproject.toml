@@ -1,6 +1,6 @@
 [project]
 name = "tplink-deco-api"
-version = "1.0.1"
+version = "1.1.0"
 description = "SDK Python para controle de roteadores TP-Link Deco via API HTTP interna"
 readme = "README.md"
 requires-python = ">=3.11"
