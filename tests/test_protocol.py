@@ -1,3 +1,7 @@
+"""Unit tests for the encrypted payload builder and response parser."""
+
+from __future__ import annotations
+
 import json
 import re
 from urllib.parse import unquote_plus
@@ -5,14 +9,14 @@ from urllib.parse import unquote_plus
 import pytest
 
 from tplink_deco_api import ApiError
-from tplink_deco_api.crypto import aes_encrypt, aes_decrypt
-from tplink_deco_api.models.rsa_key import RsaKey
-from tplink_deco_api.models.session_keys import SessionKeys
 from tplink_deco_api.auth.protocol import (
     build_payload,
     parse_plain_response,
     parse_response,
 )
+from tplink_deco_api.crypto import aes_decrypt, aes_encrypt
+from tplink_deco_api.models.rsa_key import RsaKey
+from tplink_deco_api.models.session_keys import SessionKeys
 
 _SIGN_N = int(
     "DE1E5BD8347A6BED75ED9E96190B47FDCE5696B49A542F908003D01DD3CBF59B"
@@ -28,59 +32,56 @@ _SESS = SessionKeys(
 )
 
 
-# ── build_payload ─────────────────────────────────────────────────────────────
-
-
-def test_payload_is_form_encoded_string():
+def test_payload_is_form_encoded_string() -> None:
     result = build_payload(_SESS, _KEY, {"operation": "read"})
     assert isinstance(result, str)
     assert result.startswith("sign=")
     assert "&data=" in result
 
 
-def test_payload_data_is_url_encoded_base64():
+def test_payload_data_is_url_encoded_base64() -> None:
     result = build_payload(_SESS, _KEY, {"operation": "read"})
-    data_b64 = unquote_plus(re.search(r"&data=(.+)$", result).group(1))
-    # deve ser base64 válido e decifrar sem erro
+    match = re.search(r"&data=(.+)$", result)
+    assert match is not None
+    data_b64 = unquote_plus(match.group(1))
     decrypted = aes_decrypt(_SESS.aes_key, _SESS.aes_iv, data_b64)
     assert json.loads(decrypted) == {"operation": "read"}
 
 
-def test_payload_sign_always_includes_aes_key():
-    # sign é RSA-cifrado, tamanho indica split em 2 blocos (sig_str tem k= e i=)
+def test_payload_sign_always_includes_aes_key() -> None:
     result = build_payload(_SESS, _KEY, {"operation": "read"})
-    sign = re.search(r"^sign=([^&]+)", result).group(1)
-    assert len(sign) == 256  # 2 × 128 hex chars
+    match = re.search(r"^sign=([^&]+)", result)
+    assert match is not None
+    sign = match.group(1)
+    assert len(sign) == 256
 
 
-def test_payload_uses_compact_json():
-    # Sem espaços no JSON → comprimento mínimo
+def test_payload_uses_compact_json() -> None:
     result = build_payload(_SESS, _KEY, {"operation": "read"})
-    data_b64 = unquote_plus(re.search(r"&data=(.+)$", result).group(1))
+    match = re.search(r"&data=(.+)$", result)
+    assert match is not None
+    data_b64 = unquote_plus(match.group(1))
     raw_json = aes_decrypt(_SESS.aes_key, _SESS.aes_iv, data_b64)
     assert " " not in raw_json
 
 
-# ── parse_response ────────────────────────────────────────────────────────────
-
-
-def test_parse_response_ok():
+def test_parse_response_ok() -> None:
     inner = {"result": {"stok": "abc"}, "error_code": 0}
     data_b64 = aes_encrypt(_SESS.aes_key, _SESS.aes_iv, json.dumps(inner))
     assert parse_response({"data": data_b64}, _SESS) == {"stok": "abc"}
 
 
-def test_parse_response_empty_data():
+def test_parse_response_empty_data() -> None:
     with pytest.raises(ApiError):
         parse_response({"data": ""}, _SESS)
 
 
-def test_parse_response_missing_data():
+def test_parse_response_missing_data() -> None:
     with pytest.raises(ApiError):
         parse_response({}, _SESS)
 
 
-def test_parse_response_error_code():
+def test_parse_response_error_code() -> None:
     inner = {"result": {}, "error_code": -5002}
     data_b64 = aes_encrypt(_SESS.aes_key, _SESS.aes_iv, json.dumps(inner))
     with pytest.raises(ApiError) as exc:
@@ -88,13 +89,10 @@ def test_parse_response_error_code():
     assert exc.value.error_code == -5002
 
 
-# ── parse_plain_response ──────────────────────────────────────────────────────
-
-
-def test_parse_plain_ok():
+def test_parse_plain_ok() -> None:
     assert parse_plain_response({"result": {"seq": 1}, "error_code": 0}) == {"seq": 1}
 
 
-def test_parse_plain_error():
+def test_parse_plain_error() -> None:
     with pytest.raises(ApiError):
         parse_plain_response({"error_code": -1})

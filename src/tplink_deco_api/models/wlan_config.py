@@ -1,11 +1,17 @@
-from dataclasses import dataclass
-from typing import Any
+"""Wi-Fi configuration: bands, guest networks, IoT and MLO hosts."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from .._json import JsonObject, get_bool, get_int, get_object, get_str, get_str_tuple
 from ._utils import decode_b64
 
 
 @dataclass(frozen=True)
 class WlanHost:
+    """Primary SSID configuration for a single radio band."""
+
     ssid: str
     password: str
     channel: int
@@ -15,20 +21,23 @@ class WlanHost:
     enable_hide_ssid: bool
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "WlanHost":
+    def from_api(cls, data: JsonObject) -> WlanHost:
+        """Build ``WlanHost`` from a router payload."""
         return cls(
-            ssid=decode_b64(data.get("ssid", "")),
-            password=decode_b64(data.get("password", "")),
-            channel=int(data.get("channel", 0)),
-            enable=bool(data.get("enable", False)),
-            mode=data.get("mode", ""),
-            channel_width=data.get("channel_width", ""),
-            enable_hide_ssid=bool(data.get("enable_hide_ssid", False)),
+            ssid=decode_b64(get_str(data, "ssid")),
+            password=decode_b64(get_str(data, "password")),
+            channel=get_int(data, "channel"),
+            enable=get_bool(data, "enable"),
+            mode=get_str(data, "mode"),
+            channel_width=get_str(data, "channel_width"),
+            enable_hide_ssid=get_bool(data, "enable_hide_ssid"),
         )
 
 
 @dataclass(frozen=True)
 class WlanGuest:
+    """Guest SSID configuration."""
+
     ssid: str
     password: str
     enable: bool
@@ -36,44 +45,51 @@ class WlanGuest:
     need_set_vlan: bool | None = None
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "WlanGuest":
+    def from_api(cls, data: JsonObject) -> WlanGuest:
+        """Build ``WlanGuest`` from a router payload."""
         return cls(
-            ssid=decode_b64(data.get("ssid", "")),
-            password=decode_b64(data.get("password", "")),
-            enable=bool(data.get("enable", False)),
-            vlan_id=int(data["vlan_id"]) if "vlan_id" in data else None,
-            need_set_vlan=bool(data["need_set_vlan"])
-            if "need_set_vlan" in data
-            else None,
+            ssid=decode_b64(get_str(data, "ssid")),
+            password=decode_b64(get_str(data, "password")),
+            enable=get_bool(data, "enable"),
+            vlan_id=get_int(data, "vlan_id") if "vlan_id" in data else None,
+            need_set_vlan=(get_bool(data, "need_set_vlan") if "need_set_vlan" in data else None),
         )
 
 
 @dataclass(frozen=True)
 class WlanBackhaul:
+    """Mesh backhaul channel for a band."""
+
     channel: int
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "WlanBackhaul":
-        return cls(channel=int(data.get("channel", 0)))
+    def from_api(cls, data: JsonObject) -> WlanBackhaul:
+        """Build ``WlanBackhaul`` from a router payload."""
+        return cls(channel=get_int(data, "channel"))
 
 
 @dataclass(frozen=True)
 class WlanBand:
+    """All SSID configurations for a single radio band."""
+
     host: WlanHost
     guest: WlanGuest
     backhaul: WlanBackhaul
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "WlanBand":
+    def from_api(cls, data: JsonObject) -> WlanBand:
+        """Build ``WlanBand`` from a router payload."""
         return cls(
-            host=WlanHost.from_api(data.get("host", {})),
-            guest=WlanGuest.from_api(data.get("guest", {})),
-            backhaul=WlanBackhaul.from_api(data.get("backhaul", {})),
+            host=WlanHost.from_api(get_object(data, "host")),
+            guest=WlanGuest.from_api(get_object(data, "guest")),
+            backhaul=WlanBackhaul.from_api(get_object(data, "backhaul")),
         )
 
 
 @dataclass(frozen=True)
 class IotHost:
+    """IoT-dedicated SSID configuration."""
+
     ssid: str
     password: str
     encryption_mode: str
@@ -82,19 +98,22 @@ class IotHost:
     enable_5g: bool
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "IotHost":
+    def from_api(cls, data: JsonObject) -> IotHost:
+        """Build ``IotHost`` from a router payload."""
         return cls(
-            ssid=decode_b64(data.get("ssid", "")),
-            password=decode_b64(data.get("password", "")),
-            encryption_mode=data.get("encryption_mode", ""),
-            enable=bool(data.get("enable", False)),
-            enable_2g=bool(data.get("enable_2g", False)),
-            enable_5g=bool(data.get("enable_5g", False)),
+            ssid=decode_b64(get_str(data, "ssid")),
+            password=decode_b64(get_str(data, "password")),
+            encryption_mode=get_str(data, "encryption_mode"),
+            enable=get_bool(data, "enable"),
+            enable_2g=get_bool(data, "enable_2g"),
+            enable_5g=get_bool(data, "enable_5g"),
         )
 
 
 @dataclass(frozen=True)
 class MloHost:
+    """Multi-Link Operation host configuration."""
+
     ssid: str
     password: str
     enable: bool
@@ -102,18 +121,21 @@ class MloHost:
     enable_hide_ssid: bool
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "MloHost":
+    def from_api(cls, data: JsonObject) -> MloHost:
+        """Build ``MloHost`` from a router payload."""
         return cls(
-            ssid=decode_b64(data.get("ssid", "")),
-            password=decode_b64(data.get("password", "")),
-            enable=bool(data.get("enable", False)),
-            band=tuple(data.get("band", [])),
-            enable_hide_ssid=bool(data.get("enable_hide_ssid", False)),
+            ssid=decode_b64(get_str(data, "ssid")),
+            password=decode_b64(get_str(data, "password")),
+            enable=get_bool(data, "enable"),
+            band=get_str_tuple(data, "band"),
+            enable_hide_ssid=get_bool(data, "enable_hide_ssid"),
         )
 
 
 @dataclass(frozen=True)
 class WlanConfig:
+    """Top-level Wi-Fi configuration returned by ``admin/wireless?form=wlan``."""
+
     band2_4: WlanBand
     band5_1: WlanBand
     band6: WlanBand
@@ -122,12 +144,13 @@ class WlanConfig:
     is_eg: bool = False
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "WlanConfig":
+    def from_api(cls, data: JsonObject) -> WlanConfig:
+        """Build ``WlanConfig`` from a router payload."""
         return cls(
-            band2_4=WlanBand.from_api(data.get("band2_4", {})),
-            band5_1=WlanBand.from_api(data.get("band5_1", {})),
-            band6=WlanBand.from_api(data.get("band6", {})),
-            iot_host=IotHost.from_api(data.get("iot", {}).get("host", {})),
-            mlo_host=MloHost.from_api(data.get("mlo", {}).get("host", {})),
-            is_eg=bool(data.get("is_eg", False)),
+            band2_4=WlanBand.from_api(get_object(data, "band2_4")),
+            band5_1=WlanBand.from_api(get_object(data, "band5_1")),
+            band6=WlanBand.from_api(get_object(data, "band6")),
+            iot_host=IotHost.from_api(get_object(get_object(data, "iot"), "host")),
+            mlo_host=MloHost.from_api(get_object(get_object(data, "mlo"), "host")),
+            is_eg=get_bool(data, "is_eg"),
         )

@@ -1,3 +1,7 @@
+"""URL builders and the set of endpoints that skip the encrypted envelope."""
+
+from __future__ import annotations
+
 _PLAIN_ENDPOINTS: frozenset[str] = frozenset(
     {
         "/login?form=auth",
@@ -15,12 +19,15 @@ _PLAIN_ENDPOINTS: frozenset[str] = frozenset(
 
 
 def is_plain(path_with_form: str) -> bool:
+    """Return ``True`` if ``path_with_form`` does not use the AES envelope."""
     return path_with_form in _PLAIN_ENDPOINTS
 
 
 def login_url(host: str, form: str) -> str:
+    """Return the unauthenticated ``/login`` URL for the given ``form``."""
     return f"http://{host}/cgi-bin/luci/;stok=/login?form={form}"
 
 
 def admin_url(host: str, stok: str, path: str, form: str) -> str:
+    """Return the authenticated admin URL for ``path`` + ``form``."""
     return f"http://{host}/cgi-bin/luci/;stok={stok}/{path}?form={form}"

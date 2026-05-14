@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""
-Chama cada método público do SDK e salva o resultado em docs/api-responses/.
+"""Call every public SDK method and dump the result into ``docs/api-responses/``.
 
-Uso:
+Usage::
+
     uv run examples/dump_responses.py
 """
+
+from __future__ import annotations
 
 import dataclasses
 import json
@@ -20,10 +22,10 @@ def _load_env() -> dict[str, str]:
         return {}
     values: dict[str, str] = {}
     for line in env_file.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
             continue
-        key, _, val = line.partition("=")
+        key, _, val = stripped.partition("=")
         values[key.strip()] = val.strip()
     return values
 
@@ -32,6 +34,7 @@ def _save(name: str, data: object) -> None:
     _OUT.mkdir(parents=True, exist_ok=True)
     path = _OUT / f"{name}.json"
 
+    serializable: object
     if dataclasses.is_dataclass(data) and not isinstance(data, type):
         serializable = dataclasses.asdict(data)
     elif isinstance(data, list):
@@ -45,7 +48,7 @@ def _save(name: str, data: object) -> None:
         serializable = data
 
     path.write_text(json.dumps(serializable, indent=2, ensure_ascii=False))
-    print(f"  salvo: {path.relative_to(pathlib.Path(__file__).parent.parent)}")
+    print(f"  saved: {path.relative_to(pathlib.Path(__file__).parent.parent)}")
 
 
 def main() -> None:
@@ -55,7 +58,7 @@ def main() -> None:
     password = env.get("DECO_PASSWORD", "")
 
     if not password:
-        print("Erro: DECO_PASSWORD não definido em .env")
+        print("Error: DECO_PASSWORD not set in .env")
         sys.exit(1)
 
     from tplink_deco_api import DecoClient
@@ -68,9 +71,7 @@ def main() -> None:
         _save("performance", deco.get_performance())
         _save("client_list", deco.get_client_list())
 
-    print(
-        f"\nConcluído. {len(list(_OUT.glob('*.json')))} arquivos em docs/api-responses/"
-    )
+    print(f"\nDone. {len(list(_OUT.glob('*.json')))} files in docs/api-responses/")
 
 
 if __name__ == "__main__":

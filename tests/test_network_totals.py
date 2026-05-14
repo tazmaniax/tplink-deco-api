@@ -1,3 +1,7 @@
+"""Unit tests for ``NetworkTotals.from_clients``."""
+
+from __future__ import annotations
+
 from tplink_deco_api import NetworkTotals
 from tplink_deco_api.models import ClientDevice
 
@@ -23,13 +27,13 @@ def _make_client(up: int, down: int) -> ClientDevice:
     )
 
 
-def test_from_clients_empty():
+def test_from_clients_empty() -> None:
     totals = NetworkTotals.from_clients([])
     assert totals.up_speed == 0
     assert totals.down_speed == 0
 
 
-def test_from_clients_sums_all():
+def test_from_clients_sums_all() -> None:
     clients = [
         _make_client(up=100, down=200),
         _make_client(up=50, down=75),
@@ -40,7 +44,7 @@ def test_from_clients_sums_all():
     assert totals.down_speed == 285
 
 
-def test_from_clients_accepts_generator():
+def test_from_clients_accepts_generator() -> None:
     clients = (_make_client(up=i, down=i * 2) for i in range(5))
     totals = NetworkTotals.from_clients(clients)
     assert totals.up_speed == 0 + 1 + 2 + 3 + 4
