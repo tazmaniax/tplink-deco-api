@@ -1,3 +1,7 @@
+"""Public dataclasses returned by the SDK."""
+
+from __future__ import annotations
+
 from .client_device import ClientDevice
 from .device import Device
 from .device_mode import DeviceMode

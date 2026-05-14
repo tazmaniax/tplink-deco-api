@@ -1,3 +1,7 @@
+"""RSA PKCS#1 v1.5 encryption used for the request signature and password."""
+
+from __future__ import annotations
+
 import math
 import secrets
 
@@ -5,6 +9,7 @@ from ..exceptions.crypto import CryptoError
 
 
 def rsa_encrypt(n: int, e: int, plaintext: bytes) -> str:
+    """Encrypt ``plaintext`` with RSA PKCS#1 v1.5, splitting into blocks as needed."""
     block_size = (int(math.log2(n)) + 8) >> 3
     bytes_per_block = block_size - 11
     result = ""
@@ -15,7 +20,7 @@ def rsa_encrypt(n: int, e: int, plaintext: bytes) -> str:
 
 def _encrypt_block(n: int, e: int, k: int, block: bytes) -> str:
     if len(block) > k - 11:
-        raise CryptoError(f"Bloco RSA muito longo: {len(block)} > {k - 11}")
+        raise CryptoError(f"Failed to encrypt RSA block: length {len(block)} > {k - 11}")
     pad_len = k - len(block) - 3
     pad = b""
     while len(pad) < pad_len:

@@ -1,11 +1,17 @@
-from dataclasses import dataclass
-from typing import Any
+"""Client device connected to the mesh."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from .._json import JsonObject, get_bool, get_int, get_str
 from ._utils import decode_b64, normalize_mac
 
 
 @dataclass(frozen=True)
 class ClientDevice:
+    """A device currently or recently connected to the Deco mesh."""
+
     mac: str
     ip: str
     name: str
@@ -24,22 +30,23 @@ class ClientDevice:
     enable_priority: bool
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "ClientDevice":
+    def from_api(cls, data: JsonObject) -> ClientDevice:
+        """Build ``ClientDevice`` from a router payload."""
         return cls(
-            mac=normalize_mac(data["mac"]),
-            ip=data.get("ip", ""),
-            name=decode_b64(data.get("name", "")),
-            up_speed=int(data.get("up_speed", 0)),
-            down_speed=int(data.get("down_speed", 0)),
-            wire_type=data.get("wire_type", ""),
-            connection_type=data.get("connection_type", ""),
-            space_id=data.get("space_id", ""),
-            access_host=data.get("access_host", ""),
-            interface=data.get("interface", ""),
-            client_type=data.get("client_type", ""),
-            owner_id=data.get("owner_id", ""),
-            remain_time=int(data.get("remain_time", 0)),
-            online=bool(data.get("online", False)),
-            client_mesh=bool(data.get("client_mesh", False)),
-            enable_priority=bool(data.get("enable_priority", False)),
+            mac=normalize_mac(get_str(data, "mac")),
+            ip=get_str(data, "ip"),
+            name=decode_b64(get_str(data, "name")),
+            up_speed=get_int(data, "up_speed"),
+            down_speed=get_int(data, "down_speed"),
+            wire_type=get_str(data, "wire_type"),
+            connection_type=get_str(data, "connection_type"),
+            space_id=get_str(data, "space_id"),
+            access_host=get_str(data, "access_host"),
+            interface=get_str(data, "interface"),
+            client_type=get_str(data, "client_type"),
+            owner_id=get_str(data, "owner_id"),
+            remain_time=get_int(data, "remain_time"),
+            online=get_bool(data, "online"),
+            client_mesh=get_bool(data, "client_mesh"),
+            enable_priority=get_bool(data, "enable_priority"),
         )

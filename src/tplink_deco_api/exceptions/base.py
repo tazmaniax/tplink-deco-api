@@ -1,2 +1,7 @@
+"""Base exception type for the SDK."""
+
+from __future__ import annotations
+
+
 class DecoError(Exception):
-    pass
+    """Root of the SDK exception hierarchy."""

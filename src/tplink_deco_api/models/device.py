@@ -1,12 +1,18 @@
-from dataclasses import dataclass
-from typing import Any
+"""Deco mesh node (router unit)."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from .._json import JsonObject, get_bool, get_int, get_object, get_str
 from ._utils import decode_b64, normalize_mac
 from .signal_level import SignalLevel
 
 
 @dataclass(frozen=True)
 class Device:
+    """One Deco mesh node (gateway, satellite, …)."""
+
     mac: str
     device_ip: str
     device_model: str
@@ -33,30 +39,31 @@ class Device:
     nand_flash: bool
 
     @classmethod
-    def from_api(cls, data: dict[str, Any]) -> "Device":
+    def from_api(cls, data: JsonObject) -> Device:
+        """Build ``Device`` from a router payload."""
         return cls(
-            mac=normalize_mac(data["mac"]),
-            device_ip=data.get("device_ip", ""),
-            device_model=data.get("device_model", ""),
-            device_type=data.get("device_type", ""),
-            role=data.get("role", ""),
-            nickname=data.get("nickname", ""),
-            custom_nickname=decode_b64(data.get("custom_nickname", "")),
-            hardware_ver=data.get("hardware_ver", ""),
-            software_ver=data.get("software_ver", ""),
-            oem_id=data.get("oem_id", ""),
-            hw_id=data.get("hw_id", ""),
-            bssid_2g=normalize_mac(data.get("bssid_2g", "")),
-            bssid_5g=normalize_mac(data.get("bssid_5g", "")),
-            bssid_sta_2g=normalize_mac(data.get("bssid_sta_2g", "")),
-            bssid_sta_5g=normalize_mac(data.get("bssid_sta_5g", "")),
-            inet_status=data.get("inet_status", ""),
-            inet_error_msg=data.get("inet_error_msg", ""),
-            group_status=data.get("group_status", ""),
-            signal_level=SignalLevel.from_api(data.get("signal_level", {})),
-            product_level=int(data.get("product_level", 0)),
-            set_gateway_support=bool(data.get("set_gateway_support", False)),
-            support_plc=bool(data.get("support_plc", False)),
-            oversized_firmware=bool(data.get("oversized_firmware", False)),
-            nand_flash=bool(data.get("nand_flash", False)),
+            mac=normalize_mac(get_str(data, "mac")),
+            device_ip=get_str(data, "device_ip"),
+            device_model=get_str(data, "device_model"),
+            device_type=get_str(data, "device_type"),
+            role=get_str(data, "role"),
+            nickname=get_str(data, "nickname"),
+            custom_nickname=decode_b64(get_str(data, "custom_nickname")),
+            hardware_ver=get_str(data, "hardware_ver"),
+            software_ver=get_str(data, "software_ver"),
+            oem_id=get_str(data, "oem_id"),
+            hw_id=get_str(data, "hw_id"),
+            bssid_2g=normalize_mac(get_str(data, "bssid_2g")),
+            bssid_5g=normalize_mac(get_str(data, "bssid_5g")),
+            bssid_sta_2g=normalize_mac(get_str(data, "bssid_sta_2g")),
+            bssid_sta_5g=normalize_mac(get_str(data, "bssid_sta_5g")),
+            inet_status=get_str(data, "inet_status"),
+            inet_error_msg=get_str(data, "inet_error_msg"),
+            group_status=get_str(data, "group_status"),
+            signal_level=SignalLevel.from_api(get_object(data, "signal_level")),
+            product_level=get_int(data, "product_level"),
+            set_gateway_support=get_bool(data, "set_gateway_support"),
+            support_plc=get_bool(data, "support_plc"),
+            oversized_firmware=get_bool(data, "oversized_firmware"),
+            nand_flash=get_bool(data, "nand_flash"),
         )

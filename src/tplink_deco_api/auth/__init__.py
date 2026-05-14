@@ -1,11 +1,15 @@
+"""Auth protocol building blocks (transport, session, payload encoding)."""
+
+from __future__ import annotations
+
 from .protocol import build_payload, parse_plain_response, parse_response
 from .session import SessionContext
 from .transport import HttpTransport
 
 __all__ = [
-    "SessionContext",
     "HttpTransport",
+    "SessionContext",
     "build_payload",
-    "parse_response",
     "parse_plain_response",
+    "parse_response",
 ]

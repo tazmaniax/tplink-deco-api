@@ -1,26 +1,26 @@
 # tplink-deco-api
 
-SDK Python para controle de roteadores **TP-Link Deco** (mesh Wi-Fi) via API HTTP interna.
+Python SDK for controlling **TP-Link Deco** mesh Wi-Fi routers via the internal HTTP API.
 
-## Instalação
+## Installation
 
 ```bash
 pip install tplink-deco-api
 ```
 
-## Uso
+## Usage
 
 ```python
 from tplink_deco_api import DecoClient
 
-with DecoClient("192.168.68.1", "admin", "sua-senha") as deco:
+with DecoClient("192.168.68.1", "admin", "your-password") as deco:
     for client in deco.get_client_list():
         print(client.name, client.ip, client.connection_type)
 ```
 
-## Métodos disponíveis
+## Available methods
 
-| Método | Retorno |
+| Method | Returns |
 |--------|---------|
 | `login()` | `LoginResult` |
 | `get_device_list()` | `list[Device]` |
@@ -29,9 +29,9 @@ with DecoClient("192.168.68.1", "admin", "sua-senha") as deco:
 | `get_performance()` | `Performance` |
 | `get_client_list(deco_mac?)` | `list[ClientDevice]` |
 
-## Modelos
+## Models
 
-Todos os métodos retornam dataclasses tipadas — sem dicionários genéricos.
+Every method returns typed dataclasses — no generic dictionaries.
 
 ```python
 client.mac              # "AA:BB:CC:DD:EE:FF"
@@ -43,14 +43,14 @@ client.online           # True
 device.device_model     # "BE65"
 device.software_ver     # "1.2.10 Build 20251229"
 
-wlan.band2_4.host.ssid      # "Minha Rede"
-wlan.band2_4.guest.password # "senha-visitas"
+wlan.band2_4.host.ssid      # "My Network"
+wlan.band2_4.guest.password # "guest-password"
 
 perf.cpu_usage  # 0.03
 perf.mem_usage  # 0.42
 ```
 
-## Requisitos
+## Requirements
 
 - Python 3.11+
-- Roteador TP-Link Deco acessível na rede local
+- TP-Link Deco router reachable on the local network

@@ -1,9 +1,14 @@
-"""
-Teste de integração — requer roteador acessível e credenciais em .env
+"""Integration tests against a real Deco router.
 
-Execute:
+Requires reachable hardware plus ``DECO_HOST``, ``DECO_USERNAME``, ``DECO_PASSWORD``
+in a ``.env`` file. Skipped automatically when ``DECO_PASSWORD`` is missing.
+
+Run with::
+
     uv run pytest tests/test_login.py -v -s
 """
+
+from __future__ import annotations
 
 import pathlib
 
@@ -25,10 +30,10 @@ def _load_env() -> dict[str, str]:
         return {}
     values: dict[str, str] = {}
     for line in env_file.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
             continue
-        key, _, val = line.partition("=")
+        key, _, val = stripped.partition("=")
         values[key.strip()] = val.strip()
     return values
 
@@ -40,11 +45,11 @@ _PASSWORD = _ENV.get("DECO_PASSWORD", "")
 
 pytestmark = pytest.mark.skipif(
     not _PASSWORD,
-    reason="DECO_PASSWORD não definido em .env",
+    reason="DECO_PASSWORD not set in .env",
 )
 
 
-def test_login_retorna_stok():
+def test_login_returns_stok() -> None:
     client = DecoClient(_HOST, _USERNAME, _PASSWORD)
     result = client.login()
 
@@ -55,19 +60,19 @@ def test_login_retorna_stok():
     assert isinstance(result.usr_lvl, int)
 
 
-def test_login_credenciais_erradas():
-    client = DecoClient(_HOST, _USERNAME, "senha_errada_xyz_123")
+def test_login_wrong_credentials() -> None:
+    client = DecoClient(_HOST, _USERNAME, "wrong_password_xyz_123")
     with pytest.raises((AuthenticationError, Exception)):
         client.login()
 
 
-def test_context_manager():
+def test_context_manager() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         assert deco.is_authenticated()
     assert not deco.is_authenticated()
 
 
-def test_get_device_mode():
+def test_get_device_mode() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         mode = deco.get_device_mode()
         print(f"\n  workmode={mode.workmode!r}")
@@ -78,7 +83,7 @@ def test_get_device_mode():
         assert isinstance(mode.sysmode, str)
 
 
-def test_get_wlan_config():
+def test_get_wlan_config() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         wlan = deco.get_wlan_config()
         print(f"\n  band2_4 ssid={wlan.band2_4.host.ssid!r}")
@@ -89,7 +94,7 @@ def test_get_wlan_config():
         assert isinstance(wlan.band6.guest.enable, bool)
 
 
-def test_get_device_list():
+def test_get_device_list() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         devices = deco.get_device_list()
         print(f"\n  devices={[d.mac for d in devices]}")
@@ -99,7 +104,7 @@ def test_get_device_list():
             assert isinstance(devices[0].signal_level.band2_4, str)
 
 
-def test_get_performance():
+def test_get_performance() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         perf = deco.get_performance()
         print(f"\n  cpu={perf.cpu_usage:.0%}  mem={perf.mem_usage:.0%}")
@@ -108,7 +113,7 @@ def test_get_performance():
         assert 0.0 <= perf.mem_usage <= 1.0
 
 
-def test_get_client_list():
+def test_get_client_list() -> None:
     with DecoClient(_HOST, _USERNAME, _PASSWORD) as deco:
         clients = deco.get_client_list()
         print(f"\n  clients={[c.mac for c in clients]}")
