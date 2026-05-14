@@ -1,28 +1,32 @@
-# TP-Link Deco — Protocolo de Autenticação
+# TP-Link Deco — Authentication Protocol
 
-Documentação do protocolo HTTP proprietário usado pela interface web do roteador TP-Link Deco (testado em `192.168.5.1`). Obtida por engenharia reversa dos arquivos JavaScript do firmware.
+Documentation of the proprietary HTTP protocol used by the TP-Link Deco web UI
+(tested on `192.168.5.1`). Reverse-engineered from the firmware's JavaScript
+files.
 
 ---
 
-## Visão geral
+## Overview
 
-Toda comunicação usa `POST` com `Content-Type: application/json` para:
+All communication uses `POST` with `Content-Type: application/json` against:
 
 ```
 http://<router-ip>/cgi-bin/luci/;stok=<TOKEN>/<endpoint>?form=<form>
 ```
 
-O `stok` é vazio antes do login (`/;stok=/`) e preenchido depois.
+`stok` is empty before login (`/;stok=/`) and populated afterwards.
 
-Requisições autenticadas têm o payload cifrado com **AES-128-CBC** e assinado com **RSA PKCS#1 v1.5** — exceto os endpoints listados na seção [Endpoints sem criptografia](#endpoints-sem-criptografia).
+Authenticated requests carry an **AES-128-CBC** encrypted payload signed with
+**RSA PKCS#1 v1.5** — except for the endpoints listed under
+[Plaintext endpoints](#plaintext-endpoints).
 
 ---
 
-## Fluxo de login
+## Login flow
 
-### Passo 1 — Obter chaves RSA
+### Step 1 — Fetch RSA keys
 
-Duas chamadas em paralelo, ambas sem criptografia:
+Two calls in parallel, both unencrypted:
 
 #### `POST /login?form=auth`
 
@@ -30,7 +34,7 @@ Duas chamadas em paralelo, ambas sem criptografia:
 { "operation": "read" }
 ```
 
-Resposta:
+Response:
 ```json
 {
   "result": {
@@ -41,8 +45,8 @@ Resposta:
 }
 ```
 
-- **Chave RSA 512-bit** usada para assinar o campo `sign` de todas as requisições
-- **`seq`** é um contador de sessão; incrementa a cada request
+- **512-bit RSA key** used to sign the `sign` field on every request.
+- **`seq`** is a session counter; it increments on every request.
 
 #### `POST /login?form=keys`
 
@@ -50,7 +54,7 @@ Resposta:
 { "operation": "read" }
 ```
 
-Resposta:
+Response:
 ```json
 {
   "result": {
@@ -61,32 +65,32 @@ Resposta:
 }
 ```
 
-- **Chave RSA 1024-bit** usada para cifrar a senha no payload de login
+- **1024-bit RSA key** used to encrypt the password inside the login payload.
 
 ---
 
-### Passo 2 — Preparar o encryptor
+### Step 2 — Prepare the encryptor
 
 ```python
 import secrets, hashlib
 
-# Chave AES: 2 strings de 16 dígitos numéricos aleatórios
+# AES key: two 16-digit numeric strings
 aes_key = "".join(secrets.choice("0123456789") for _ in range(16))
 aes_iv  = "".join(secrets.choice("0123456789") for _ in range(16))
 
-# String de identificação da chave AES (usada na assinatura)
+# AES key identifier (used inside the signature)
 aes_key_str = f"k={aes_key}&i={aes_iv}"
-# ex: "k=1415950173028918&i=5652578606663031"
+# e.g. "k=1415950173028918&i=5652578606663031"
 
-# Hash da sessão: MD5 do username concatenado com a senha
+# Session hash: MD5 of the username concatenated with the password
 session_hash = hashlib.md5((username + password).encode()).hexdigest()
 ```
 
 ---
 
-### Passo 3 — Enviar o login
+### Step 3 — Send the login request
 
-#### Montar o payload
+#### Build the payload
 
 ```python
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -102,7 +106,7 @@ def aes_encrypt(key: str, iv: str, plaintext: str) -> str:
     return b64encode(enc.update(padded) + enc.finalize()).decode()
 
 def rsa_pkcs1v15_encrypt(n: int, e: int, message: bytes) -> str:
-    """RSA PKCS#1 v1.5 — retorna hex lowercase."""
+    """RSA PKCS#1 v1.5 — returns lowercase hex."""
     k = (n.bit_length() + 7) // 8
     pad_len = k - len(message) - 3
     pad = b""
@@ -116,21 +120,21 @@ def rsa_pkcs1v15_encrypt(n: int, e: int, message: bytes) -> str:
     return h if len(h) % 2 == 0 else "0" + h
 
 def sign(n: int, e: int, sig_str: str) -> str:
-    """Divide em blocos de 53 chars (limite do RSA 512-bit com PKCS#1 v1.5)."""
+    """Split into 53-char blocks (the PKCS#1 v1.5 limit for 512-bit RSA)."""
     if len(sig_str) > 53:
         return (rsa_pkcs1v15_encrypt(n, e, sig_str[:53].encode()) +
                 rsa_pkcs1v15_encrypt(n, e, sig_str[53:].encode()))
     return rsa_pkcs1v15_encrypt(n, e, sig_str.encode())
 
-# Dados de login (cifrados com AES)
+# Login data (AES-encrypted)
 login_data = json.dumps({
     "operation": "login",
     "username":  username,
-    "password":  password,   # senha plain-text (AES já protege o canal)
+    "password":  password,   # plaintext password (AES already protects the channel)
 })
 data_b64 = aes_encrypt(aes_key, aes_iv, login_data)
 
-# String a assinar: inclui chave AES (isLogin=True)
+# String to sign: includes the AES key (isLogin=True)
 sig_str = f"{aes_key_str}&h={session_hash}&s={seq + len(data_b64)}"
 
 payload = {
@@ -148,7 +152,7 @@ payload = {
 }
 ```
 
-Resposta (sucesso):
+Response (on success):
 ```json
 {
   "result": {
@@ -161,12 +165,13 @@ Resposta (sucesso):
 
 ---
 
-## Requisições autenticadas
+## Authenticated requests
 
-Após o login, toda chamada usa o mesmo encryptor com `isLogin=False` (sem a chave AES na assinatura):
+After login, every call uses the same encryptor with `isLogin=False` (no AES
+key in the signature):
 
 ```python
-# String a assinar: SEM chave AES
+# String to sign: WITHOUT the AES key
 sig_str = f"h={session_hash}&s={seq + len(data_b64)}"
 
 payload = {
@@ -174,7 +179,7 @@ payload = {
     "data": aes_encrypt(aes_key, aes_iv, json.dumps(request_data)),
 }
 
-seq += 1  # incrementar a cada requisição
+seq += 1  # increment on every request
 ```
 
 URL:
@@ -184,56 +189,56 @@ POST http://<ip>/cgi-bin/luci/;stok=<TOKEN>/admin/<endpoint>?form=<form>
 
 ---
 
-## Parâmetros criptográficos
+## Crypto parameters
 
-| Parâmetro | Valor |
+| Parameter | Value |
 |-----------|-------|
-| AES modo | CBC |
+| AES mode | CBC |
 | AES padding | PKCS7 |
-| AES key size | 128-bit (16 chars numéricos) |
+| AES key size | 128-bit (16 numeric chars) |
 | RSA (sign) | 512-bit, PKCS#1 v1.5 |
 | RSA (pwd) | 1024-bit, PKCS#1 v1.5 |
-| RSA split | 53 chars por bloco |
-| Hash sessão | MD5(username + password) |
+| RSA split | 53 chars per block |
+| Session hash | MD5(username + password) |
 
 ---
 
-## Endpoints sem criptografia
+## Plaintext endpoints
 
-Estes endpoints recebem JSON puro (sem `sign`/`data`):
+These endpoints accept plain JSON (no `sign` / `data`):
 
-| Endpoint | Descrição |
-|----------|-----------|
-| `/login?form=auth` | RSA sign key + seq inicial |
+| Endpoint | Description |
+|----------|-------------|
+| `/login?form=auth` | RSA sign key + initial seq |
 | `/login?form=keys` | RSA password key |
-| `/login?form=check_factory_default` | Verifica se está em fábrica |
-| `/login?form=default_info` | SSID e senha padrão de fábrica |
-| `/admin/system?form=envar` | Variáveis de ambiente |
-| `/admin/system?form=sysmode` | Modo do sistema |
-| `/admin/cloud?form=firmware` | Info de firmware cloud |
-| `/admin/isp?form=isp_upgrade` | Upgrade via ISP |
-| `/admin/firmware?form=config_multipart` | Config de firmware (multipart) |
-| `/admin/log_export?form=save_log` | Exportar logs |
+| `/login?form=check_factory_default` | Check whether the router is in factory state |
+| `/login?form=default_info` | Factory default SSID and password |
+| `/admin/system?form=envar` | Environment variables |
+| `/admin/system?form=sysmode` | System mode |
+| `/admin/cloud?form=firmware` | Cloud firmware info |
+| `/admin/isp?form=isp_upgrade` | ISP-driven upgrade |
+| `/admin/firmware?form=config_multipart` | Firmware config (multipart) |
+| `/admin/log_export?form=save_log` | Log export |
 
 ---
 
-## Endpoints autenticados (descobertos)
+## Authenticated endpoints (discovered)
 
-| Endpoint | Descrição |
-|----------|-----------|
-| `/admin/device?form=mode` | Modo do dispositivo |
-| `/admin/wireless?form=wlan` | Configuração Wi-Fi |
-| `/admin/web?form=extra_component_info` | Info de componentes extras |
-| `/admin/component_control?form=switch_list` | Lista de switches |
+| Endpoint | Description |
+|----------|-------------|
+| `/admin/device?form=mode` | Device operating mode |
+| `/admin/wireless?form=wlan` | Wi-Fi configuration |
+| `/admin/web?form=extra_component_info` | Extra component info |
+| `/admin/component_control?form=switch_list` | Switch list |
 
 ---
 
-## Arquivos JavaScript relevantes do firmware
+## Relevant firmware JavaScript files
 
-| Arquivo | Conteúdo |
-|---------|----------|
-| `js/libs/tpEncrypt.js` | Classe `encryptor` — orquestra AES + RSA |
-| `js/libs/encrypt.js` | RSA PKCS#1 v1.5 + DES3 (legado) |
+| File | Contents |
+|------|----------|
+| `js/libs/tpEncrypt.js` | `encryptor` class — orchestrates AES + RSA |
+| `js/libs/encrypt.js` | RSA PKCS#1 v1.5 + DES3 (legacy) |
 | `js/libs/cryptoJS.min.js` | AES-CBC, MD5 |
-| `js/app/url.js` | Base URL e `stok` |
-| `js/su/frame.js` | Framework principal, interceptor de requisições |
+| `js/app/url.js` | Base URL and `stok` |
+| `js/su/frame.js` | Main framework, request interceptor |
