@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.0...v1.1.1) (2026-05-14)
+
+
+### Documentation
+
+* translate README, auth-protocol and pyproject description to English ([da74081](https://github.com/roquerodrigo/tplink-deco-api/commit/da7408178b28f7d609965cd785c00f7a423bd462))
+
 ## [1.1.0](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.0.1...v1.1.0) (2026-05-11)
 
 
