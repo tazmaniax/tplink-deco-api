@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.1...v1.1.2) (2026-05-25)
+
+
+### Documentation
+
+* add CI and PyPI badges ([b6dd7d1](https://github.com/roquerodrigo/tplink-deco-api/commit/b6dd7d16b744e09a4c44bc3d2f9780253782574d))
+* add CI and PyPI badges ([c1b6deb](https://github.com/roquerodrigo/tplink-deco-api/commit/c1b6debac7f8145b4f6a244f98e84988c5d06085))
+
 ## [1.1.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.0...v1.1.1) (2026-05-14)
 
 
