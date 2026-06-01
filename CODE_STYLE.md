@@ -192,7 +192,7 @@ and generate `CHANGELOG.md`:
 ## Testing
 
 - Tests live in `tests/`. `uv run pytest` runs the suite. Coverage is gated
-  at **95%** (`--cov-fail-under=95` in `pyproject.toml`); keep the
+  at **90%** (`--cov-fail-under=90` in `pyproject.toml`); keep the
   auth/crypto/transport layers covered since they're the byte-level surface
   most likely to regress silently.
 - The default `uv run pytest` invocation is **network-free**. Hardware-dependent
