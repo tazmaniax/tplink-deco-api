@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.2...v1.2.0) (2026-06-15)
+
+
+### Features
+
+* add network, wireless, time and log endpoints + HTTPS transport ([6832d0b](https://github.com/roquerodrigo/tplink-deco-api/commit/6832d0b239082f5327fa7fbdd001202dd3e03631))
+* release 1.2.0 (network/wireless/time/log endpoints + HTTPS) ([0761428](https://github.com/roquerodrigo/tplink-deco-api/commit/0761428150847f434b184850842be154d5e06e2d))
+
 ## [1.1.2](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.1...v1.1.2) (2026-05-25)
 
 
