@@ -181,7 +181,11 @@ class DecoClient:
     def get_dsl_status(self, device_mac: str = "default") -> DslStatus:
         """Return DSL link status for ``device_mac``.
 
-        On non-DSL hardware all fields default to empty strings or zero.
+        Only meaningful on DSL-capable hardware. Some non-DSL models return an
+        empty result, in which case every field defaults to an empty string or
+        zero; others reject the ``dsl_status`` form and raise
+        :class:`~tplink_deco_api.ApiError`. Callers targeting mixed hardware
+        should be prepared to catch that exception.
         """
         result = self.request(
             "admin/network",
