@@ -1,8 +1,14 @@
 # TP-Link Deco — Authentication Protocol
 
 Documentation of the proprietary HTTP protocol used by the TP-Link Deco web UI
-(tested on `192.168.5.1`). Reverse-engineered from the firmware's JavaScript
-files.
+(tested on `192.168.5.1`).
+
+> This page is the crypto/handshake deep-dive. For the request/response
+> contract around the envelope see
+> [`protocol/transport-and-dispatch.md`](./protocol/transport-and-dispatch.md),
+> and for the **complete** endpoint catalogue (every controller, form and
+> operation) see the [endpoint index](./endpoints/README.md). Start at
+> [`README.md`](./README.md).
 
 ---
 
@@ -222,7 +228,10 @@ These endpoints accept plain JSON (no `sign` / `data`):
 
 ---
 
-## Authenticated endpoints (discovered)
+## Authenticated endpoints (sample)
+
+> A small sample. The full catalogue — every controller, form and operation —
+> is in [`endpoints/README.md`](./endpoints/README.md).
 
 | Endpoint | Description |
 |----------|-------------|
@@ -230,15 +239,3 @@ These endpoints accept plain JSON (no `sign` / `data`):
 | `/admin/wireless?form=wlan` | Wi-Fi configuration |
 | `/admin/web?form=extra_component_info` | Extra component info |
 | `/admin/component_control?form=switch_list` | Switch list |
-
----
-
-## Relevant firmware JavaScript files
-
-| File | Contents |
-|------|----------|
-| `js/libs/tpEncrypt.js` | `encryptor` class — orchestrates AES + RSA |
-| `js/libs/encrypt.js` | RSA PKCS#1 v1.5 + DES3 (legacy) |
-| `js/libs/cryptoJS.min.js` | AES-CBC, MD5 |
-| `js/app/url.js` | Base URL and `stok` |
-| `js/su/frame.js` | Main framework, request interceptor |
