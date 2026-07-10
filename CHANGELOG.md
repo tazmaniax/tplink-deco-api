@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)
+
+
+### Documentation
+
+* document the Deco local HTTP API and protocol ([fa49ba9](https://github.com/roquerodrigo/tplink-deco-api/commit/fa49ba926bc378689be434a23987ed2f549ec787))
+
 ## [1.2.0](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.1.2...v1.2.0) (2026-06-15)
 
 
