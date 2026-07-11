@@ -427,32 +427,39 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
     resource_uris = {str(resource.uri) for resource in await server.list_resources()}
 
     assert tool_names == {
-        "deco_get_router_profile",
         "deco_get_capability",
         "deco_plan_mutation",
         "deco_execute_mutation",
-        "deco_get_network_overview",
-        "deco_get_mesh_overview",
         "deco_get_wlan_state",
         "deco_get_cloud_state",
-        "deco_get_client_overview",
-        "deco_get_system_overview",
     }
     assert resource_uris == {
+        "deco://mcp",
         "deco://status",
         "deco://configuration",
         "deco://mesh",
         "deco://devices",
         "deco://address-reservations",
+        "deco://logs",
         "deco://capabilities",
         "deco://mutations",
     }
+
+    tools = {tool.name: tool for tool in await server.list_tools()}
+    assert tools["deco_get_capability"].annotations.readOnlyHint is True
+    assert tools["deco_get_wlan_state"].annotations.readOnlyHint is True
+    assert tools["deco_get_cloud_state"].annotations.readOnlyHint is True
+    assert tools["deco_plan_mutation"].annotations.readOnlyHint is False
+    assert tools["deco_plan_mutation"].annotations.destructiveHint is False
+    assert tools["deco_execute_mutation"].annotations.readOnlyHint is False
+    assert tools["deco_execute_mutation"].annotations.destructiveHint is True
 
 
 @pytest.mark.asyncio
 async def test_diagnostic_server_retains_protocol_specific_tools() -> None:
     server = create_server(replace(_config(), expose_diagnostic_tools=True))
-    tool_names = {tool.name for tool in await server.list_tools()}
+    tools = {tool.name: tool for tool in await server.list_tools()}
+    tool_names = set(tools)
 
     assert len(tool_names) == 48
     assert "deco_get_capability" in tool_names
@@ -460,6 +467,9 @@ async def test_diagnostic_server_retains_protocol_specific_tools() -> None:
     assert "deco_read_endpoint" in tool_names
     assert "deco_tmp_read" in tool_names
     assert "deco_invoke_mutation" not in tool_names
+    assert all(tool.annotations is not None for tool in tools.values())
+    assert tools["deco_get_mesh_overview"].annotations.readOnlyHint is True
+    assert tools["deco_verify_setting_noop"].annotations.readOnlyHint is False
 
 
 @pytest.mark.asyncio

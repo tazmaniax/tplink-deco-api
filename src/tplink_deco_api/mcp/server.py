@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, cast
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 from .._json import JsonObject, JsonValue, loads
 from ..models import CompatibilityManifest
@@ -18,30 +19,55 @@ if TYPE_CHECKING:
 
 _PRIMARY_TOOL_NAMES: frozenset[str] = frozenset(
     {
-        "deco_get_router_profile",
         "deco_get_capability",
         "deco_plan_mutation",
         "deco_execute_mutation",
-        "deco_get_network_overview",
-        "deco_get_mesh_overview",
         "deco_get_wlan_state",
         "deco_get_cloud_state",
-        "deco_get_client_overview",
-        "deco_get_system_overview",
     }
 )
 _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
     {
+        "deco://mcp",
         "deco://status",
         "deco://configuration",
         "deco://mesh",
         "deco://devices",
         "deco://address-reservations",
+        "deco://logs",
         "deco://capabilities",
         "deco://mutations",
     }
 )
 _RAW_MUTATION_TOOL_NAMES: frozenset[str] = frozenset({"deco_invoke_mutation"})
+_MUTATING_TOOL_NAMES: frozenset[str] = frozenset(
+    {
+        "deco_execute_mutation",
+        "deco_invoke_mutation",
+        "deco_verify_p9_http_noop",
+        "deco_verify_setting_noop",
+        "deco_verify_tmp_ieee80211r_noop",
+    }
+)
+_STATEFUL_TOOL_NAMES: frozenset[str] = frozenset({"deco_plan_mutation"})
+_READ_ONLY_TOOL_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=False,
+)
+_STATEFUL_TOOL_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=False,
+    idempotentHint=False,
+    openWorldHint=False,
+)
+_MUTATING_TOOL_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=True,
+    idempotentHint=False,
+    openWorldHint=False,
+)
 
 
 def _json_text(value: JsonValue) -> str:
@@ -71,10 +97,10 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     server = FastMCP(
         "TP-Link Deco",
         instructions=(
-            "Use protocol-neutral capability and overview tools for normal work; the server "
-            "selects HTTP/LuCI or TMP/AppV2 and reports provenance. Automatic fallback is limited "
-            "to proven equivalent reads and never applies to mutations. Read-only operations are "
-            "enabled by default. "
+            "Use semantic resources and protocol-neutral parameterized tools for normal work; "
+            "the server selects HTTP/LuCI or TMP/AppV2 and reports provenance. Automatic fallback "
+            "is limited to proven equivalent reads and never applies to mutations. Read-only "
+            "operations are enabled by default. "
             "Sensitive reads, mutations, destructive operations, and internal operations each "
             "require a separate server-side environment opt-in. Bulk-secret downloads and "
             "binary content export have additional independent gates. TMP reads have independent "
@@ -93,10 +119,15 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         """Return the non-secret endpoint catalogue as JSON."""
         return _json_text(service.endpoint_catalog())
 
+    @server.resource("deco://mcp")
+    def mcp_resource() -> str:
+        """Return non-secret MCP configuration and connection state."""
+        return _json_text(service.public_status())
+
     @server.resource("deco://status")
     def status_resource() -> str:
-        """Return non-secret configuration and connection status."""
-        return _json_text(service.public_status())
+        """Return a sanitized live health summary of the connected Deco network."""
+        return _json_text(service.network_status_resource())
 
     @server.resource("deco://configuration")
     def configuration_resource() -> str:
@@ -105,8 +136,8 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
 
     @server.resource("deco://mesh")
     def mesh_resource() -> str:
-        """Return connected controller and node identities using a cached live read."""
-        return _json_text(service.device_inventory())
+        """Return a fresh connected-controller and mesh-node inventory."""
+        return _json_text(service.device_inventory(refresh=True))
 
     @server.resource("deco://devices")
     def devices_resource() -> str:
@@ -117,6 +148,11 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     def address_reservations_resource() -> str:
         """Return the gated live address-reservation table."""
         return _json_text(service.address_reservations_resource())
+
+    @server.resource("deco://logs")
+    def logs_resource() -> str:
+        """Return available log categories without reading log contents."""
+        return _json_text(service.logs_resource())
 
     @server.resource("deco://capabilities")
     def capabilities_resource() -> str:
@@ -565,6 +601,12 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         )
 
     for tool in server._tool_manager.list_tools():
+        if tool.name in _MUTATING_TOOL_NAMES:
+            tool.annotations = _MUTATING_TOOL_ANNOTATIONS
+        elif tool.name in _STATEFUL_TOOL_NAMES:
+            tool.annotations = _STATEFUL_TOOL_ANNOTATIONS
+        else:
+            tool.annotations = _READ_ONLY_TOOL_ANNOTATIONS
         if tool.name in _PRIMARY_TOOL_NAMES:
             continue
         if tool.name in _RAW_MUTATION_TOOL_NAMES:

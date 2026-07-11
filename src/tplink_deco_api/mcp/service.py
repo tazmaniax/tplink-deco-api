@@ -85,6 +85,7 @@ if TYPE_CHECKING:
         EndpointObservation,
         IpInfo,
         MutationPlan,
+        SpeedTest,
         TmpOpcodeSpec,
         WlanBand,
         WlanConfig,
@@ -387,16 +388,185 @@ class DecoMcpService:
         return result
 
     def client_devices_resource(self) -> dict[str, JsonValue]:
-        """Return the live network-client inventory through the semantic read path."""
+        """Return live client identity, topology, traffic, and blocking state."""
         result = self.read_capability("clients")
+        errors: list[dict[str, JsonValue]] = []
+        node_clients: tuple[NodeClientList, ...] = ()
+        clients_by_node: list[JsonValue] = []
+        traffic_statistics: JsonValue = None
+        blocked_devices: JsonValue = None
+        try:
+            node_clients = self.get_clients_by_node()
+            clients_by_node = [item.to_dict() for item in node_clients]
+        except _LIVE_READ_ERRORS as exc:
+            errors.append(_configuration_error("clients_by_node", exc))
+        with self._lock:
+            client = self._get_client()
+            try:
+                traffic_statistics = client.get_traffic_statistics()
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("traffic_statistics", exc))
+            try:
+                blocked_devices = client.call(get_endpoint("admin.client.black_list.list")).result
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("blocked_devices", exc))
+        result.update(
+            {
+                "clients_by_node": clients_by_node,
+                "client_assignment_count": sum(len(item.clients) for item in node_clients),
+                "traffic_statistics": traffic_statistics,
+                "blocked_devices": blocked_devices,
+                "unavailable_sections": errors,
+            }
+        )
         result["router_contacted"] = True
         return result
+
+    def logs_resource(self) -> dict[str, JsonValue]:
+        """Return the live log-category catalogue without reading log contents."""
+        categories: list[dict[str, JsonValue]] = []
+        errors: list[dict[str, JsonValue]] = []
+        with self._lock:
+            try:
+                categories = [
+                    {"name": item.name, "value": item.value}
+                    for item in self._get_client().get_log_types()
+                ]
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("categories", exc))
+        return {
+            "schema_version": 1,
+            "categories": categories,
+            "category_count": len(categories),
+            "status": "available" if not errors else "unavailable",
+            "unavailable_sections": errors,
+            "log_contents_included": False,
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def network_status_resource(self) -> dict[str, JsonValue]:
+        """Return a sanitized live health summary without client identities or secrets."""
+        inventory = self.device_inventory(refresh=True)
+        devices = self._device_cache or ()
+        controller = _controller_device(devices)
+        online_nodes = tuple(device for device in devices if _device_is_online(device))
+        offline_node_count = len(devices) - len(online_nodes)
+        weak_signal_node_count = sum(_device_has_weak_wireless_signal(device) for device in devices)
+        backhaul_counts = Counter(
+            connection_type for device in devices for connection_type in device.connection_type
+        )
+        errors: list[dict[str, JsonValue]] = []
+        warnings: list[dict[str, JsonValue]] = []
+        internet: JsonValue = None
+        performance: JsonValue = None
+        firmware: JsonValue = None
+        speed_test: JsonValue = None
+        client_count: JsonValue = None
+        client_count_status = "gated"
+        with self._lock:
+            client = self._get_client()
+            try:
+                internet = _internet_status_view(client.get_internet_status())
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("internet", exc))
+            try:
+                observed_performance = client.get_performance()
+                performance = {
+                    "cpu_usage": observed_performance.cpu_usage,
+                    "memory_usage": observed_performance.mem_usage,
+                }
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("performance", exc))
+            try:
+                firmware = client.call(get_endpoint("admin.cloud.firmware_status.read")).result
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("firmware", exc))
+            try:
+                speed_test = _speed_test_view(client.get_speed_test())
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("speed_test", exc))
+            if self._config.allow_sensitive_reads:
+                try:
+                    client_count = len(client.get_client_list())
+                    client_count_status = "available"
+                except _LIVE_READ_ERRORS as exc:
+                    client_count_status = "unavailable"
+                    errors.append(_configuration_error("client_count", exc))
+
+        if offline_node_count:
+            warnings.append(
+                _network_warning(
+                    "mesh_nodes_offline",
+                    f"{offline_node_count} mesh node(s) appear offline",
+                )
+            )
+        if weak_signal_node_count:
+            warnings.append(
+                _network_warning(
+                    "weak_wireless_backhaul",
+                    f"{weak_signal_node_count} mesh node(s) report weak wireless backhaul",
+                )
+            )
+        if isinstance(internet, Mapping) and not _internet_is_online(internet):
+            warnings.append(_network_warning("internet_offline", "Internet connectivity is down"))
+        if isinstance(performance, Mapping):
+            if _numeric_value(performance.get("cpu_usage")) >= 0.9:
+                warnings.append(_network_warning("high_cpu_usage", "Gateway CPU usage is high"))
+            if _numeric_value(performance.get("memory_usage")) >= 0.9:
+                warnings.append(
+                    _network_warning("high_memory_usage", "Gateway memory usage is high")
+                )
+        if errors:
+            warnings.append(
+                _network_warning(
+                    "partial_data",
+                    f"{len(errors)} live status section(s) could not be read",
+                )
+            )
+
+        return {
+            "schema_version": 1,
+            "status": "healthy" if not warnings else "degraded",
+            "controller": {
+                "model": controller.device_model,
+                "role": controller.role,
+                "hardware_version": controller.hardware_ver,
+                "software_version": controller.software_ver,
+                "internet_status": controller.inet_status,
+                "group_status": controller.group_status,
+            },
+            "internet": internet,
+            "mesh": {
+                "total_nodes": len(devices),
+                "online_nodes": len(online_nodes),
+                "offline_nodes": offline_node_count,
+                "controller_online": _device_is_online(controller),
+                "mixed_model_mesh": inventory["mixed_model_mesh"],
+                "backhaul_type_counts": dict(sorted(backhaul_counts.items())),
+                "weak_signal_nodes": weak_signal_node_count,
+            },
+            "performance": performance,
+            "firmware": firmware,
+            "speed_test": speed_test,
+            "client_count": client_count,
+            "client_count_status": client_count_status,
+            "warnings": warnings,
+            "unavailable_sections": errors,
+            "observed_at_epoch_seconds": time.time(),
+            "passwords_included": False,
+            "client_identities_included": False,
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def configuration_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live configuration overview without secret datasets."""
         inventory = self.device_inventory()
         sections: dict[str, JsonValue] = {}
         errors: list[dict[str, JsonValue]] = []
+        nickname: JsonValue = None
+        nickname_status = "gated"
         with self._lock:
             client = self._get_client()
             try:
@@ -427,6 +597,16 @@ class DecoMcpService:
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("dhcp", exc))
             try:
+                sections["network_features"] = {
+                    "wan_mode": client.call(get_endpoint("admin.network.wan_mode.read")).result,
+                    "lan_ipv4": client.get_lan_ipv4(),
+                    "lan_ip": client.get_lan_ip(),
+                    "vlan": client.call(get_endpoint("admin.network.vlan.read")).result,
+                    "mac_clone": client.call(get_endpoint("admin.network.mac_clone.read")).result,
+                }
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("network_features", exc))
+            try:
                 time_settings = client.get_time_settings()
                 sections["time_settings"] = {
                     "time": time_settings.time,
@@ -447,17 +627,28 @@ class DecoMcpService:
                 }
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("wireless_features", exc))
+            if self._config.allow_sensitive_reads:
+                try:
+                    nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
+                    nickname_status = "available"
+                except _LIVE_READ_ERRORS as exc:
+                    nickname_status = "unavailable"
+                    errors.append(_configuration_error("nickname", exc))
         return {
             "schema_version": 1,
             "controller": inventory["controller"],
             **sections,
             "related_resources": {
+                "status": "deco://status",
                 "mesh": "deco://mesh",
                 "client_devices": "deco://devices",
                 "address_reservations": "deco://address-reservations",
+                "logs": "deco://logs",
                 "capabilities": "deco://capabilities",
                 "mutations": "deco://mutations",
             },
+            "nickname": nickname,
+            "nickname_status": nickname_status,
             "unavailable_sections": errors,
             "passwords_included": False,
             "client_identities_included": False,
@@ -1497,7 +1688,7 @@ class DecoMcpService:
             "unified_agent_surface": {
                 "capability_count": len(CAPABILITY_ROUTES),
                 "mutation_capability_count": len(MUTATION_CAPABILITY_ROUTES),
-                "default_tool_count": 10,
+                "default_tool_count": 5,
                 "diagnostic_tool_count": 48,
                 "agent_selects_protocol": False,
                 "automatic_fallback_scope": "proven_equivalent_reads_only",
@@ -2294,6 +2485,10 @@ class DecoMcpService:
 
     def mesh_overview(self) -> dict[str, JsonValue]:
         """Return mesh-node state with clients queried separately for each node."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read mesh overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+            )
         with self._lock:
             client = self._get_client()
             devices = client.get_device_list()
@@ -2341,6 +2536,10 @@ class DecoMcpService:
 
     def client_overview(self) -> dict[str, JsonValue]:
         """Return confirmed client, traffic, blacklist, and reservation state."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read client overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+            )
         with self._lock:
             client = self._get_client()
             clients = tuple(client.get_client_list())
@@ -2365,6 +2564,10 @@ class DecoMcpService:
 
     def system_overview(self) -> dict[str, JsonValue]:
         """Return confirmed speed-test, firmware, nickname, and log-type state."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read system overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+            )
         with self._lock:
             client = self._get_client()
             speed_test = client.get_speed_test()
@@ -2372,13 +2575,7 @@ class DecoMcpService:
             nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
             log_types = client.get_log_types()
         return {
-            "speed_test": {
-                "down_speed": speed_test.down_speed,
-                "up_speed": speed_test.up_speed,
-                "status": speed_test.status,
-                "ever_tested": speed_test.ever_tested,
-                "last_speed_test_time": speed_test.last_speed_test_time,
-            },
+            "speed_test": _speed_test_view(speed_test),
             "firmware_status": firmware,
             "nickname": nickname,
             "log_types": [
@@ -3126,6 +3323,10 @@ class DecoMcpService:
 
     def get_clients_by_node(self) -> tuple[NodeClientList, ...]:
         """Return client lists queried separately from every mesh node."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read clients by node: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+            )
         with self._lock:
             client = self._get_client()
             try:
@@ -3263,6 +3464,16 @@ def _internet_status_view(status: InternetStatus) -> dict[str, JsonValue]:
     }
 
 
+def _speed_test_view(speed_test: SpeedTest) -> dict[str, JsonValue]:
+    return {
+        "down_speed": speed_test.down_speed,
+        "up_speed": speed_test.up_speed,
+        "status": speed_test.status,
+        "ever_tested": speed_test.ever_tested,
+        "last_speed_test_time": speed_test.last_speed_test_time,
+    }
+
+
 def _address_reservation_view(table: AddressReservationTable) -> dict[str, JsonValue]:
     return {
         "count": len(table.reservations),
@@ -3365,6 +3576,58 @@ def _device_view(device: Device) -> dict[str, JsonValue]:
             "6ghz": device.signal_level.band6,
         },
     }
+
+
+def _device_is_online(device: Device) -> bool:
+    offline_states = {"disconnected", "down", "error", "failed", "offline"}
+    observed_states = {device.group_status.casefold(), device.inet_status.casefold()}
+    return observed_states.isdisjoint(offline_states)
+
+
+def _device_has_weak_wireless_signal(device: Device) -> bool:
+    if device.role == "master":
+        return False
+    band_signals = {
+        "band2_4": device.signal_level.band2_4,
+        "band5": device.signal_level.band5,
+        "band6": device.signal_level.band6,
+    }
+    active_signals = [
+        _signal_level(value)
+        for connection_type, value in band_signals.items()
+        if connection_type in device.connection_type and _signal_level(value) > 0
+    ]
+    return bool(active_signals) and max(active_signals) <= 1
+
+
+def _signal_level(value: str) -> int:
+    try:
+        return int(value)
+    except ValueError:
+        return 0
+
+
+def _internet_is_online(internet: Mapping[str, JsonValue]) -> bool:
+    link_status = internet.get("link_status")
+    if isinstance(link_status, str) and link_status.casefold() in {"down", "offline"}:
+        return False
+    ipv4 = internet.get("ipv4")
+    ipv6 = internet.get("ipv6")
+    statuses = tuple(
+        value.get("inet_status") for value in (ipv4, ipv6) if isinstance(value, Mapping)
+    )
+    return not statuses or any(
+        isinstance(status, str) and status.casefold() in {"connected", "online", "up"}
+        for status in statuses
+    )
+
+
+def _numeric_value(value: JsonValue | None) -> float:
+    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0.0
+
+
+def _network_warning(code: str, message: str) -> dict[str, JsonValue]:
+    return {"code": code, "message": message}
 
 
 def _controller_device(devices: tuple[Device, ...]) -> Device:

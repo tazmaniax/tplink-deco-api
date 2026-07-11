@@ -43,13 +43,14 @@ batching live in the protocol pages.
 | [`protocol/cloud-api.md`](./protocol/cloud-api.md) | TP-Link cloud hosts, account API and device passthrough |
 | [`mcp.md`](./mcp.md) | Agent-facing MCP server, tools, resources and safety gates |
 
-The default MCP surface is protocol-neutral: agents see ten semantic tools and
-seven resources covering status, sanitized configuration, mesh nodes, network
-devices, address reservations, capabilities and mutations. The server resolves
-the connected controller and chooses HTTP/LuCI or TMP/AppV2; agents never supply
-a live model or protocol. Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` to add the
-protocol-specific catalogue and evidence surface. Raw endpoint mutation
-visibility has a separate opt-in and neither visibility flag authorizes writes.
+The default MCP surface is protocol-neutral: agents see five semantic tools and
+nine resources covering MCP state, live network status, sanitized
+configuration, mesh nodes, network devices, address reservations, log
+categories, capabilities and mutations. The server resolves the connected
+controller and chooses HTTP/LuCI or TMP/AppV2; agents never supply a live model or protocol. Set
+`DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` to add the protocol-specific catalogue and
+evidence surface. Raw endpoint mutation visibility has a separate opt-in and
+neither visibility flag authorizes writes.
 
 ### Endpoints (by functionality)
 

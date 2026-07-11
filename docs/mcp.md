@@ -85,9 +85,9 @@ because an already-open task may retain the earlier tool snapshot.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes ten protocol-neutral tools and seven
+The current default surface exposes five protocol-neutral tools and nine
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 16 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 18 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -146,17 +146,19 @@ falls back to local token and cookie invalidation.
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
-Except for `deco://status`, reading one can authenticate to the router. Client
+Except for `deco://mcp`, reading one can authenticate to the router. Client
 devices and address reservations additionally require
 `DECO_MCP_ALLOW_SENSITIVE_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
-| `deco://status` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
-| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `time_settings`, `wireless_features`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
-| `deco://mesh` | Controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
-| `deco://devices` | Client devices currently reported on the network. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
+| `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
+| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
+| `deco://devices` | Gated client identities, per-node associations, traffic statistics and blocked-device state. | `capability`, `schema_version`, `data`, `provenance`, `clients_by_node`, `client_assignment_count`, `traffic_statistics`, `blocked_devices`, `unavailable_sections`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://logs` | Available log categories without reading actual log entries. | `schema_version`, `categories`, `category_count`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
 | `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
 | `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
 
@@ -168,6 +170,13 @@ Each `capabilities[]` item contains `name`, `description`, `category`,
 `execution_scope`, `execution_status`, `required_gates`,
 `confirmation_required`, `preflight_available`, `verification_available`,
 `rollback_available`, `planner_tool`, `executor_tool` and `blockers`.
+Each `clients_by_node[]` item contains `node_mac` and `clients`; each nested
+client contains `mac`, `ip`, `name`, `up_speed`, `down_speed`, `wire_type`,
+`connection_type`, `space_id`, `access_host`, `interface`, `client_type`,
+`owner_id`, `remain_time`, `online`, `client_mesh` and `enable_priority`. Each
+`categories[]` item contains `name` and `value`. Each `warnings[]` item contains
+`code` and `message`; each `unavailable_sections[]` item contains `section`,
+`status` and `error_type`.
 
 Protocol and evidence resources are diagnostic-only:
 
@@ -185,22 +194,35 @@ Protocol and evidence resources are diagnostic-only:
 
 ## Tools
 
-By default agents see only the ten protocol-neutral tools below. The server
-resolves the connected controller and chooses implementations; the agent never
-supplies a live model or protocol.
+By default agents see only the five non-duplicative protocol-neutral tools
+below. Resources are the canonical state views. Default tools are retained only
+for parameterized or specially gated reads and the mutation workflow. The
+server resolves the connected controller and chooses implementations; the
+agent never supplies a live model or protocol.
 
 | Primary tool | Behaviour |
 |---|---|
-| `deco_get_router_profile` | Resolve or refresh the connected controller and mesh-node identity read-only. |
 | `deco_get_capability` | Read `mesh_nodes`, `clients`, `internet_status`, `address_reservations`, `fast_roaming`, or `beamforming`; normalize the result and report source interface, operation, attempts and fallback use. |
 | `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
 | `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
-| `deco_get_network_overview` | Return opted-in mode, internet, WAN/LAN, performance, time and address-reservation state. |
-| `deco_get_mesh_overview` | Return mesh nodes and clients queried separately for each node. |
 | `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
 | `deco_get_cloud_state` | Return opted-in DDNS and cloud-manager state. |
-| `deco_get_client_overview` | Return clients, traffic counters, blacklist and address reservations. |
-| `deco_get_system_overview` | Return speed-test, firmware-status, mesh nickname and log-type state. |
+
+The legacy compound reads `deco_get_router_profile`,
+`deco_get_network_overview`, `deco_get_mesh_overview`,
+`deco_get_client_overview` and `deco_get_system_overview` remain available in
+diagnostic mode for compatibility. They are excluded from the default surface
+because their data is available through the semantic resources: configuration
+contains the detailed network features, devices contains topology, traffic and
+blocking state, status contains speed-test and firmware state, and logs exposes
+categories without contents. Client-bearing and private overview reads require
+`DECO_MCP_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
+
+Every tool publishes MCP annotations. Read tools advertise `readOnlyHint=true`;
+the semantic planner is non-destructive but stateful because it may create a
+one-shot plan; execution and verified no-op tools conservatively advertise
+possible destructive effects. All tools operate against the configured Deco
+mesh rather than an open-world target.
 
 The semantic mutation workflow is discover, plan, authorize and execute:
 
