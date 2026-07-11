@@ -1,8 +1,10 @@
 # MCP server
 
-The optional MCP server exposes the Deco endpoint catalogue and local router
-operations to agents while enforcing the SDK's safety and sensitivity metadata.
-It uses the stable 1.x MCP Python SDK and communicates over standard input/output.
+The optional MCP server presents protocol-neutral Deco capabilities while
+enforcing the SDK's safety and sensitivity metadata. Agents select the data they
+need; the server selects HTTP/LuCI or TMP/AppV2 and returns routing provenance.
+Protocol-specific discovery tools are an opt-in diagnostic surface. The server
+uses the stable 1.x MCP Python SDK over standard input/output.
 
 ## Installation
 
@@ -34,6 +36,7 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_MCP_ALLOW_TMP_READS` | off | Permit TMP reads that have positive P9 evidence. |
 | `DECO_MCP_ALLOW_UNVERIFIED_TMP_READS` | off | Additionally permit read-only opcodes not yet tested on the P9. |
 | `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit only the P9-verified TMP 802.11r current-value no-op; also requires the ordinary mutation and TMP-read gates. |
+| `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS` | off | Register protocol-specific catalogue, raw read, discovery and mutation-analysis tools in addition to the protocol-neutral agent surface. |
 
 Run the installed entry point:
 
@@ -66,6 +69,7 @@ codex mcp add tplink-deco \
   --env DECO_MCP_ALLOW_TMP_READS=1 \
   --env DECO_MCP_ALLOW_UNVERIFIED_TMP_READS=0 \
   --env DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=0 \
+  --env DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=0 \
   -- /opt/homebrew/bin/op run -- \
     /opt/homebrew/bin/uv run --project "$PWD" tplink-deco-mcp
 ```
@@ -78,9 +82,10 @@ task or reload MCP configuration after changing the server's tool definitions,
 because an already-open task may retain the earlier tool snapshot.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
-That live audit covered 42 tools and nine resources. The current package exposes
-43 tools and the same nine resources after adding the offline-tested,
-disabled-by-default HTTP no-op verifier. With HTTP risk gates disabled and only
+That historical live audit covered the then-current 43 tools and nine resources.
+The current default surface exposes seven protocol-neutral tools and ten
+resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes all 44 tools;
+the additional resource describes logical capability routing. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
 mutation before opening a router session, produced an offline reservation
@@ -148,11 +153,44 @@ falls back to local token and cookie invalidation.
 | `deco://compatibility/p9` | Observed P9 read support and untested same-form mutation candidates. |
 | `deco://compatibility/p9/operations` | Non-secret catalogue with P9 evidence on every operation. |
 | `deco://compatibility/p9/mutations` | P9 mutation candidates, evidence, safety-contract coverage and runtime eligibility. |
+| `deco://capability-routes` | Logical capabilities, preferred and fallback implementations, equivalence evidence, and current fallback readiness. |
 
 ## Tools
 
+By default agents see only the seven protocol-neutral tools below. The server
+chooses the implementation for `deco_get_capability`; the six overview tools
+remain semantic composites and never ask the agent to select a transport.
+
+| Primary tool | Behaviour |
+|---|---|
+| `deco_get_capability` | Read `mesh_nodes`, `clients`, `internet_status`, `address_reservations`, `fast_roaming`, or `beamforming`; normalize the result and report source interface, operation, attempts and fallback use. |
+| `deco_get_network_overview` | Return opted-in mode, internet, WAN/LAN, performance, time and address-reservation state. |
+| `deco_get_mesh_overview` | Return mesh nodes and clients queried separately for each node. |
+| `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
+| `deco_get_cloud_state` | Return opted-in DDNS and cloud-manager state. |
+| `deco_get_client_overview` | Return clients, traffic counters, blacklist and address reservations. |
+| `deco_get_system_overview` | Return speed-test, firmware-status, mesh nickname and log-type state. |
+
+Automatic fallback is limited to the six registry entries with live P9 schema
+or boolean-contract equivalence. HTTP is currently preferred because it has the
+stronger typed SDK façade. TMP fallback requires its ordinary read gate, pinned
+host key and credentials; secret logical capabilities also require the single
+sensitive-read gate before either transport is selected. Errors include only
+the failed interface and exception type in successful fallback provenance.
+Mutations are never retried or routed automatically.
+
+This first registry intentionally covers only overlaps with demonstrated
+normalization equivalence. Protocol-unique datasets remain on the diagnostic
+surface until they receive stable logical names and normalized schemas; the
+router never invents equivalence merely to hide a transport distinction.
+
+The remaining tools are registered only when
+`DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1`. They support endpoint research, complete
+batch access, compatibility audits and explicitly gated mutation analysis.
+
 | Tool | Behaviour |
 |---|---|
+| `deco_get_capability` | Protocol-neutral capability read; also remains present on the diagnostic surface. |
 | `deco_endpoint_catalog` | Filter operations and optionally add a model overlay with `model="P9"`. |
 | `deco_p9_profile` | Return the bundled P9 observation summary and inferred, untested mutation candidates. |
 | `deco_transport_capabilities` | Explain implemented, unsupported and detected Deco transports. |
@@ -173,14 +211,8 @@ falls back to local token and cookie invalidation.
 | `deco_p9_mutation_inventory` | Return all P9 mutation candidates with evidence, parameters, safety contracts, gates and execution eligibility. |
 | `deco_p9_http_mutation_verification_queue` | Rank all 23 P9 HTTP writes offline; deferred, destructive and already-verified tiers require explicit query flags and no execution path is added. |
 | `deco_operation_compatibility` | Explain generic metadata and model evidence for one operation. |
-| `deco_get_network_overview` | Return opted-in mode, internet, WAN/LAN, performance, time and address-reservation state. |
 | `deco_get_p9_http_data` | Return complete envelopes for supported P9 HTTP reads, optionally scoped by controller; secret operations require two explicit opt-ins. |
 | `deco_discover_p9_untested_http_reads` | Probe any remaining untested, non-secret P9 JSON reads using implemented owner-session or plaintext-bootstrap transport; currently none remain. |
-| `deco_get_mesh_overview` | Return mesh nodes and clients queried separately for each node. |
-| `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
-| `deco_get_cloud_state` | Return opted-in DDNS and cloud-manager state. |
-| `deco_get_client_overview` | Return clients, traffic counters, blacklist and address reservations. |
-| `deco_get_system_overview` | Return speed-test, firmware-status, mesh nickname and log-type state. |
 | `deco_read_endpoint` | Call one read-only operation and return its complete firmware envelope. |
 | `deco_validate_operation` | Check required parameters and SDK transport support without contacting the router. |
 | `deco_plan_mutation` | Build a dry-run preflight, verification and rollback plan without contacting the router. |

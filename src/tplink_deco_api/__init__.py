@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .capability_routing import CAPABILITY_ROUTES, get_capability_route
 from .client import DecoClient
 from .endpoint_catalog import (
     CAPABILITY_ENDPOINTS,
@@ -47,6 +48,7 @@ from .models import (
     ApiResponse,
     BinaryResponse,
     CapabilityReport,
+    CapabilityRoute,
     ClientDevice,
     CompatibilityDelta,
     CompatibilityManifest,
@@ -117,6 +119,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "CAPABILITY_ENDPOINTS",
+    "CAPABILITY_ROUTES",
     "CATALOG_VERSION",
     "DISCOVERABLE_READ_ENDPOINTS",
     "ENDPOINT_CATALOG",
@@ -143,6 +146,7 @@ __all__ = [
     "AuthenticationError",
     "BinaryResponse",
     "CapabilityReport",
+    "CapabilityRoute",
     "ClientDevice",
     "CompatibilityDelta",
     "CompatibilityManifest",
@@ -200,6 +204,7 @@ __all__ = [
     "build_mutation_plan",
     "build_tmp_mutation_plan",
     "build_tmp_mutation_verification_queue",
+    "get_capability_route",
     "get_compatibility_profile",
     "get_endpoint",
     "get_tmp_opcode",

@@ -150,6 +150,7 @@ def main() -> int:
             _required(args.host_key_sha256, "pinned host key") if args.complete_tmp_batch else ""
         ),
         allow_tmp_reads=args.complete_tmp_batch,
+        expose_diagnostic_tools=True,
     )
     password = ""
     server = create_server(config)

@@ -16,6 +16,18 @@ from .service import DecoMcpService
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
+_PRIMARY_TOOL_NAMES: frozenset[str] = frozenset(
+    {
+        "deco_get_capability",
+        "deco_get_network_overview",
+        "deco_get_mesh_overview",
+        "deco_get_wlan_state",
+        "deco_get_cloud_state",
+        "deco_get_client_overview",
+        "deco_get_system_overview",
+    }
+)
+
 
 def _json_text(value: JsonValue) -> str:
     return json.dumps(value, indent=2, sort_keys=True)
@@ -31,7 +43,8 @@ def _json_value(value_json: str) -> JsonValue:
 
 def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     """Create a stdio-capable MCP server with conservative safety defaults."""
-    service = DecoMcpService(config or McpConfig.from_env())
+    effective_config = config or McpConfig.from_env()
+    service = DecoMcpService(effective_config)
 
     @asynccontextmanager
     async def lifespan(_: FastMCP[None]) -> AsyncIterator[None]:
@@ -43,7 +56,10 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     server = FastMCP(
         "TP-Link Deco",
         instructions=(
-            "Inspect endpoint metadata before calls. Read-only operations are enabled by default. "
+            "Use protocol-neutral capability and overview tools for normal work; the server "
+            "selects HTTP/LuCI or TMP/AppV2 and reports provenance. Automatic fallback is limited "
+            "to proven equivalent reads and never applies to mutations. Read-only operations are "
+            "enabled by default. "
             "Sensitive reads, mutations, destructive operations, and internal operations each "
             "require a separate server-side environment opt-in. Bulk-secret downloads and "
             "binary content export have additional independent gates. TMP reads have independent "
@@ -69,6 +85,11 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     def transport_capabilities_resource() -> str:
         """Return implemented and catalogued transport coverage."""
         return _json_text(service.transport_capabilities())
+
+    @server.resource("deco://capability-routes")
+    def capability_routes_resource() -> str:
+        """Return logical capability routes and fallback readiness without router contact."""
+        return _json_text(service.capability_routes())
 
     @server.resource("deco://compatibility/p9/tmp-opcodes")
     def p9_tmp_opcodes_resource() -> str:
@@ -279,6 +300,11 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         return _json_text(service.operation_compatibility(name, model))
 
     @server.tool()
+    def deco_get_capability(name: str) -> str:
+        """Read one logical capability while the server selects and normalizes its protocol."""
+        return _json_text(service.read_capability(name))
+
+    @server.tool()
     def deco_get_network_overview() -> str:
         """Return confirmed network, performance, time, and reservation state."""
         return _json_text(service.network_overview())
@@ -455,6 +481,11 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
                 model,
             ).payload
         )
+
+    if not effective_config.expose_diagnostic_tools:
+        for tool in server._tool_manager.list_tools():
+            if tool.name not in _PRIMARY_TOOL_NAMES:
+                server._tool_manager.remove_tool(tool.name)
 
     return server
 

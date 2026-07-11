@@ -62,6 +62,7 @@ def _config(**overrides: bool) -> McpConfig:
         "allow_internal": False,
         "allow_tmp_noop_verification": False,
         "allow_http_noop_verification": False,
+        "expose_diagnostic_tools": True,
     }
     values.update(overrides)
     return McpConfig(
@@ -90,6 +91,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("DECO_MCP_ALLOW_UNVERIFIED_TMP_READS", "true")
     monkeypatch.setenv("DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION", "on")
+    monkeypatch.setenv("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS", "on")
 
     config = McpConfig.from_env()
     public = config.public_settings()
@@ -108,6 +110,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert config.allow_unverified_tmp_reads
     assert config.allow_tmp_noop_verification
     assert config.allow_http_noop_verification
+    assert config.expose_diagnostic_tools
     assert public["password_configured"] is True
     assert public["tp_link_id_configured"] is True
     assert public["tmp_host_key_sha256"] == "SHA256:test"
@@ -115,6 +118,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert public["allow_http_noop_verification"] is True
     assert public["allow_bulk_secret_reads"] is True
     assert public["allow_binary_content"] is True
+    assert public["expose_diagnostic_tools"] is True
     assert "password" not in public
     assert "owner@example.com" not in str(public)
 
@@ -302,6 +306,11 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
+    assert coverage["unified_agent_surface"]["capability_count"] == 6
+    assert coverage["unified_agent_surface"]["default_tool_count"] == 7
+    assert coverage["unified_agent_surface"]["diagnostic_tool_count"] == 44
+    assert coverage["unified_agent_surface"]["agent_selects_protocol"] is False
+    assert coverage["unified_agent_surface"]["automatic_mutation_fallback"] is False
     assert coverage["http"]["catalogued_read_count"] == 219
     assert coverage["http"]["p9_observation_counts"] == {
         "invalid_response": 1,
@@ -2411,6 +2420,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     coverage_resource = await server.read_resource("deco://compatibility/p9/coverage")
 
     assert {
+        "deco_get_capability",
         "deco_endpoint_catalog",
         "deco_p9_profile",
         "deco_transport_capabilities",
@@ -2455,8 +2465,8 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         "deco_compare_manifests",
         "deco_invoke_mutation",
     } <= tool_names
-    assert len(tool_names) == 43
-    assert len(resources) == 9
+    assert len(tool_names) == 44
+    assert len(resources) == 10
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

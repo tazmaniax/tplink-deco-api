@@ -220,9 +220,16 @@ destructive operations and internal firmware calls have independent environment
 gates and default to disabled. See [the MCP guide](docs/mcp.md) for the tools,
 resources and safety contract.
 
-Agent-oriented tools provide consolidated network and mesh views, a WLAN view
-that omits passwords by default, and gated cloud state. Network, WLAN and cloud
-views honor the sensitive-read gate. Before any write, the
+The default MCP surface contains seven protocol-neutral tools. Agents request a
+logical capability or consolidated overview; the server selects HTTP/LuCI or
+TMP/AppV2 and reports its choice in provenance. Six overlapping reads have
+explicit, live-evidenced read-only fallback contracts. Mutations are never
+retried through another protocol. Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` only
+when an expert agent needs the complete 44-tool raw catalogue, discovery and
+compatibility surface. The initial registry covers six overlaps with proven
+normalization equivalence; protocol-unique datasets remain diagnostic until a
+stable logical schema is defined. Network, WLAN and cloud views honor the sensitive-read
+gate. Before any write, the
 dry-run mutation planner reports parameter validity, model evidence, preflight
 and verification reads, and any known rollback without connecting to the Deco.
 Execution also requires the plan's parameter-bound confirmation hash and an

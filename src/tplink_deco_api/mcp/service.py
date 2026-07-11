@@ -14,6 +14,7 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
+from ..capability_routing import CAPABILITY_ROUTES, get_capability_route
 from ..client import DecoClient
 from ..endpoint_catalog import (
     CATALOG_VERSION,
@@ -40,7 +41,14 @@ from ..model_compatibility import (
     SENSITIVE_SCHEMA_ENDPOINTS,
     get_compatibility_profile,
 )
-from ..models import CompatibilityManifest, NodeClientList
+from ..models import (
+    AddressReservationTable,
+    ClientDevice,
+    CompatibilityManifest,
+    Device,
+    InternetStatus,
+    NodeClientList,
+)
 from ..mutation_planner import build_mutation_plan
 from ..tmp_beamforming_noop_verification import TMP_BEAMFORMING_NOOP_CONFIRMATION
 from ..tmp_client import DecoTmpClient
@@ -60,11 +68,10 @@ if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
     from ..endpoint_spec import EndpointSpec
     from ..models import (
-        AddressReservationTable,
         ApiResponse,
         BinaryResponse,
         CapabilityReport,
-        Device,
+        CapabilityRoute,
         EndpointObservation,
         IpInfo,
         MutationPlan,
@@ -115,6 +122,135 @@ class DecoMcpService:
         status["tmp_mutation_latched"] = self._tmp_mutation_latched
         status["catalogued_operations"] = len(ENDPOINT_CATALOG)
         return status
+
+    def capability_routes(self) -> dict[str, JsonValue]:
+        """Return logical read routes and current fallback readiness offline."""
+        tmp_configured = bool(
+            self._config.tp_link_id and self._config.password and self._config.tmp_host_key_sha256
+        )
+        return {
+            "model": "P9",
+            "router_contacted": False,
+            "agent_selects_protocol": False,
+            "automatic_mutation_fallback": False,
+            "diagnostic_tools_exposed": self._config.expose_diagnostic_tools,
+            "routes": [
+                {
+                    **route.to_dict(),
+                    "primary_available": bool(self._config.password),
+                    "fallback_configured": tmp_configured,
+                    "fallback_gate_enabled": self._tmp_fallback_available(route.sensitivity),
+                }
+                for route in CAPABILITY_ROUTES
+            ],
+        }
+
+    def read_capability(self, name: str) -> dict[str, JsonValue]:
+        """Read one logical capability and apply only proven read-only fallback."""
+        try:
+            route = get_capability_route(name)
+        except KeyError as exc:
+            raise ValueError(f"Failed to read capability: unknown capability {name!r}") from exc
+        if route.sensitivity == "secret" and not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read capability: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+            )
+        attempts: list[dict[str, JsonValue]] = []
+        try:
+            data = self._read_http_capability(name)
+        except (ApiError, TransportError, ValueError) as primary_error:
+            attempts.append(
+                {
+                    "interface": route.primary_interface,
+                    "operation": route.primary_operation,
+                    "status": "error",
+                    "error_type": type(primary_error).__name__,
+                }
+            )
+            if (
+                route.fallback_policy != "equivalent_read_only"
+                or route.fallback_interface != "tmp_appv2"
+                or not self._tmp_fallback_available(route.sensitivity)
+            ):
+                raise
+            try:
+                data = self._read_tmp_capability(name)
+            except (DecoError, OSError, TimeoutError, ValueError) as fallback_error:
+                raise fallback_error from primary_error
+            attempts.append(
+                {
+                    "interface": route.fallback_interface,
+                    "operation": route.fallback_operation,
+                    "status": "ok",
+                }
+            )
+            return _capability_response(route, data, attempts, fallback_used=True)
+        attempts.append(
+            {
+                "interface": route.primary_interface,
+                "operation": route.primary_operation,
+                "status": "ok",
+            }
+        )
+        return _capability_response(route, data, attempts, fallback_used=False)
+
+    def _read_http_capability(self, name: str) -> JsonValue:
+        with self._lock:
+            client = self._get_client()
+            if name == "mesh_nodes":
+                return [_device_view(device) for device in client.get_device_list()]
+            if name == "clients":
+                clients = tuple(client.get_client_list())
+                return NodeClientList("default", clients).to_dict()["clients"]
+            if name == "internet_status":
+                return _internet_status_view(client.get_internet_status())
+            if name == "address_reservations":
+                return _address_reservation_view(client.get_address_reservations())
+            if name == "fast_roaming":
+                return _boolean_setting_view(client.get_fast_roaming())
+            if name == "beamforming":
+                return _boolean_setting_view(client.get_beamforming())
+        raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
+
+    def _read_tmp_capability(self, name: str) -> JsonValue:
+        opcodes = {
+            "mesh_nodes": 0x400F,
+            "clients": 0x4012,
+            "internet_status": 0x400C,
+            "address_reservations": 0x40C0,
+            "fast_roaming": 0x4208,
+            "beamforming": 0x421B,
+        }
+        code = opcodes.get(name)
+        if code is None:
+            raise ValueError(f"Failed to read TMP capability: unknown capability {name!r}")
+        payload = self.tmp_read(code)
+        result = payload.get("result")
+        if not isinstance(result, Mapping):
+            raise ValueError(f"Failed to read TMP capability: {name} result is not an object")
+        if name == "mesh_nodes":
+            return [
+                _device_view(Device.from_api(row)) for row in _mapping_rows(result, "device_list")
+            ]
+        if name == "clients":
+            clients = tuple(
+                ClientDevice.from_api(row) for row in _mapping_rows(result, "client_list")
+            )
+            return NodeClientList("default", clients).to_dict()["clients"]
+        if name == "internet_status":
+            return _internet_status_view(InternetStatus.from_api(result))
+        if name == "address_reservations":
+            return _address_reservation_view(AddressReservationTable.from_api(result))
+        return _boolean_setting_view(result)
+
+    def _tmp_fallback_available(self, sensitivity: str) -> bool:
+        return (
+            self._config.allow_tmp_reads
+            and bool(self._config.tp_link_id)
+            and bool(self._config.password)
+            and bool(self._config.tmp_host_key_sha256)
+            and (sensitivity != "secret" or self._config.allow_sensitive_reads)
+        )
 
     def tmp_host_key(self) -> dict[str, JsonValue]:
         """Probe the TMP SSH host key without authenticating or sending TMP payloads."""
@@ -736,6 +872,15 @@ class DecoMcpService:
             "catalog_version": CATALOG_VERSION,
             "offline": True,
             "router_contacted": False,
+            "unified_agent_surface": {
+                "capability_count": len(CAPABILITY_ROUTES),
+                "default_tool_count": 7,
+                "diagnostic_tool_count": 44,
+                "agent_selects_protocol": False,
+                "automatic_fallback_scope": "proven_equivalent_reads_only",
+                "automatic_mutation_fallback": False,
+                "routes": [route.to_dict() for route in CAPABILITY_ROUTES],
+            },
             "http": {
                 "catalogued_read_count": len(http_reads),
                 "p9_observation_counts": dict(
@@ -2414,6 +2559,75 @@ def _ip_info(info: IpInfo) -> dict[str, JsonValue]:
         "dns1": info.dns1,
         "dns2": info.dns2,
     }
+
+
+def _capability_response(
+    route: CapabilityRoute,
+    data: JsonValue,
+    attempts: list[dict[str, JsonValue]],
+    *,
+    fallback_used: bool,
+) -> dict[str, JsonValue]:
+    selected = attempts[-1]
+    return {
+        "capability": route.name,
+        "schema_version": route.schema_version,
+        "data": data,
+        "provenance": {
+            "source_interface": selected["interface"],
+            "source_operation": selected["operation"],
+            "fallback_used": fallback_used,
+            "fallback_policy": route.fallback_policy,
+            "equivalence_evidence": route.equivalence_evidence,
+            "attempts": attempts,
+        },
+        "mutation_invoked": False,
+    }
+
+
+def _mapping_rows(data: Mapping[str, JsonValue], key: str) -> tuple[JsonObject, ...]:
+    value = data.get(key)
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        return ()
+    return tuple(row for row in value if isinstance(row, Mapping))
+
+
+def _internet_status_view(status: InternetStatus) -> dict[str, JsonValue]:
+    return {
+        "link_status": status.link_status,
+        "ipv4": {
+            "inet_status": status.ipv4.inet_status,
+            "dial_status": status.ipv4.dial_status,
+            "connect_type": status.ipv4.connect_type,
+            "auto_detect_type": status.ipv4.auto_detect_type,
+            "error_code": status.ipv4.error_code,
+        },
+        "ipv6": {
+            "inet_status": status.ipv6.inet_status,
+            "dial_status": status.ipv6.dial_status,
+            "connect_type": status.ipv6.connect_type,
+            "auto_detect_type": status.ipv6.auto_detect_type,
+            "error_code": status.ipv6.error_code,
+        },
+    }
+
+
+def _address_reservation_view(table: AddressReservationTable) -> dict[str, JsonValue]:
+    return {
+        "count": len(table.reservations),
+        "max_count": table.max_count,
+        "is_full": table.is_full,
+        "entries": [
+            {"mac": reservation.mac, "ip": reservation.ip} for reservation in table.reservations
+        ],
+    }
+
+
+def _boolean_setting_view(value: Mapping[str, JsonValue]) -> dict[str, JsonValue]:
+    enabled = value.get("enable", value.get("enabled"))
+    if not isinstance(enabled, bool):
+        raise ValueError("Failed to normalize boolean capability: enable is not a boolean")
+    return {"enabled": enabled}
 
 
 def _tmp_opcode_matches_query(opcode: TmpOpcodeSpec, query: str) -> bool:

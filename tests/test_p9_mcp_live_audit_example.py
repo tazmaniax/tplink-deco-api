@@ -36,12 +36,12 @@ def test_p9_mcp_live_audit_persists_only_schemas_and_digests(
         "deco_get_p9_tmp_data": mock.Mock(),
         "deco_discover_p9_binary_reads": mock.Mock(),
         "deco_verify_p9_http_noop": mock.Mock(),
-        **{f"tool_{index}": mock.Mock() for index in range(40)},
+        **{f"tool_{index}": mock.Mock() for index in range(41)},
     }
     server = SimpleNamespace(
         _tool_manager=SimpleNamespace(_tools=tools),
         _resource_manager=SimpleNamespace(
-            _resources={f"resource_{index}": mock.Mock() for index in range(9)}
+            _resources={f"resource_{index}": mock.Mock() for index in range(10)}
         ),
     )
     service = mock.Mock()
@@ -96,8 +96,8 @@ def test_p9_mcp_live_audit_persists_only_schemas_and_digests(
 
     payload = json.loads(output.read_text())
     serialized = json.dumps(payload)
-    assert payload["registration"]["tool_count"] == 43
-    assert payload["registration"]["resource_count"] == 9
+    assert payload["registration"]["tool_count"] == 44
+    assert payload["registration"]["resource_count"] == 10
     assert payload["binary_digest_audit"]["received_count"] == 2
     tmp_audit = payload["complete_tmp_batch_audit"]
     assert tmp_audit["selected_count"] == 55

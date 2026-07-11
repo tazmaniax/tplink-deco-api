@@ -7,6 +7,7 @@ from .address_reservation_table import AddressReservationTable
 from .api_response import ApiResponse
 from .binary_response import BinaryResponse
 from .capability_report import CapabilityReport
+from .capability_route import CapabilityRoute
 from .client_device import ClientDevice
 from .compatibility_delta import CompatibilityDelta
 from .compatibility_manifest import CompatibilityManifest
@@ -53,6 +54,7 @@ __all__ = [
     "ApiResponse",
     "BinaryResponse",
     "CapabilityReport",
+    "CapabilityRoute",
     "ClientDevice",
     "CompatibilityDelta",
     "CompatibilityManifest",

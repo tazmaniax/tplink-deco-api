@@ -43,6 +43,11 @@ batching live in the protocol pages.
 | [`protocol/cloud-api.md`](./protocol/cloud-api.md) | TP-Link cloud hosts, account API and device passthrough |
 | [`mcp.md`](./mcp.md) | Agent-facing MCP server, tools, resources and safety gates |
 
+The default MCP surface is protocol-neutral: agents see seven semantic tools,
+while the server chooses HTTP/LuCI or TMP/AppV2 for proven equivalent reads and
+reports provenance. Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` to add the complete
+protocol-specific catalogue, discovery and raw-access surface for expert use.
+
 ### Endpoints (by functionality)
 
 Start at the [**endpoint index**](./endpoints/README.md) for the complete
@@ -121,11 +126,10 @@ mutation gate, a dedicated HTTP-no-op gate and exact per-operation confirmation;
 it accepts no desired values and latches off after any non-verified outcome.
 Reservation modification remains excluded because table drift cannot be fully
 rolled back.
-The highest-ranked untested candidate, `BEAMFORMING_SET` (`0x421C`), has a
-prepared current-value-only CLI harness with immediate verification and
-rollback. It has not been invoked and remains absent from MCP execution.
-`MONTHLY_REPORT_MGR_SET` (`0x4223`) has a second prepared boolean harness under
-the same restrictions. Mutation ranking now requires every signed setter
+The `BEAMFORMING_SET` (`0x421C`) and `MONTHLY_REPORT_MGR_SET` (`0x4223`)
+current-value-only CLI harnesses both completed with immediate post-read
+equality and no rollback. They remain absent from MCP execution. Mutation
+ranking now requires every signed setter
 candidate key to appear in the live P9 preflight schema; this blocks QoS mode
 because its read omitted `qos_mode`.
 Every secret candidate is now deferred by connectivity, security-policy,
