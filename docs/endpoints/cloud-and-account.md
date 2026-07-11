@@ -22,6 +22,7 @@ creation writes the cloud account), [`login.md`](./login.md) (`cloud_login`).
 |------|-----------|-----|---------|
 | `nickname` | read, write | both | Device/node alias shown in the cloud group. |
 | `firmware` | check, upgrade, download, firmware_status, sync_check_firmware, local_upgrade, get_sync, auto_upgrade | both | Cloud/OTA firmware check, download & flash across the mesh. |
+| `firmware_status` | read, check, check_upgrade, upgrade, local_upgrade | web | P9 download/upgrade progress and directives. |
 | `group` | create, add, get, set, update, remove, report, message, iot_read, push, push_weekly | both | Cloud group (mesh) lifecycle + monthly/weekly report push. |
 | `system` | bind, unbind, remove_all, proxy, account, notify, transfer, sync | both | Account binding lifecycle + cloud proxy connection. |
 | `ddns` | (get / set) | both | Cloud-backed DDNS domain bind/unbind. |
@@ -56,6 +57,14 @@ the cloud for a newer image per `hw_id` / `oem_id`; `download` fetches it;
 [`firmware-and-upgrade.md`](./firmware-and-upgrade.md) and the node-to-node sync
 in [`onboarding-and-provisioning.md`](./onboarding-and-provisioning.md).
 
+The P9 web assets use an encrypted `IPFProxy` for `firmware` and a separate
+`firmware_status` form. Its safe `read` emits JavaScript's non-JSON
+`Number.NaN` for an idle download; the protocol parser normalizes that token to
+JSON `null` outside quoted strings. A live read then returned `error_code=0`,
+so the operation is included in the P9 supported-data profile. Local upload
+supplies `hw_id`, `oem_id`, and `device_model`; all write/upgrade operations
+remain destructive and untested.
+
 ---
 
 ## `/admin/cloud_account` — account login, token, passthrough
@@ -70,6 +79,7 @@ Handles the router's TP-Link account credentials (RSA-encrypted via
 | `check_internet`, `check_device`, `check_connection`, `check_login`, `check_cloud_connection`, `check_support` | read | Connectivity / login / capability probes. |
 | `bind_owner` / `unbind_owner` | write | Bind / unbind the account owner. |
 | `get_dev_info` / `set_dev_info` | read / write | Device info exchanged with the cloud (`deviceId`, alias, model, MAC…). |
+| `get_deviceInfo` | read | Exact case-sensitive form used by the P9 web device-name model. |
 | `cloud_pass_through` (+ `tmp_cloud_pass_through`) | write | Device end of cloud remote-control (see below). |
 | `upgrade` / `cloud_upgrade` / `load` | write / read | Cloud firmware upgrade + download status / progress + firmware list. |
 | `get_token` | read | Cloud token. |
@@ -78,6 +88,9 @@ Handles the router's TP-Link account credentials (RSA-encrypted via
 
 > The exact form ↔ operation split on this endpoint is approximate; treat the
 > boundary as a guide.
+
+The observed P9 accepted `get_deviceInfo/read` with a null result. This proves
+the dispatcher route but does not establish a data schema.
 
 ### `read_keys` (RSA)
 

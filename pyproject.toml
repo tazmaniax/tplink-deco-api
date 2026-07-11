@@ -22,6 +22,13 @@ dependencies = [
     "cryptography>=46.0.7",
 ]
 
+[project.optional-dependencies]
+mcp = ["mcp>=1.27,<2"]
+tmp = ["paramiko>=3,<5"]
+
+[project.scripts]
+tplink-deco-mcp = "tplink_deco_api.mcp.server:main"
+
 [project.urls]
 Homepage = "https://github.com/roquerodrigo/tplink-deco-api"
 Repository = "https://github.com/roquerodrigo/tplink-deco-api"
@@ -44,6 +51,8 @@ addopts = [
 
 [dependency-groups]
 dev = [
+    "mcp>=1.27,<2",
+    "paramiko>=3,<5",
     "pytest>=9.0.3",
     "pytest-cov>=7.0",
     "pytest-asyncio>=1.3.0",
@@ -51,6 +60,7 @@ dev = [
 lint = [
     "ruff>=0.6",
     "mypy>=1.11",
+    "types-paramiko>=3",
 ]
 
 [tool.uv]

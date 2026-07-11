@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-11",
+  "model": "P9",
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "operation": "admin.client.addr_reservation.modify",
+  "authorization": "explicit_user_authorization",
+  "selection_policy": "lexicographically_first_existing_reservation",
+  "request_shape": {
+    "mac": "existing_value_unchanged",
+    "ip": "existing_value_unchanged"
+  },
+  "mutation_invoked": true,
+  "mutation_count": 1,
+  "error_code": 0,
+  "verification_read": "admin.client.addr_reservation.getlist",
+  "complete_before_after_table_equality": true,
+  "response_values_emitted": false,
+  "credential_values_emitted": false,
+  "test_scope": "noop_only"
+}

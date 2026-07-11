@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "model": "P9",
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "observed_at": "2026-07-11",
+  "observations": [
+    {
+      "name": "admin.client.addr_reservation.modify",
+      "availability": "supported",
+      "error_code": 0,
+      "test_scope": "noop_only",
+      "verification": "complete_before_after_reservation_table_equality"
+    },
+    {
+      "name": "admin.wireless.beamforming.write",
+      "availability": "supported",
+      "error_code": 0,
+      "test_scope": "noop_only",
+      "verification": "before_after_beamforming_setting_equality"
+    },
+    {
+      "name": "admin.wireless.ieee80211r.write",
+      "availability": "supported",
+      "error_code": 0,
+      "test_scope": "noop_only",
+      "verification": "before_after_ieee80211r_setting_equality"
+    },
+    {
+      "name": "admin.device.timesetting.write",
+      "availability": "supported",
+      "error_code": 0,
+      "test_scope": "noop_only",
+      "verification": "before_after_timesetting_equality"
+    }
+  ]
+}

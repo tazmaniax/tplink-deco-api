@@ -1,6 +1,7 @@
 # Firmware & upgrade — config backup / flash / MCU
 
-Endpoints: **`/admin/firmware`** and **`/mcu_upgrade`**. `config` and `upgrade`
+Endpoints: **`/admin/firmware`**, **`/admin/isp`**, and **`/mcu_upgrade`**.
+`config` and `upgrade`
 use the [encrypted envelope](../protocol/transport-and-dispatch.md);
 `config_multipart` is
 [plaintext multipart](../protocol/transport-and-dispatch.md#plaintext-endpoints).
@@ -18,8 +19,9 @@ the sync surface in
 | Form | Operations | By | Purpose |
 |------|-----------|-----|---------|
 | `config` | read, check, backup, restore | web | Local config-file backup & restore. |
-| `config_multipart` | (upload) | web | Plaintext multipart upload of a config/firmware `.bin`. |
-| `upgrade` | write | web | Flash a firmware image already staged on the device. |
+| `config_multipart` | upload, backup, restore | web | Multipart config transfer. |
+| `upgrade` | read, write | web | Read installed versions or flash a staged image. |
+| `isp_upgrade` (`/admin/isp`) | read, upgrade | web | ISP profile image status/upload. |
 | `mcu_upgrade` (`/mcu_upgrade`) | check | web | Finalise an MCU firmware upgrade. |
 
 The reboot delay after a flash comes from a device profile value.
@@ -51,9 +53,22 @@ product-info MD5, decrypts it, applies it and reboots. Poll `check` for progress
 
 ## `config_multipart`
 
-Plaintext `multipart/form-data` upload used to push a config or firmware `.bin`
-onto the device. Listed in
+Plaintext `multipart/form-data` transfer used for configuration backup/restore
+and firmware uploads. Listed in
 [plaintext endpoints](../protocol/transport-and-dispatch.md#plaintext-endpoints).
+The P9 web client submits backup as a hidden form containing only the scalar
+field `operation=backup`; there is no file part. `DecoClient.call_binary()`
+implements that exact read-only contract and returns the encrypted backup bytes.
+The live P9 response remains intentionally untested because it contains a bulk
+secret configuration export. Restore and firmware upload remain unsupported.
+The static value-free contract is recorded in
+[`p9-multipart-backup-contract.json`](../api-responses/p9-multipart-backup-contract.json).
+
+## `/admin/isp` · `isp_upgrade`
+
+The P9 web UI declares `read` and multipart `upgrade`. The observed P9 build
+returned HTTP 404 for the safe `read`, so the page is present in the shared UI
+bundle but its handler is not enabled on that device.
 
 ## `upgrade`
 

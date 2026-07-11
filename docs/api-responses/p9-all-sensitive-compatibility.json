@@ -1,0 +1,672 @@
+{
+  "catalog_version": 4,
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "fuzzy_observations": [],
+  "fuzzy_observed_at": "",
+  "hardware_versions": [
+    "1.0",
+    "2.0"
+  ],
+  "manifest_version": 1,
+  "model": "P9",
+  "observations": [
+    {
+      "elapsed_seconds": 11.106552417040803,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.wan_ipv4.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.lan.ip_info.ip:string",
+        "$.lan.ip_info.mac:string",
+        "$.lan.ip_info.mask:string",
+        "$.lan.ip_info:object",
+        "$.lan:object",
+        "$.wan.dial_type:string",
+        "$.wan.enable_auto_dns:boolean",
+        "$.wan.info:object",
+        "$.wan.ip_info.dns1:string",
+        "$.wan.ip_info.dns2:string",
+        "$.wan.ip_info.gateway:string",
+        "$.wan.ip_info.ip:string",
+        "$.wan.ip_info.mac:string",
+        "$.wan.ip_info.mask:string",
+        "$.wan.ip_info:object",
+        "$.wan:object",
+        "$:object"
+      ],
+      "schema_sha256": "a0dc32a30047bec6bd16eafc2f91712a5db3bce1fc6f257fb3961a02244424a2",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.40142079105135053,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.network.ipv6.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "transport_error"
+    },
+    {
+      "elapsed_seconds": 0.41294420801568776,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dhcp_dial.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.6033490829868242,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.wlan.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.band2_4.backhaul.channel:integer",
+        "$.band2_4.backhaul:object",
+        "$.band2_4.guest.enable:boolean",
+        "$.band2_4.guest.need_set_vlan:boolean",
+        "$.band2_4.guest.password:string",
+        "$.band2_4.guest.ssid:string",
+        "$.band2_4.guest.vlan_id:integer",
+        "$.band2_4.guest:object",
+        "$.band2_4.host.channel:integer",
+        "$.band2_4.host.channel_width:string",
+        "$.band2_4.host.enable:boolean",
+        "$.band2_4.host.enable_hide_ssid:boolean",
+        "$.band2_4.host.mode:string",
+        "$.band2_4.host.password:string",
+        "$.band2_4.host.ssid:string",
+        "$.band2_4.host:object",
+        "$.band2_4:object",
+        "$.band5_1.backhaul.channel:integer",
+        "$.band5_1.backhaul:object",
+        "$.band5_1.guest.enable:boolean",
+        "$.band5_1.guest.need_set_vlan:boolean",
+        "$.band5_1.guest.password:string",
+        "$.band5_1.guest.ssid:string",
+        "$.band5_1.guest.vlan_id:integer",
+        "$.band5_1.guest:object",
+        "$.band5_1.host.channel:integer",
+        "$.band5_1.host.channel_width:string",
+        "$.band5_1.host.enable:boolean",
+        "$.band5_1.host.enable_hide_ssid:boolean",
+        "$.band5_1.host.mode:string",
+        "$.band5_1.host.password:string",
+        "$.band5_1.host.ssid:string",
+        "$.band5_1.host:object",
+        "$.band5_1:object",
+        "$:object"
+      ],
+      "schema_sha256": "41558e899b0bf953db244a19002f4fd26301d0fa436714ab8bfb2883c3cf7cfb",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5621855409117416,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.mlo_network.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.3612236670451239,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getOwnerInList",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3042026669718325,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getFamilyTimeInfo",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.31943062506616116,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getTodayInsightTimeUsagePro",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.319273000000976,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getInsightData",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28634895803406835,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.scanGet",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.29604729101993144,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.ispGet",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3722104999469593,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.service_state_check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3086024170042947,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.service_status_check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2827043338911608,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.cloud_service_state_check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.34314429201185703,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.get_sec_whitelist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28818279202096164,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.firmware.config.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.31109891599044204,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.firmware.config.check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.46949691604822874,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.group.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5242175000021234,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.group.iot_read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.0838249169755727,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.ddns.get",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.ap_changed:boolean",
+        "$.ddns_enable:boolean",
+        "$.ddns_info.ddns_status:boolean",
+        "$.ddns_info.domain_name:string",
+        "$.ddns_info:object",
+        "$:object"
+      ],
+      "schema_sha256": "3f1bfc2c48c84f3b714cc3077db96bfbf3fd58c0b7adbfa6ea0da90d5f2a9b5f",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.6427356669446453,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.manager.get",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.manager_role_list:array",
+        "$.manager_role_list[].enable:boolean",
+        "$.manager_role_list[].role:string",
+        "$.manager_role_list[]:object",
+        "$.permission_profile:array",
+        "$.permission_profile[].forbidden_component_list:array",
+        "$.permission_profile[].forbidden_component_list[]:string",
+        "$.permission_profile[].lock_component_list:array",
+        "$.permission_profile[].lock_component_list[].component:string",
+        "$.permission_profile[].lock_component_list[].lock:integer",
+        "$.permission_profile[].lock_component_list[]:object",
+        "$.permission_profile[].role:string",
+        "$.permission_profile[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "f1e315e140aea59cf6eb8bb1aa3a102793af1743a617d9a3d1b843496c6630f2",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3457220409763977,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.read_keys",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4680662500904873,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.get_device_token",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3950124579714611,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.get_deviceInfo",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.35726533306296915,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_login.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.35293549997732043,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.load.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 1.0806359999114648,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_token.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3383893750142306,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_client.config.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.27409595798235387,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_client.config.load",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.27783987496513873,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.server.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.36872758308891207,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.cert.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28383524995297194,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.key.gets",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3241930000949651,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.key.getc",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28401275002397597,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ddns.ddns.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.32045683392789215,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.server.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.30693795799743384,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.server.read_list",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3030278329970315,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.settings.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.4935187919763848,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3649204589892179,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.appget",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.38206800003536046,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.mcu_read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.6582581660477445,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.mcu_check",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 11.176968374988064,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.recovery.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3933440410764888,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.local.load",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.33889633300714195,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.local.view",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.37775099999271333,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.remote.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3545189999276772,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.login.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3028255420504138,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.log.log.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3609033750835806,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.log.log.load",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3785879579372704,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.log_export.feedback_log.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.30042475007940084,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.syslog.mail.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.35404474998358637,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.cwmp.cwmp.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.32122504198923707,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.cwmp.cwmp_info.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2826462499797344,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.wifidog.portal_content.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.29641687497496605,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.quick_setup.preconf.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2117956670699641,
+      "error_code": null,
+      "http_status": 404,
+      "name": "blocking.vercode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    }
+  ],
+  "observed_at": "2026-07-10T22:46:56.546969+00:00",
+  "system_mode": "Router"
+}

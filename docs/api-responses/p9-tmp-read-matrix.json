@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-11",
+  "model": "P9",
+  "transport": "tmp_appv2_over_ssh",
+  "authentication_attempted": true,
+  "transport_authenticated": true,
+  "tmp_associated": true,
+  "token_allocated": true,
+  "component_negotiated": true,
+  "sdk_adapter_succeeded": true,
+  "sdk_authenticated_connection_host_key_pinned": true,
+  "host_key_sha256": "SHA256:TpmUAt8R9aKgOoas0FlZybt0YeLufHW3+JIEffm2/Ts",
+  "mutation_invoked": false,
+  "raw_values_emitted": false,
+  "operations": [
+    {
+      "code": 1,
+      "hex_code": "0x0001",
+      "name": "TMP_APPV2_OP_TOKEN_ALLOC",
+      "observation": "accepted"
+    },
+    {
+      "code": 16385,
+      "hex_code": "0x4001",
+      "name": "TMP_APPV2_OP_COMP_NEGOTIATE",
+      "observation": "accepted"
+    },
+    {
+      "code": 16399,
+      "hex_code": "0x400F",
+      "name": "TMP_APPV2_OP_DEVICE_LIST_GET",
+      "observation": "returned_data",
+      "tested_variants": ["json_null"],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.device_list:array",
+        "$.result.device_list[].connection_type:array",
+        "$.result.device_list[].device_id:string",
+        "$.result.device_list[].device_model:string",
+        "$.result.device_list[].device_type:string",
+        "$.result.device_list[].group_status:string",
+        "$.result.device_list[].hardware_ver:string",
+        "$.result.device_list[].inet_status:string",
+        "$.result.device_list[].ip:string",
+        "$.result.device_list[].mac:string",
+        "$.result.device_list[].nickname:string",
+        "$.result.device_list[].parent_device_id:string",
+        "$.result.device_list[].role:string",
+        "$.result.device_list[].signal_level:object",
+        "$.result.device_list[].software_ver:string",
+        "$.result.device_list[].support_plc:boolean",
+        "$.result.device_list[]:object",
+        "$.result:object",
+        "$:object"
+      ]
+    },
+    {
+      "code": 16972,
+      "hex_code": "0x424C",
+      "name": "TMP_APPV2_OP_PLC_PAIR_GET",
+      "observation": "rejected",
+      "appv2_error_code": 12,
+      "tested_variants": [
+        "json_null",
+        "json_empty_object",
+        "json_default_device",
+        "json_first_device_id",
+        "raw_empty"
+      ],
+      "interpretation": "The exact meaning of AppV2 error 12 is not established. All five read-only request shapes reached the firmware and received the same rejection."
+    }
+  ]
+}

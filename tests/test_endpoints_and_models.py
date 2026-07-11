@@ -50,6 +50,12 @@ def test_admin_url() -> None:
     )
 
 
+def test_endpoint_url_can_omit_form_selector() -> None:
+    assert endpoints.endpoint_url("192.0.2.1", "TOK", "admin/route", None) == (
+        "https://192.0.2.1/cgi-bin/luci/;stok=TOK/admin/route"
+    )
+
+
 def test_parse_response_non_object_payload_wrapped() -> None:
     """A decrypted JSON value that is not an object maps to an ApiError(-1)."""
     data_b64 = aes_encrypt(_KEYS.aes_key, _KEYS.aes_iv, json.dumps([1, 2, 3]))
@@ -90,6 +96,12 @@ def test_device_from_api_decodes_fields() -> None:
     device = Device.from_api(
         {
             "mac": "0c-ef-15-e1-b2-16",
+            "ip": "192.0.2.2",
+            "device_id": "node-1",
+            "parent_device_id": "node-0",
+            "connection_type": ["plc", "wifi"],
+            "previous": "node-2",
+            "speed_get_support": True,
             "device_model": "BE65",
             "bssid_2g": "12-ef-15-e1-b2-18",
             "set_gateway_support": True,
@@ -97,6 +109,12 @@ def test_device_from_api_decodes_fields() -> None:
         }
     )
     assert device.mac == "0C:EF:15:E1:B2:16"
+    assert device.device_ip == "192.0.2.2"
+    assert device.device_id == "node-1"
+    assert device.parent_device_id == "node-0"
+    assert device.connection_type == ("plc", "wifi")
+    assert device.previous == "node-2"
+    assert device.speed_get_support
     assert device.bssid_2g == "12:EF:15:E1:B2:18"
     assert device.set_gateway_support is True
     assert device.signal_level.band6 == "3"

@@ -31,13 +31,22 @@ Related: [routing.md](./routing.md) (static routes),
 | `igmp_setting` | read/write | web | IGMP snooping / proxy. |
 | `wifi_network` | read/write | web | Wi-Fi ↔ network binding. |
 | `erp_setting` | read/write | web | Energy-related platform settings. |
+| `flow_control` | read/write | web | Global flow-control toggle. |
 | `fast_xmit_setting` | read/write | web | Fast-transmit tuning. |
+| `flow_control_lan_wan` | read/write | web | Per-direction LAN/WAN flow control. |
 | `upnp` | read/write | app | UPnP IGD enable + port list. |
 | `routes_static` | getlist, add, modify, remove | app | Static routes (see [routing.md](./routing.md)). |
 | `routes_system` | getlist | app | System (auto) routes. |
 | `dsl_status` | read | both | DSL physical-layer status (DSL models only). |
 
 > `dsl_status` is available on DSL-capable hardware only.
+
+The P9 web models name the mutation fields `enable_unicast`,
+`enable_join_igmpv3`, `enable_wfnetwork`, `enable_2g`/`enable_5g`/`enable_6g`/
+`enable_dsl`, `enable_flow_control`, `enable`, and
+`wan_rx_enable`/`wan_tx_enable`/`lan_tx_enable`/`lan_rx_enable` for the forms
+from `dhcp_dial` through `flow_control_lan_wan`, respectively. These contracts
+come from the UI asset models and have not been write-tested.
 
 ---
 
@@ -93,6 +102,11 @@ SDK model: `InternetStatus` (`get_internet_status()`).
 | `mac_addr` | Node MAC. |
 | `lan_ip.ip` | LAN IPv4 address. |
 | `lan_ip.mask` | Subnet mask / mask type. |
+
+The generic firmware documentation describes write fields as `ip` and `mask`,
+while the P9 browser model serializes `ipaddr` and `mask_type`. The catalogue
+retains the documented names until a separately approved mutation test resolves
+the wire contract.
 
 ## `vlan`
 

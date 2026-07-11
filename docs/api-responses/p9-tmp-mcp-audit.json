@@ -1,0 +1,503 @@
+{
+  "schema_version": 19,
+  "observed_at": "2026-07-11",
+  "model": "P9",
+  "transport": "tmp_appv2_over_ssh",
+  "tool_count": 43,
+  "resource_count": 9,
+  "host_key_sha256": "SHA256:TpmUAt8R9aKgOoas0FlZybt0YeLufHW3+JIEffm2/Ts",
+  "host_key_probe_error": false,
+  "host_key_authentication_attempted": false,
+  "host_key_matches_configured": true,
+  "offline_opcode_registry": {
+    "operation_count": 600,
+    "read_count": 246,
+    "mutation_count": 277,
+    "destructive_count": 71,
+    "internal_count": 6,
+    "new_operation_count": 408,
+    "source_application": "TP-Link Deco Android 3.10.215 build 1484",
+    "source_xapk_sha256": "198115ba07e8893c44e9f7f1cce1494b988d23e1e2e31533a6f85c637841edf8",
+    "signing_certificate_sha1": "c2864363ef24dec324fb6c557c40b8c4aee672e0",
+    "signature_verified": true
+  },
+  "verified_operation": {
+    "code": 16399,
+    "hex_code": "0x400F",
+    "name": "TMP_APPV2_OP_DEVICE_LIST_GET",
+    "error": false,
+    "observation": "returned_data"
+  },
+  "known_rejected_opcode_blocked": true,
+  "sensitive_opcode_blocked": true,
+  "verified_binary_read": {
+    "code": 16414,
+    "hex_code": "0x401E",
+    "name": "TMP_APPV2_OP_FW_PROG_GET",
+    "error": false,
+    "size": 67,
+    "sha256_matches_overlay": true,
+    "content_returned": false
+  },
+  "generic_mutation_opcode_blocked": true,
+  "mutation_invoked": true,
+  "offline_mutation_inventory": {
+    "candidate_count": 348,
+    "preflight_relationship_count": 222,
+    "p9_supported_preflight_count": 70,
+    "rollback_relationship_count": 188,
+    "preflight_relationship_evidence_counts": {
+      "curated_opcode_relationship": 81,
+      "signed_app_opcode_name_pair_inference": 141
+    },
+    "rollback_relationship_evidence_counts": {
+      "curated_opcode_relationship": 24,
+      "preflight_state_restore": 130,
+      "signed_app_inverse_name_pair_inference": 34
+    },
+    "known_parameter_contract_count": 291,
+    "static_app_contract_count": 291,
+    "static_app_candidate_keys_count": 258,
+    "static_app_null_payload_count": 21,
+    "static_app_model_only_count": 12,
+    "static_app_contract_missing_count": 57,
+    "mutation_tested_count": 1,
+    "complete_safety_contract_count": 1,
+    "execution_eligible_count": 0,
+    "execution_tool_exposed": true,
+    "generic_execution_tool_exposed": false,
+    "scoped_noop_tool_count": 1,
+    "scoped_noop_runtime_gate_enabled": false
+  },
+  "offline_mutation_verification_queue": {
+    "candidate_count": 348,
+    "verification_candidate_count": 2,
+    "default_non_secret_count": 2,
+    "tier_counts": {
+      "destructive_excluded": 71,
+      "evidence_blocked": 193,
+      "high_risk_deferred": 81,
+      "priority_noop_candidate": 2,
+      "verified_noop": 1
+    },
+    "priority_operations": [
+      "TMP_APPV2_OP_BEAMFORMING_SET",
+      "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET"
+    ],
+    "router_contacted": false,
+    "mutation_invoked": false,
+    "execution_eligible_count": 0,
+    "execution_tool_exposed": false
+  },
+  "prepared_tmp_beamforming_verification": {
+    "operation_code": 16924,
+    "operation_hex_code": "0x421C",
+    "operation_name": "TMP_APPV2_OP_BEAMFORMING_SET",
+    "preflight_code": 16923,
+    "preflight_hex_code": "0x421B",
+    "preflight_name": "TMP_APPV2_OP_BEAMFORMING_GET",
+    "preflight_p9_observation": "returned_data",
+    "parameter_keys": ["enable"],
+    "static_contract_sources": [
+      "TP-Link Deco Android 1.10.5 build 112",
+      "TP-Link Deco Android 3.10.215 build 1484"
+    ],
+    "harness": "examples/verify_tmp_beamforming_noop.py",
+    "scope": "current_value_noop_only",
+    "immediate_post_read_required": true,
+    "rollback_on_mismatch_required": true,
+    "exact_confirmation_required": true,
+    "value_free_evidence": true,
+    "live_invoked": false,
+    "p9_mutation_observation": "untested",
+    "execution_eligible": false,
+    "mcp_execution_exposed": false,
+    "unit_tested": true
+  },
+  "prepared_tmp_monthly_report_verification": {
+    "operation_code": 16931,
+    "operation_hex_code": "0x4223",
+    "operation_name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
+    "preflight_code": 16930,
+    "preflight_hex_code": "0x4222",
+    "preflight_name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_GET",
+    "preflight_p9_observation": "returned_data",
+    "preflight_result_keys": ["enable"],
+    "parameter_keys": ["enable"],
+    "static_contract_sources": [
+      "TP-Link Deco Android 1.10.5 build 112",
+      "TP-Link Deco Android 3.10.215 build 1484"
+    ],
+    "harness": "examples/verify_tmp_monthly_report_noop.py",
+    "scope": "current_value_noop_only",
+    "immediate_post_read_required": true,
+    "rollback_on_mismatch_required": true,
+    "exact_confirmation_required": true,
+    "value_free_evidence": true,
+    "live_invoked": false,
+    "p9_mutation_observation": "untested",
+    "execution_eligible": false,
+    "mcp_execution_exposed": false,
+    "unit_tested": true
+  },
+  "tmp_mutation_preflight_key_coverage": {
+    "required_for_verification_queue": true,
+    "p9_static_key_preflight_count": 67,
+    "complete_candidate_key_coverage_count": 19,
+    "missing_candidate_key_coverage_count": 48,
+    "candidate_count_after_filter": 2,
+    "qos_mode_set": {
+      "operation_hex_code": "0x4037",
+      "setter_candidate_keys": ["custom_detail", "qos_mode"],
+      "preflight_result_keys": ["custom_detail"],
+      "missing_candidate_keys": ["qos_mode"],
+      "tier": "evidence_blocked",
+      "verification_candidate": false
+    },
+    "router_contacted": false,
+    "mutation_invoked": false
+  },
+  "tmp_secret_mutation_risk_audit": {
+    "verification_candidate_count": 0,
+    "deferred_operations": {
+      "network_connectivity_change": [
+        "TMP_APPV2_OP_IPV4_SET",
+        "TMP_APPV2_OP_IPV6_SET",
+        "TMP_APPV2_OP_IPV6_FIREWALL_LIST_ADD",
+        "TMP_APPV2_OP_IPV6_FIREWALL_LIST_MODIFY"
+      ],
+      "security_policy_change": [
+        "TMP_APPV2_OP_IPV6_FIREWALL_LIST_ADD",
+        "TMP_APPV2_OP_IPV6_FIREWALL_LIST_MODIFY"
+      ],
+      "access_or_ownership_change": [
+        "TMP_APPV2_OP_MANAGER_PERMISSION_SET",
+        "TMP_APPV2_OP_OWNER_LIST_ADD"
+      ],
+      "p9_observed_collection_at_capacity": [
+        "TMP_APPV2_OP_IP_RESERVATION_LIST_ADD"
+      ]
+    },
+    "reservation_capacity_evidence": {
+      "artifact": "docs/api-responses/p9-topology.json",
+      "is_full": true,
+      "max_count": 64,
+      "values_copied_into_audit": false
+    },
+    "router_contacted": false,
+    "mutation_invoked": false
+  },
+  "scoped_mcp_noop_surface": {
+    "tool": "deco_verify_tmp_ieee80211r_noop",
+    "operation_code": 16905,
+    "execution_scope": "verified_current_value_noop_only",
+    "desired_value_parameter_exposed": false,
+    "generic_tmp_mutation_supported": false,
+    "exact_confirmation_required": true,
+    "required_environment_gates": [
+      "DECO_MCP_ALLOW_MUTATIONS",
+      "DECO_MCP_ALLOW_TMP_READS",
+      "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION"
+    ],
+    "disabled_by_default": true,
+    "runtime_gate_enabled_in_audit_configuration": false,
+    "fails_before_router_contact_when_disabled": true,
+    "calls_serialized": true,
+    "nonverified_outcome_latches_until_restart": true,
+    "unit_tested": true,
+    "live_repeat_invoked_through_mcp": false,
+    "raw_values_emitted": false
+  },
+  "offline_access_coverage": {
+    "http_supported_reads": 59,
+    "http_owner_session_supported_reads": 56,
+    "http_bootstrap_supported_reads": 3,
+    "http_bootstrap_transport_errors": 1,
+    "http_supported_without_call_path": 0,
+    "http_catalogued_without_call_path": 0,
+    "http_untested_reads": 3,
+    "http_untested_binary_reads": 3,
+    "http_bulk_secret_runtime_gate_enabled": false,
+    "http_binary_content_export_gate_enabled": false,
+    "http_scoped_noop_operation_count": 3,
+    "http_scoped_noop_runtime_gate_enabled": false,
+    "http_scoped_noop_live_invoked": false,
+    "tmp_returned_data_reads": 55,
+    "tmp_no_parameter_batch_reads": 48,
+    "tmp_parameterized_reads": 7,
+    "tmp_complete_json_batch_reads": 55,
+    "tmp_parameterized_batch_opt_in": true,
+    "tmp_parameterized_request_values_returned": false,
+    "tmp_payload_rejected_reads": 4,
+    "tmp_payload_rejected_exact_app_contract_reads": 3,
+    "tmp_payload_rejected_unresolved_app_contract_reads": 1,
+    "tmp_returned_binary_reads": 1,
+    "tmp_catalogued_reads": 246,
+    "tmp_tested_reads": 246,
+    "tmp_appv2_rejected_reads": 186,
+    "tmp_untested_reads": 0,
+    "tmp_positive_without_call_path": 0,
+    "all_positive_reads_have_agent_call_path": true,
+    "router_contacted": false
+  },
+  "offline_http_scoped_noop": {
+    "tool": "deco_verify_p9_http_noop",
+    "operation_count": 3,
+    "operations": [
+      "admin.wireless.beamforming.write",
+      "admin.wireless.ieee80211r.write",
+      "admin.device.timesetting.write"
+    ],
+    "reservation_modify_excluded": true,
+    "desired_values_accepted": false,
+    "preflight_required": true,
+    "immediate_post_read_required": true,
+    "rollback_on_mismatch": true,
+    "process_lifetime_failure_latch": true,
+    "required_environment_gates": [
+      "DECO_MCP_ALLOW_MUTATIONS",
+      "DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION"
+    ],
+    "generic_mutation_eligibility_broadened": false,
+    "router_contacted": false,
+    "live_invoked": false
+  },
+  "offline_authorization_ready_actions": {
+    "action_count": 4,
+    "actions": [
+      {
+        "id": "p9_tmp_iot_module_contract_discovery",
+        "kind": "inferred_secret_read_contract_discovery",
+        "operation_hex_code": "0x404B",
+        "tool": "deco_discover_tmp_read_contracts",
+        "candidate_parameter_keys": [
+          "module"
+        ],
+        "candidate_variant_count": 11,
+        "required_environment_gates": [
+          "DECO_MCP_ALLOW_TMP_READS",
+          "DECO_MCP_ALLOW_SENSITIVE_READS",
+          "DECO_MCP_ALLOW_UNVERIFIED_TMP_READS"
+        ],
+        "response_values_retained": false,
+        "explicit_authorization_required": true,
+        "live_invoked": false,
+        "mutation_invoked": false
+      },
+      {
+        "id": "p9_http_binary_digest_discovery",
+        "kind": "bulk_secret_read",
+        "operation_count": 3,
+        "tool": "deco_discover_p9_binary_reads",
+        "binary_content_returned": false,
+        "binary_content_persisted": false,
+        "explicit_authorization_required": true,
+        "live_invoked": false
+      },
+      {
+        "id": "p9_tmp_beamforming_noop_verification",
+        "kind": "current_value_noop_mutation",
+        "operation_hex_code": "0x421C",
+        "harness": "examples/verify_tmp_beamforming_noop.py",
+        "mcp_execution_exposed": false,
+        "explicit_authorization_required": true,
+        "live_invoked": false
+      },
+      {
+        "id": "p9_tmp_monthly_report_noop_verification",
+        "kind": "current_value_noop_mutation",
+        "operation_hex_code": "0x4223",
+        "harness": "examples/verify_tmp_monthly_report_noop.py",
+        "mcp_execution_exposed": false,
+        "explicit_authorization_required": true,
+        "live_invoked": false
+      }
+    ],
+    "unresolved_summary": {
+      "http_binary_reads_untested": 3,
+      "tmp_reads_payload_rejected": 4,
+      "tmp_read_contract_unresolved": 1,
+      "http_mutations_untested": 19,
+      "http_mutations_general_scope_verified": 0,
+      "tmp_mutations_untested": 347,
+      "tmp_mutations_general_scope_verified": 0
+    },
+    "router_contacted": false,
+    "mutation_invoked": false
+  },
+  "live_http_gap_probe": {
+    "selected_count": 3,
+    "supported_count": 2,
+    "not_found_count": 1,
+    "values_retained": false,
+    "mutation_invoked": false
+  },
+  "live_http_bootstrap_probe": {
+    "attempted_count": 4,
+    "supported_count": 3,
+    "transport_error_count": 1,
+    "factory_identity_http_status": 403,
+    "authenticated": false,
+    "values_retained": false,
+    "credential_values_emitted": false,
+    "mutation_invoked": false
+  },
+  "live_http_domain_login_probe": {
+    "artifact": "docs/api-responses/p9-domain-login-compatibility.json",
+    "artifact_schema_version": 1,
+    "artifact_sha256": "7a86d8dba0bb354050fac03d91ea238828c3f1fc541035a7bbef30f60bece994",
+    "operation": "domain_login.dlogin.read",
+    "authentication": "encrypted_owner_session",
+    "status": "supported",
+    "error_code": 0,
+    "returned_data": false,
+    "schema_paths": ["$:null"],
+    "response_values_retained": false,
+    "credential_values_emitted": false,
+    "mutation_invoked": false
+  },
+  "static_http_multipart_backup_contract": {
+    "artifact": "docs/api-responses/p9-multipart-backup-contract.json",
+    "artifact_schema_version": 1,
+    "artifact_sha256": "ecf0016bcc1d39f641dd755ae091fe80307afe948558207cbee71f91069c272c",
+    "operation": "admin.firmware.config_multipart.backup",
+    "request_content_type": "multipart/form-data",
+    "form_fields": {
+      "operation": "backup"
+    },
+    "file_part_present": false,
+    "sdk_binary_call_path": true,
+    "mcp_sensitive_gate_required": true,
+    "mcp_bulk_secret_gate_required": true,
+    "mcp_binary_content_gate_required_for_base64": true,
+    "live_compatibility": "untested",
+    "backup_downloaded": false,
+    "mutation_invoked": false
+  },
+  "bulk_secret_binary_policy": {
+    "operations": [
+      "admin.firmware.config.backup",
+      "admin.firmware.config_multipart.backup",
+      "admin.log_export.save_log.download"
+    ],
+    "digest_discovery_tool": "deco_discover_p9_binary_reads",
+    "required_environment_gates": [
+      "DECO_MCP_ALLOW_SENSITIVE_READS",
+      "DECO_MCP_ALLOW_BULK_SECRET_READS"
+    ],
+    "base64_content_environment_gate": "DECO_MCP_ALLOW_BINARY_CONTENT",
+    "disabled_by_default": true,
+    "digest_metadata_only": true,
+    "binary_content_returned": false,
+    "binary_content_persisted": false,
+    "live_invoked": false,
+    "live_compatibility_promoted": false,
+    "unit_tested": true
+  },
+  "live_http_mutation_evidence": {
+    "candidate_count": 23,
+    "tested_count": 4,
+    "noop_only_count": 4,
+    "general_scope_count": 0,
+    "execution_eligible_count": 0,
+    "reservation_modify_before_after_equal": true,
+    "beamforming_before_after_equal": true,
+    "ieee80211r_before_after_equal": true,
+    "timesetting_before_after_equal": true,
+    "raw_values_emitted": false
+  },
+  "offline_http_mutation_verification_queue": {
+    "candidate_count": 23,
+    "verification_candidate_count": 0,
+    "tier_counts": {
+      "destructive_excluded": 3,
+      "evidence_blocked": 1,
+      "high_risk_deferred": 15,
+      "verified_noop": 4
+    },
+    "default_returned_count": 0,
+    "verification_execution_tool_exposed": false,
+    "generic_mutation_requires_general_scope_evidence": true,
+    "parameter_values_included": false,
+    "payloads_generated": false,
+    "router_contacted": false,
+    "mutation_invoked": false,
+    "tool": "deco_p9_http_mutation_verification_queue"
+  },
+  "live_tmp_mutation_evidence": {
+    "artifact": "docs/api-responses/p9-tmp-ieee80211r-noop.json",
+    "artifact_schema_version": 1,
+    "artifact_sha256": "84570360a0fe34ebaef7c5e581f79cb9272d3ccb45d92f339a125bac7ef6b136",
+    "operation_code": 16905,
+    "operation_hex_code": "0x4209",
+    "operation_name": "TMP_APPV2_OP_11R_SET",
+    "status": "verified_noop",
+    "firmware_error_code": 0,
+    "preflight_code": 16904,
+    "verification_code": 16904,
+    "parameter_keys": ["enable"],
+    "same_value_payload": true,
+    "state_unchanged": true,
+    "rollback_attempted": false,
+    "mutation_request_count": 1,
+    "different_value_write_invoked": false,
+    "parameter_values_retained": false,
+    "response_values_retained": false,
+    "raw_values_emitted": false,
+    "mcp_execution_tool_used": false,
+    "scoped_execution_tool_now_exposed": true,
+    "generic_execution_tool_exposed": false
+  },
+  "live_tmp_contract_probe": {
+    "attempted_count": 20,
+    "confirmed_variant_count": 17,
+    "recovered_operation_count": 7,
+    "static_contract_application": "TP-Link Deco Android 1.10.5 build 112",
+    "source_values_retained": false,
+    "raw_values_emitted": false,
+    "mutation_invoked": false,
+    "active_scan_invoked": false
+  },
+  "live_tmp_new_registry_probe": {
+    "artifact": "docs/api-responses/p9-tmp-new-read-discovery.json",
+    "artifact_schema_version": 1,
+    "artifact_sha256": "3b839e8cff3d3ee7814c4353fb7260680697f3c52bc1a1f71190eb2d990e5ede",
+    "selected_operation_count": 129,
+    "attempted_variant_count": 166,
+    "positive_operation_count": 0,
+    "appv2_rejected_variant_count": 166,
+    "uniform_appv2_error_code": 12,
+    "control_reads_recorded": false,
+    "mutation_invoked": false,
+    "destructive_operation_invoked": false,
+    "response_values_retained": false,
+    "raw_values_emitted": false
+  },
+  "live_tmp_sensitive_registry_probe": {
+    "artifact": "docs/api-responses/p9-tmp-sensitive-read-discovery.json",
+    "artifact_schema_version": 2,
+    "artifact_sha256": "97ebe8f56f5e280c8132a71d00a0de617f1e41a5b0f167865afcadc8a861a7fd",
+    "selected_operation_count": 43,
+    "attempted_variant_count": 71,
+    "positive_operation_count": 0,
+    "appv2_rejected_variant_count": 71,
+    "uniform_appv2_error_code": 12,
+    "control_reads_recorded": true,
+    "control_status_counts": {
+      "returned_data": 2
+    },
+    "session_control_passed": true,
+    "mutation_invoked": false,
+    "destructive_operation_invoked": false,
+    "response_values_retained": false,
+    "raw_values_emitted": false
+  },
+  "set_dispatched_get_review": {
+    "reviewed_operation_count": 3,
+    "codes": [16535, 16549, 17257],
+    "classification": "secret_mutation",
+    "evidence": "signed app set dispatch and workflow side effects",
+    "p9_mutation_invoked": false
+  },
+  "raw_values_emitted": false
+}

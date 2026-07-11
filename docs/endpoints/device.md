@@ -23,8 +23,8 @@ Related: [network.md](./network.md),
 | `mode` | read | web | Work mode / system mode / region (SDK `DeviceMode`). |
 | `speedtest` | read, write, stop | both | Run / read / stop an internet speed test. |
 | `get_server` | read, clear | both | Speed-test server list; clear stored month history. |
-| `timesetting` | read, write | both | Node date / time / timezone (SDK `TimeSettings`). |
-| `system` | read, write | both | Per-node system settings (nickname / location). |
+| `timesetting` | read, write, gmt | both | Node date / time / timezone (SDK `TimeSettings`). |
+| `system` | read, write, reboot | both | Per-node settings and P9 web reboot dispatch. |
 | `reboot` | write | both | Reboot a node (or the answering unit). |
 | `factory` | write | both | Factory reset (erase user/device/group config). |
 | `gateway` | read | both | Gateway / master-role support info. |
@@ -71,7 +71,9 @@ response: [`../api-responses/device_list.json`](../api-responses/device_list.jso
 
 The raw payload also carries `device_id`, `parent_device_id`,
 `second_parent_device_id`, `connection_type`, `speed_diagnose`, `port_count`
-and `owner_transfer` (not modelled by the SDK).
+and `owner_transfer`. The SDK models the first-parent identity and connection
+type; secondary-parent and transfer diagnostics remain available in the raw
+catalogue-driven response.
 
 **remove** → `{ "operation": "remove", "params": { "device_id": "<id>" } }`
 Unbinds the node from the mesh group.
@@ -109,11 +111,18 @@ stored monthly history.
 `tz_region`. Full detail and the related `systime` / DST forms are in
 [eco-mode-and-time.md](./eco-mode-and-time.md).
 
+The P9 web model uses `timezone`, `continent`, and `tz_region`; its `gmt`
+operation starts a clock synchronization request.
+
 ## `reboot` & `factory`
 
 **reboot** → `{ "operation": "write", "params": { "device_id": "<id>" } }`
 Reboots the named node, or the answering unit if it is the target; the master
 can reboot the whole group.
+
+The P9 reboot page instead posts `operation=reboot` to `form=system` with
+`params.mac_list`, an array of objects containing a `mac`. Both forms remain
+catalogued; neither is called by automatic discovery.
 
 **factory** → `{ "operation": "write" }` Factory reset: erases `user-config`,
 `device-config`, `group-info` (and `emmc-config` where supported), then reboots.

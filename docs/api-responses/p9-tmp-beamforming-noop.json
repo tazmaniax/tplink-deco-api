@@ -1,0 +1,32 @@
+{
+  "current_value_source": "live_preflight_0x421B",
+  "different_value_write_invoked": false,
+  "mutation_request_count": 1,
+  "operation_code": 16924,
+  "operation_hex_code": "0x421C",
+  "operation_name": "TMP_APPV2_OP_BEAMFORMING_SET",
+  "parameter_keys": [
+    "enable"
+  ],
+  "parameter_values_retained": false,
+  "post_read_succeeded": true,
+  "preflight_code": 16923,
+  "preflight_hex_code": "0x421B",
+  "preflight_name": "TMP_APPV2_OP_BEAMFORMING_GET",
+  "raw_values_emitted": false,
+  "response_values_retained": false,
+  "rollback_attempted": false,
+  "rollback_code": 16924,
+  "rollback_error_type": "",
+  "rollback_firmware_error_code": null,
+  "rollback_verified": null,
+  "same_value_payload": true,
+  "schema_version": 1,
+  "state_unchanged": true,
+  "status": "verified_noop",
+  "transport": "tmp_appv2_over_ssh",
+  "verification_code": 16923,
+  "verified_noop": true,
+  "write_error_type": "",
+  "write_firmware_error_code": 0
+}

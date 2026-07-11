@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-11T05:59:45Z",
+  "model": "P9",
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "operation": "admin.device.timesetting.write",
+  "authorization": "explicit_user_authorization",
+  "request_shape": {
+    "timezone": "current_value_unchanged",
+    "continent": "current_value_unchanged",
+    "tz_region": "current_value_unchanged"
+  },
+  "mutation_invoked": true,
+  "mutation_count": 1,
+  "error_code": 0,
+  "verification_read": "admin.device.timesetting.read",
+  "before_after_setting_equality": true,
+  "response_values_emitted": false,
+  "credential_values_emitted": false,
+  "test_scope": "noop_only"
+}

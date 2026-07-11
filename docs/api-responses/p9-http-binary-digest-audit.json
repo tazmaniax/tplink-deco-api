@@ -1,0 +1,55 @@
+{
+  "binary_digest_audit": {
+    "binary_content_held_transiently": true,
+    "binary_content_persisted": false,
+    "binary_content_returned": false,
+    "digest_metadata_only": true,
+    "failed_count": 2,
+    "live_compatibility_promoted": false,
+    "model": "P9",
+    "mutation_invoked": false,
+    "probe_kind": "bulk_secret_binary_digest_only",
+    "received_count": 1,
+    "results": [
+      {
+        "binary_content_returned": false,
+        "error_type": "TransportError",
+        "name": "admin.firmware.config.backup",
+        "status": "error"
+      },
+      {
+        "binary_content_returned": false,
+        "error_type": "TransportError",
+        "name": "admin.firmware.config_multipart.backup",
+        "status": "error"
+      },
+      {
+        "binary_content_returned": false,
+        "media_type": "text/plain",
+        "name": "admin.log_export.save_log.download",
+        "sha256": "6efee230151779c9fe1b84a654c354e8fd062f39952583f52596e4356f5d9884",
+        "size": 44,
+        "status": "received"
+      }
+    ],
+    "selected_count": 3,
+    "selected_operations": [
+      "admin.firmware.config.backup",
+      "admin.firmware.config_multipart.backup",
+      "admin.log_export.save_log.download"
+    ]
+  },
+  "complete_tmp_batch_audit": null,
+  "model": "P9",
+  "mutation_invoked": false,
+  "probe_kind": "mcp_live_read_audit",
+  "registration": {
+    "binary_digest_tool_registered": true,
+    "complete_tmp_batch_tool_registered": true,
+    "http_noop_tool_registered": true,
+    "resource_count": 9,
+    "tool_count": 43
+  },
+  "response_values_retained": false,
+  "schema_version": 1
+}

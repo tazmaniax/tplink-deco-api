@@ -1,0 +1,226 @@
+{
+  "contracts": [
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 654}],
+      "candidate_parameter_keys": [],
+      "code": 16981,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeInternetInfoBean"],
+      "static_contract_status": "static_model_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 806}],
+      "candidate_parameter_keys": ["apn", "apn_type", "authentication_type", "password", "pdp_type", "profile_id", "profile_name", "profile_type", "username"],
+      "code": 16983,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 531}],
+      "candidate_parameter_keys": ["apn", "apn_type", "authentication_type", "password", "pdp_type", "profile_id", "profile_name", "profile_type", "username"],
+      "code": 16984,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 567}],
+      "candidate_parameter_keys": ["profile_id_list"],
+      "code": 16985,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileRemoveParams"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 714}],
+      "candidate_parameter_keys": [],
+      "code": 16986,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 730}],
+      "candidate_parameter_keys": [],
+      "code": 16987,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 633}],
+      "candidate_parameter_keys": ["auto", "result_error_code", "selected_list"],
+      "code": 16989,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["BandBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 701}],
+      "candidate_parameter_keys": ["auto", "operator"],
+      "code": 16990,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["NetworkSelection"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 722}],
+      "candidate_parameter_keys": [],
+      "code": 16992,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 677}],
+      "candidate_parameter_keys": ["auto_update", "isp_profile"],
+      "code": 17041,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["IspProfileUpdateParams"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 646}],
+      "candidate_parameter_keys": ["cell_lock_lte", "cell_lock_nr"],
+      "code": 17157,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CellLockInfoBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/datasetting/repository/b.java", "line": 54}],
+      "candidate_parameter_keys": ["alert", "data_allowance", "data_usage", "date_start", "downlink_rate", "enable", "limit_mode", "uplink_rate"],
+      "code": 17089,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["DataSettingBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 654}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 57}],
+      "candidate_parameter_keys": [],
+      "code": 17217,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeInternetInfoBean"],
+      "static_contract_status": "static_model_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 806}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 61}],
+      "candidate_parameter_keys": ["apn", "apn_type", "authentication_type", "password", "pdp_type", "profile_id", "profile_name", "profile_type", "username"],
+      "code": 17219,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 531}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 76}],
+      "candidate_parameter_keys": ["apn", "apn_type", "authentication_type", "password", "pdp_type", "profile_id", "profile_name", "profile_type", "username"],
+      "code": 17220,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 567}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 71}],
+      "candidate_parameter_keys": ["profile_id_list"],
+      "code": 17221,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CpeProfileRemoveParams"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 714}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 21}],
+      "candidate_parameter_keys": [],
+      "code": 17222,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 730}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 26}],
+      "candidate_parameter_keys": [],
+      "code": 17223,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 633}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 31}],
+      "candidate_parameter_keys": ["auto", "result_error_code", "selected_list"],
+      "code": 17225,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["BandBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 701}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 103}],
+      "candidate_parameter_keys": ["auto", "operator"],
+      "code": 17226,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["NetworkSelection"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 722}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 108}],
+      "candidate_parameter_keys": [],
+      "code": 17228,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["null"],
+      "static_contract_status": "static_null_payload"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 677}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 87}],
+      "candidate_parameter_keys": ["auto_update", "isp_profile"],
+      "code": 17230,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["IspProfileUpdateParams"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/cpe/repository/q.java", "line": 646}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/b.java", "line": 41}],
+      "candidate_parameter_keys": ["cell_lock_lte", "cell_lock_nr"],
+      "code": 17301,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["CellLockInfoBean"],
+      "static_contract_status": "static_keys_recovered"
+    },
+    {
+      "call_sites": [{"dispatch": "set_indirect_virtual_opcode", "file": "com/tplink/tpm5/component/more/datasetting/repository/b.java", "line": 54}, {"dispatch": "opcode_override", "file": "com/tplink/tpm5/component/more/hybridmesh/repository/a.java", "line": 18}],
+      "candidate_parameter_keys": ["alert", "data_allowance", "data_usage", "date_start", "downlink_rate", "enable", "limit_mode", "uplink_rate"],
+      "code": 17233,
+      "contract_sources": ["TP-Link Deco Android 3.10.215 build 1484"],
+      "dispatch_methods": ["set"],
+      "request_models": ["DataSettingBean"],
+      "static_contract_status": "static_keys_recovered"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "application": "TP-Link Deco Android 3.10.215 build 1484",
+    "evidence": "signed_app_indirect_virtual_opcode_dispatch",
+    "xapk_sha256": "198115ba07e8893c44e9f7f1cce1494b988d23e1e2e31533a6f85c637841edf8"
+  }
+}

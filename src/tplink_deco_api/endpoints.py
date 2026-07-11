@@ -23,6 +23,11 @@ def is_plain(path_with_form: str) -> bool:
     return path_with_form in _PLAIN_ENDPOINTS
 
 
+def is_plain_endpoint(path: str, form: str) -> bool:
+    """Return whether one normalized path/form pair uses plaintext JSON."""
+    return is_plain(f"/{path.strip('/')}?form={form}")
+
+
 def login_url(host: str, form: str) -> str:
     """Return the unauthenticated ``/login`` URL for the given ``form``."""
     return f"https://{host}/cgi-bin/luci/;stok=/login?form={form}"
@@ -30,4 +35,11 @@ def login_url(host: str, form: str) -> str:
 
 def admin_url(host: str, stok: str, path: str, form: str) -> str:
     """Return the authenticated admin URL for ``path`` + ``form``."""
-    return f"https://{host}/cgi-bin/luci/;stok={stok}/{path}?form={form}"
+    return endpoint_url(host, stok, path, form)
+
+
+def endpoint_url(host: str, stok: str, path: str, form: str | None) -> str:
+    """Return an authenticated URL for any local controller path."""
+    normalized_path = path.strip("/")
+    url = f"https://{host}/cgi-bin/luci/;stok={stok}/{normalized_path}"
+    return f"{url}?form={form}" if form is not None else url

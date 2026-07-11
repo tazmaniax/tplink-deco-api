@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""Call every public SDK method and dump the result into ``docs/api-responses/``.
+"""Capture non-secret SDK responses into ``docs/api-responses/``.
 
 Usage::
 
     uv run examples/dump_responses.py
+
+Login results and WLAN configuration are deliberately excluded because they
+contain session tokens and Wi-Fi passwords. Prefer ``read_only_probe.py`` for
+ordinary inventory collection.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import getpass
 import json
 import pathlib
-import sys
 
 _OUT = pathlib.Path(__file__).parent.parent / "docs" / "api-responses"
 
@@ -55,21 +59,20 @@ def main() -> None:
     env = _load_env()
     host = env.get("DECO_HOST", "192.168.5.1")
     username = env.get("DECO_USERNAME", "admin")
-    password = env.get("DECO_PASSWORD", "")
-
+    password = getpass.getpass("Deco owner password: ")
     if not password:
-        print("Error: DECO_PASSWORD not set in .env")
-        sys.exit(1)
+        raise SystemExit("No password was supplied")
 
     from tplink_deco_api import DecoClient
 
-    with DecoClient(host, username, password) as deco:
-        _save("login", deco.login())
+    with DecoClient(host, username, password, timeout=60.0) as deco:
         _save("device_list", deco.get_device_list())
         _save("device_mode", deco.get_device_mode())
-        _save("wlan_config", deco.get_wlan_config())
         _save("performance", deco.get_performance())
         _save("client_list", deco.get_client_list())
+        _save("internet_status", deco.get_internet_status())
+        _save("wan_info", deco.get_wan_info())
+        _save("address_reservations", deco.get_address_reservations())
 
     print(f"\nDone. {len(list(_OUT.glob('*.json')))} files in docs/api-responses/")
 

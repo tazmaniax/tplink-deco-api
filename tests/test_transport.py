@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import ssl
 import urllib.error
 from email.message import Message
@@ -75,6 +76,73 @@ def test_post_form_encodes_body() -> None:
     assert patched.call_args.args[0].data == b"sign=a&data=b"
 
 
+def test_post_bytes_preserves_content_and_media_type() -> None:
+    resp = _FakeResponse(b"raw log\n")
+    with mock.patch("urllib.request.urlopen", return_value=resp) as patched:
+        out = HttpTransport().post_bytes(
+            "http://192.0.2.1/x",
+            b"request",
+            "application/octet-stream",
+        )
+
+    assert out == b"raw log\n"
+    request = patched.call_args.args[0]
+    assert request.data == b"request"
+    assert request.headers["Content-type"] == "application/octet-stream"
+
+
+def test_post_multipart_fields_encodes_scalar_form() -> None:
+    response = _FakeResponse(b"encrypted backup")
+    with (
+        mock.patch("urllib.request.urlopen", return_value=response) as patched,
+        mock.patch("tplink_deco_api.auth.transport.secrets.token_hex", return_value="abc123"),
+    ):
+        result = HttpTransport().post_multipart_fields(
+            "http://192.0.2.1/backup",
+            {"operation": "backup"},
+        )
+
+    assert result == b"encrypted backup"
+    request = patched.call_args.args[0]
+    boundary = "----tplink-deco-api-abc123"
+    assert request.headers["Content-type"] == f"multipart/form-data; boundary={boundary}"
+    assert (
+        request.data
+        == (
+            f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="operation"\r\n\r\n'
+            "backup\r\n"
+            f"--{boundary}--\r\n"
+        ).encode()
+    )
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {},
+        {'bad"name': "value"},
+        {"operation": "bad\nvalue"},
+    ],
+)
+def test_post_multipart_fields_rejects_invalid_fields(fields: dict[str, str]) -> None:
+    with pytest.raises(ValueError, match="Failed to encode multipart form"):
+        HttpTransport().post_multipart_fields("http://192.0.2.1/backup", fields)
+
+
+def test_session_token_is_redacted_from_debug_log(caplog: pytest.LogCaptureFixture) -> None:
+    resp = _FakeResponse(b"{}")
+    url = "https://192.0.2.1/cgi-bin/luci/;stok=topsecret/admin/device?form=mode"
+    with (
+        mock.patch("urllib.request.urlopen", return_value=resp),
+        caplog.at_level(logging.DEBUG, logger="tplink_deco_api.transport"),
+    ):
+        HttpTransport().post_json(url, {"operation": "read"})
+
+    assert "topsecret" not in caplog.text
+    assert ";stok=<redacted>/admin/device" in caplog.text
+
+
 def test_cookie_is_captured_and_sent_on_next_request() -> None:
     first = _FakeResponse(b"{}", set_cookies=["sysauth=deadbeef0123; Path=/; HttpOnly"])
     second = _FakeResponse(b"{}")
@@ -103,9 +171,19 @@ def test_no_cookie_header_when_none_captured() -> None:
     assert "Cookie" not in patched.call_args.args[0].headers
 
 
+def test_clear_session_drops_captured_cookie() -> None:
+    transport = HttpTransport()
+    transport._cookie = "sysauth=deadbeef"
+
+    transport.clear_session()
+
+    assert transport._cookie is None
+
+
 def test_http_error_wrapped_with_status_code() -> None:
+    request_url = "http://192.0.2.1/;stok=topsecret/admin/device?form=mode"
     err = urllib.error.HTTPError(
-        url="http://192.0.2.1/x",
+        url=request_url,
         code=403,
         msg="Forbidden",
         hdrs=Message(),
@@ -114,19 +192,38 @@ def test_http_error_wrapped_with_status_code() -> None:
     with mock.patch("urllib.request.urlopen", side_effect=err):
         transport = HttpTransport()
         with pytest.raises(TransportError) as exc:
-            transport.post_json("http://192.0.2.1/x", {"operation": "read"})
+            transport.post_json(request_url, {"operation": "read"})
     assert exc.value.status_code == 403
     assert "HTTP 403" in str(exc.value)
+    assert "topsecret" not in str(exc.value)
+    assert ";stok=<redacted>/admin/device" in str(exc.value)
 
 
 def test_url_error_wrapped_without_status_code() -> None:
+    request_url = "http://192.0.2.1/;stok=topsecret/admin/client?form=client_list"
     err = urllib.error.URLError("Connection refused")
     with mock.patch("urllib.request.urlopen", side_effect=err):
         transport = HttpTransport()
         with pytest.raises(TransportError) as exc:
-            transport.post_form("http://192.0.2.1/x", "sign=a&data=b")
+            transport.post_form(request_url, "sign=a&data=b")
     assert exc.value.status_code is None
     assert "Connection refused" in str(exc.value)
+    assert "topsecret" not in str(exc.value)
+    assert ";stok=<redacted>/admin/client" in str(exc.value)
+
+
+@pytest.mark.parametrize("error", [TimeoutError(), OSError("socket closed")])
+def test_socket_errors_are_wrapped_and_token_is_redacted(error: OSError) -> None:
+    request_url = "http://192.0.2.1/;stok=topsecret/admin/client?form=client_list"
+
+    with (
+        mock.patch("urllib.request.urlopen", side_effect=error),
+        pytest.raises(TransportError) as exc,
+    ):
+        HttpTransport().post_json(request_url, {"operation": "read"})
+
+    assert "topsecret" not in str(exc.value)
+    assert ";stok=<redacted>/admin/client" in str(exc.value)
 
 
 def test_ssl_context_is_unverified() -> None:
