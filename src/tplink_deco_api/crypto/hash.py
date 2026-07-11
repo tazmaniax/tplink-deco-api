@@ -10,7 +10,8 @@ def md5_session_hash(username: str, password: str) -> str:
     session_material = (username + password).encode()
     # TP-Link's wire protocol mandates MD5 here; this digest does not store or secure a password.
     digest = hashlib.md5(
-        session_material,  # lgtm[py/weak-sensitive-data-hashing]
+        # codeql[py/weak-sensitive-data-hashing]
+        session_material,
         usedforsecurity=False,
     )
     return digest.hexdigest()
