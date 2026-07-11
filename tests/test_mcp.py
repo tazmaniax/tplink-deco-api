@@ -9,6 +9,7 @@ from unittest import mock
 
 import pytest
 from mcp.server.fastmcp.exceptions import ToolError
+from starlette.testclient import TestClient
 
 from tplink_deco_api import (
     HTTP_NOOP_CONFIRMATIONS,
@@ -49,6 +50,7 @@ from tplink_deco_api import (
     get_endpoint,
 )
 from tplink_deco_api.mcp import DecoMcpService, McpConfig
+from tplink_deco_api.mcp._static_token_verifier import _StaticTokenVerifier
 from tplink_deco_api.mcp.server import create_server, main
 
 
@@ -141,6 +143,63 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert public["expose_raw_mutation_tools"] is True
     assert "password" not in public
     assert "owner@example.com" not in str(public)
+
+
+def test_mcp_config_loads_streamable_http_security(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DECO_MCP_TRANSPORT", "streamable-http")
+    monkeypatch.setenv("DECO_MCP_HOST", "0.0.0.0")
+    monkeypatch.setenv("DECO_MCP_PORT", "9000")
+    monkeypatch.setenv("DECO_MCP_STREAMABLE_HTTP_PATH", "/router-mcp")
+    monkeypatch.setenv("DECO_MCP_PUBLIC_URL", "http://192.0.2.10:9000/router-mcp")
+    monkeypatch.setenv("DECO_MCP_BEARER_TOKEN", "x" * 32)
+    monkeypatch.setenv("DECO_MCP_ALLOWED_HOSTS", "192.0.2.10:9000, localhost:9000")
+    monkeypatch.setenv("DECO_MCP_ALLOWED_ORIGINS", "https://agent.example")
+
+    config = McpConfig.from_env()
+    public = config.public_settings()
+
+    assert config.transport == "streamable-http"
+    assert config.server_host == "0.0.0.0"
+    assert config.server_port == 9000
+    assert config.streamable_http_path == "/router-mcp"
+    assert config.allowed_hosts == ("192.0.2.10:9000", "localhost:9000")
+    assert config.allowed_origins == ("https://agent.example",)
+    assert public["mcp_bearer_token_configured"] is True
+    assert "x" * 32 not in str(public)
+
+
+@pytest.mark.parametrize("value", ["invalid", "0", "65536"])
+def test_mcp_config_rejects_invalid_http_port(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    monkeypatch.setenv("DECO_MCP_PORT", value)
+
+    with pytest.raises(ValueError, match="DECO_MCP_PORT"):
+        McpConfig.from_env()
+
+
+def test_mcp_config_rejects_incomplete_streamable_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DECO_MCP_TRANSPORT", "streamable-http")
+
+    with pytest.raises(ValueError, match="DECO_MCP_PUBLIC_URL"):
+        McpConfig.from_env()
+
+    short_token = replace(
+        _config(),
+        transport="streamable-http",
+        public_url="http://192.0.2.10:8000/mcp",
+        bearer_token="short",
+        allowed_hosts=("192.0.2.10:8000",),
+    )
+    with pytest.raises(ValueError, match="DECO_MCP_BEARER_TOKEN"):
+        create_server(short_token)
+
+    missing_hosts = replace(short_token, bearer_token="x" * 32, allowed_hosts=())
+    with pytest.raises(ValueError, match="DECO_MCP_ALLOWED_HOSTS"):
+        create_server(missing_hosts)
 
 
 @pytest.mark.parametrize("value", ["invalid", "0", "-1"])
@@ -2936,9 +2995,82 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         )
 
 
+@pytest.mark.asyncio
+async def test_static_token_verifier_accepts_only_the_configured_token() -> None:
+    verifier = _StaticTokenVerifier("x" * 32, "http://192.0.2.10:8000/mcp")
+
+    accepted = await verifier.verify_token("x" * 32)
+
+    assert accepted is not None
+    assert accepted.client_id == "deco-mcp-private-client"
+    assert accepted.resource == "http://192.0.2.10:8000/mcp"
+    assert await verifier.verify_token("y" * 32) is None
+
+
+def test_streamable_http_server_is_authenticated_and_has_process_health() -> None:
+    config = replace(
+        _config(),
+        transport="streamable-http",
+        server_host="0.0.0.0",
+        server_port=8000,
+        public_url="http://192.0.2.10:8000/mcp",
+        bearer_token="x" * 32,
+        allowed_hosts=("testserver", "192.0.2.10:8000"),
+        allowed_origins=("https://agent.example",),
+    )
+    server = create_server(config)
+
+    assert server.settings.host == "0.0.0.0"
+    assert server.settings.port == 8000
+    assert server.settings.streamable_http_path == "/mcp"
+    assert server.settings.auth is not None
+    assert server.settings.transport_security is not None
+    assert server.settings.transport_security.allowed_hosts == [
+        "testserver",
+        "192.0.2.10:8000",
+    ]
+
+    with TestClient(server.streamable_http_app()) as client:
+        assert client.get("/healthz").text == "ok"
+        response = client.post(
+            "/mcp",
+            json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+        )
+        rejected_origin = client.post(
+            "/mcp",
+            headers={
+                "Authorization": f"Bearer {'x' * 32}",
+                "Origin": "https://untrusted.example",
+            },
+            json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}},
+        )
+
+    assert response.status_code == 401
+    assert rejected_origin.status_code == 403
+
+
 def test_mcp_main_runs_stdio_server() -> None:
     server = mock.Mock()
     with mock.patch("tplink_deco_api.mcp.server.create_server", return_value=server):
         main()
 
     server.run.assert_called_once_with(transport="stdio")
+
+
+def test_mcp_main_runs_configured_streamable_http_server() -> None:
+    config = replace(
+        _config(),
+        transport="streamable-http",
+        public_url="http://192.0.2.10:8000/mcp",
+        bearer_token="x" * 32,
+        allowed_hosts=("192.0.2.10:8000",),
+    )
+    server = mock.Mock()
+    with (
+        mock.patch("tplink_deco_api.mcp.server.McpConfig.from_env", return_value=config),
+        mock.patch("tplink_deco_api.mcp.server.create_server", return_value=server) as factory,
+    ):
+        main()
+
+    factory.assert_called_once_with(config)
+    server.run.assert_called_once_with(transport="streamable-http")

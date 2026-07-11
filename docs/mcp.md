@@ -4,7 +4,8 @@ The optional MCP server presents protocol-neutral Deco capabilities while
 enforcing the SDK's safety and sensitivity metadata. Agents select the data they
 need; the server selects HTTP/LuCI or TMP/AppV2 and returns routing provenance.
 Protocol-specific discovery tools are an opt-in diagnostic surface. The server
-uses the stable 1.x MCP Python SDK over standard input/output.
+uses the stable 1.x MCP Python SDK over stdio by default and can expose an
+authenticated Streamable HTTP endpoint for an always-on deployment.
 
 ## Installation
 
@@ -24,6 +25,14 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_USERNAME` | `admin` | Local API username. |
 | `DECO_PASSWORD` | — | Owner password; required only when a tool connects. |
 | `DECO_TIMEOUT` | `60` | Per-request timeout in seconds. |
+| `DECO_MCP_TRANSPORT` | `stdio` | `stdio` or `streamable-http`; HTTP fails closed unless its security settings are complete. |
+| `DECO_MCP_HOST` | `127.0.0.1` | Server bind address; Compose sets `0.0.0.0` inside the container. |
+| `DECO_MCP_PORT` | `8000` | Streamable HTTP listen port. |
+| `DECO_MCP_STREAMABLE_HTTP_PATH` | `/mcp` | Streamable HTTP endpoint path. |
+| `DECO_MCP_PUBLIC_URL` | — | Complete externally visible MCP endpoint URL, required for HTTP authorization metadata. |
+| `DECO_MCP_BEARER_TOKEN` | — | Deployment-scoped bearer token of at least 32 characters, required for HTTP. |
+| `DECO_MCP_ALLOWED_HOSTS` | — | Comma-separated permitted HTTP `Host` headers, required for DNS-rebinding protection. |
+| `DECO_MCP_ALLOWED_ORIGINS` | — | Comma-separated permitted browser origins; requests without an `Origin` remain valid. |
 | `DECO_MCP_ALLOW_SENSITIVE_READS` | off | Permit reads classified as `secret`. |
 | `DECO_MCP_ALLOW_BULK_SECRET_READS` | off | Permit configuration-backup and log downloads; also requires the sensitive-read gate. |
 | `DECO_MCP_ALLOW_BINARY_CONTENT` | off | Permit base64 binary content in MCP results; digest-only reads do not require this gate. |
@@ -82,6 +91,60 @@ Codex configuration retains the reference rather than the password. Confirm
 the redacted registration with `codex mcp get tplink-deco`. Start a new Codex
 task or reload MCP configuration after changing the server's tool definitions,
 because an already-open task may retain the earlier tool snapshot.
+
+### Docker Compose on a home-network host
+
+The included Compose profile runs one authenticated Streamable HTTP replica and
+does not require host networking, elevated Linux capabilities or persistent
+storage. A single replica intentionally owns the shared Deco login, mutation
+latches and pending plans.
+
+Copy or clone the repository to the Linux host, then configure it:
+
+```bash
+sudo install -d -m 0750 /opt/deco-mcp
+sudo chown "$USER":"$USER" /opt/deco-mcp
+cd /opt/deco-mcp
+
+# Clone or copy the repository contents here first.
+cp .env.example .env
+chmod 600 .env
+```
+
+Edit `.env`, replace every `CHANGE_ME` value and replace the example TEST-NET
+address. Use the host's static LAN address for `DECO_MCP_BIND_ADDRESS`, `DECO_MCP_PUBLIC_URL` and
+`DECO_MCP_ALLOWED_HOSTS`. Generate the bearer token independently of the Deco
+password:
+
+```bash
+openssl rand -hex 32
+```
+
+Start and inspect the service:
+
+```bash
+docker compose build --pull
+docker compose up -d
+docker compose ps
+docker compose logs --tail=100 deco-mcp
+```
+
+The deployment does not depend on whether the Docker host is a Proxmox LXC, a
+VM or an ordinary Linux machine. The MCP endpoint is the configured
+`DECO_MCP_PUBLIC_URL`; clients must send
+`Authorization: Bearer <DECO_MCP_BEARER_TOKEN>`. The unauthenticated
+`/healthz` endpoint checks only process liveness and never contacts the router.
+The container runs as UID/GID 10001, has a read-only root filesystem, drops all
+Linux capabilities and uses only an ephemeral `/tmp` tmpfs.
+
+Permit inbound TCP 8000 only from agent hosts. Permit outbound TCP 443 to the
+Deco controller and, when TMP is enabled, TCP 20001. The supplied deployment is
+plain HTTP and is suitable only for a trusted, firewalled home network. Put it
+behind TLS before crossing an untrusted LAN, VLAN boundary or the internet.
+The `.env` file is git-ignored but contains plaintext credentials; restrict the
+host and Docker administrator accounts and include the file only in protected
+backups. Avoid sharing the output of `docker compose config`, which expands the
+environment and can print those values.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
@@ -152,7 +215,7 @@ devices, traffic and address reservations additionally require
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
-| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
+| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `mcp_server_host`, `mcp_server_port`, `mcp_streamable_http_path`, `mcp_public_url`, `mcp_bearer_token_configured`, `mcp_allowed_hosts`, `mcp_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |

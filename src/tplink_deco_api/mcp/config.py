@@ -4,16 +4,41 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, cast
 
 if TYPE_CHECKING:
     from .._json import JsonValue
 
 _TRUE_VALUES: frozenset[str] = frozenset({"1", "true", "yes", "on"})
+McpTransport = Literal["stdio", "streamable-http"]
 
 
 def _get_bool(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in _TRUE_VALUES
+
+
+def _get_csv(name: str) -> tuple[str, ...]:
+    return tuple(value.strip() for value in os.environ.get(name, "").split(",") if value.strip())
+
+
+def _get_port() -> int:
+    value = os.environ.get("DECO_MCP_PORT", "8000")
+    try:
+        port = int(value)
+    except ValueError as exc:
+        raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be an integer") from exc
+    if not 1 <= port <= 65535:
+        raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be between 1 and 65535")
+    return port
+
+
+def _get_transport() -> McpTransport:
+    value = os.environ.get("DECO_MCP_TRANSPORT", "stdio").strip().lower()
+    if value not in {"stdio", "streamable-http"}:
+        raise ValueError(
+            "Failed to configure MCP: DECO_MCP_TRANSPORT must be stdio or streamable-http"
+        )
+    return cast("McpTransport", value)
 
 
 @dataclass(frozen=True)
@@ -38,6 +63,14 @@ class McpConfig:
     allow_http_noop_verification: bool = False
     expose_diagnostic_tools: bool = False
     expose_raw_mutation_tools: bool = False
+    transport: McpTransport = "stdio"
+    server_host: str = "127.0.0.1"
+    server_port: int = 8000
+    streamable_http_path: str = "/mcp"
+    public_url: str = ""
+    bearer_token: str = ""
+    allowed_hosts: tuple[str, ...] = ()
+    allowed_origins: tuple[str, ...] = ()
 
     @classmethod
     def from_env(cls) -> McpConfig:
@@ -49,7 +82,7 @@ class McpConfig:
             raise ValueError("Failed to configure MCP: DECO_TIMEOUT must be numeric") from exc
         if timeout <= 0:
             raise ValueError("Failed to configure MCP: DECO_TIMEOUT must be positive")
-        return cls(
+        config = cls(
             host=os.environ.get("DECO_HOST", "192.168.68.1"),
             username=os.environ.get("DECO_USERNAME", "admin"),
             password=os.environ.get("DECO_PASSWORD", ""),
@@ -68,7 +101,40 @@ class McpConfig:
             allow_http_noop_verification=_get_bool("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION"),
             expose_diagnostic_tools=_get_bool("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS"),
             expose_raw_mutation_tools=_get_bool("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS"),
+            transport=_get_transport(),
+            server_host=os.environ.get("DECO_MCP_HOST", "127.0.0.1").strip(),
+            server_port=_get_port(),
+            streamable_http_path=os.environ.get("DECO_MCP_STREAMABLE_HTTP_PATH", "/mcp").strip(),
+            public_url=os.environ.get("DECO_MCP_PUBLIC_URL", "").strip(),
+            bearer_token=os.environ.get("DECO_MCP_BEARER_TOKEN", "").strip(),
+            allowed_hosts=_get_csv("DECO_MCP_ALLOWED_HOSTS"),
+            allowed_origins=_get_csv("DECO_MCP_ALLOWED_ORIGINS"),
         )
+        config.validate_server()
+        return config
+
+    def validate_server(self) -> None:
+        """Reject unsafe or incomplete MCP transport configuration."""
+        if self.transport == "stdio":
+            return
+        if not self.server_host:
+            raise ValueError("Failed to configure MCP: DECO_MCP_HOST is required")
+        if not 1 <= self.server_port <= 65535:
+            raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be between 1 and 65535")
+        if not self.streamable_http_path.startswith("/"):
+            raise ValueError(
+                "Failed to configure MCP: DECO_MCP_STREAMABLE_HTTP_PATH must start with /"
+            )
+        if not self.public_url.startswith(("http://", "https://")):
+            raise ValueError("Failed to configure MCP: DECO_MCP_PUBLIC_URL must be an HTTP(S) URL")
+        if len(self.bearer_token) < 32:
+            raise ValueError(
+                "Failed to configure MCP: DECO_MCP_BEARER_TOKEN must contain at least 32 characters"
+            )
+        if not self.allowed_hosts:
+            raise ValueError(
+                "Failed to configure MCP: DECO_MCP_ALLOWED_HOSTS must contain at least one host"
+            )
 
     def public_settings(self) -> dict[str, JsonValue]:
         """Return non-secret settings that agents may inspect safely."""
@@ -91,4 +157,12 @@ class McpConfig:
             "allow_http_noop_verification": self.allow_http_noop_verification,
             "expose_diagnostic_tools": self.expose_diagnostic_tools,
             "expose_raw_mutation_tools": self.expose_raw_mutation_tools,
+            "mcp_transport": self.transport,
+            "mcp_server_host": self.server_host,
+            "mcp_server_port": self.server_port,
+            "mcp_streamable_http_path": self.streamable_http_path,
+            "mcp_public_url": self.public_url,
+            "mcp_bearer_token_configured": bool(self.bearer_token),
+            "mcp_allowed_hosts": list(self.allowed_hosts),
+            "mcp_allowed_origins": list(self.allowed_origins),
         }

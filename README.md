@@ -215,6 +215,20 @@ client's environment/secret settings:
 uv run tplink-deco-mcp
 ```
 
+For an always-on home-network deployment, copy the repository to a dedicated
+Docker host, copy `.env.example` to a mode-`0600` `.env`, replace its
+placeholders, and start the authenticated Streamable HTTP service:
+
+```bash
+docker compose build --pull
+docker compose up -d
+```
+
+The supplied Compose profile does not require host networking or elevated
+capabilities and can run in a Proxmox LXC, VM or ordinary Linux host. See
+[the MCP deployment guide](docs/mcp.md#docker-compose-on-a-home-network-host)
+for network, bearer-token and TLS requirements.
+
 Non-secret reads are enabled by default. Sensitive reads, ordinary mutations,
 destructive operations and internal firmware calls have independent environment
 gates and default to disabled. See [the MCP guide](docs/mcp.md) for the tools,
@@ -240,7 +254,7 @@ remains blocked because current P9 write evidence is limited to unchanged-value
 tests.
 
 Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` only when an expert agent needs the
-48-tool, 16-resource protocol catalogue, discovery and evidence surface. Raw
+48-tool, 22-resource protocol catalogue, discovery and evidence surface. Raw
 endpoint execution is independently hidden behind
 `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` and still requires every applicable risk
 gate and exact confirmation. Network, WLAN, cloud, client-device and

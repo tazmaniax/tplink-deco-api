@@ -6,16 +6,23 @@ import json
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, cast
 
+from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
+from pydantic import AnyHttpUrl
+from starlette.responses import PlainTextResponse
 
 from .._json import JsonObject, JsonValue, loads
 from ..models import CompatibilityManifest
+from ._static_token_verifier import _StaticTokenVerifier
 from .config import McpConfig
 from .service import DecoMcpService
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
+
+    from starlette.requests import Request
 
 _PRIMARY_TOOL_NAMES: frozenset[str] = frozenset(
     {
@@ -87,9 +94,29 @@ def _json_value(value_json: str) -> JsonValue:
 
 
 def create_server(config: McpConfig | None = None) -> FastMCP[None]:
-    """Create a stdio-capable MCP server with conservative safety defaults."""
+    """Create a transport-configurable MCP server with conservative safety defaults."""
     effective_config = config or McpConfig.from_env()
+    effective_config.validate_server()
     service = DecoMcpService(effective_config)
+    auth: AuthSettings | None = None
+    token_verifier: _StaticTokenVerifier | None = None
+    transport_security: TransportSecuritySettings | None = None
+    if effective_config.transport == "streamable-http":
+        public_url = AnyHttpUrl(effective_config.public_url)
+        auth = AuthSettings(
+            issuer_url=public_url,
+            resource_server_url=public_url,
+            required_scopes=[],
+        )
+        token_verifier = _StaticTokenVerifier(
+            effective_config.bearer_token,
+            effective_config.public_url,
+        )
+        transport_security = TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=list(effective_config.allowed_hosts),
+            allowed_origins=list(effective_config.allowed_origins),
+        )
 
     @asynccontextmanager
     async def lifespan(_: FastMCP[None]) -> AsyncIterator[None]:
@@ -116,7 +143,21 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
             "desired values and latches off after any non-verified outcome."
         ),
         lifespan=lifespan,
+        host=effective_config.server_host,
+        port=effective_config.server_port,
+        streamable_http_path=effective_config.streamable_http_path,
+        auth=auth,
+        token_verifier=token_verifier,
+        transport_security=transport_security,
     )
+
+    if effective_config.transport == "streamable-http":
+
+        async def health_resource(_: Request) -> PlainTextResponse:
+            """Return process liveness without contacting or authenticating to the router."""
+            return PlainTextResponse("ok")
+
+        server.custom_route("/healthz", methods=["GET"], include_in_schema=False)(health_resource)
 
     @server.resource("deco://diagnostics/operations")
     def endpoint_catalog_resource() -> str:
@@ -648,8 +689,9 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
 
 
 def main() -> None:
-    """Run the Deco MCP server over standard input/output."""
-    create_server().run(transport="stdio")
+    """Run the Deco MCP server over the configured transport."""
+    config = McpConfig.from_env()
+    create_server(config).run(transport=config.transport)
 
 
 if __name__ == "__main__":
