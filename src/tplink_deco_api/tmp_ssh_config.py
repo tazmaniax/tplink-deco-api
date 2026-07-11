@@ -39,4 +39,5 @@ class TmpSshConfig:
     @property
     def ssh_username(self) -> str:
         """Derive the firmware SSH username from the TP-Link ID."""
-        return sha1(self.tp_link_id.strip().encode()).hexdigest()
+        # TP-Link's firmware protocol mandates SHA-1 for this identifier; it is not a password hash.
+        return sha1(self.tp_link_id.strip().encode(), usedforsecurity=False).hexdigest()

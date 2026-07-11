@@ -81,6 +81,7 @@ select = [
     "SIM",
     "RUF",
     "TC",
+    "S324",
 ]
 ignore = []
 
