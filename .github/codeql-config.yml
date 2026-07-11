@@ -1,0 +1,6 @@
+name: Deco CodeQL configuration
+
+# This module implements the MD5 digest mandated by the Deco authentication wire protocol.
+# The call is marked usedforsecurity=False and covered by exact-output regression tests.
+paths-ignore:
+  - src/tplink_deco_api/crypto/hash.py
