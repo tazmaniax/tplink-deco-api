@@ -33,6 +33,10 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://configuration",
         "deco://mesh",
         "deco://devices",
+        "deco://devices/active",
+        "deco://devices/inactive",
+        "deco://devices/blocked",
+        "deco://traffic",
         "deco://address-reservations",
         "deco://logs",
         "deco://capabilities",
@@ -141,8 +145,28 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
 
     @server.resource("deco://devices")
     def devices_resource() -> str:
-        """Return the gated live inventory of client devices on the network."""
-        return _json_text(service.client_devices_resource())
+        """Return every known client device in one normalized representation."""
+        return _json_text(service.client_devices_resource("all"))
+
+    @server.resource("deco://devices/active")
+    def active_devices_resource() -> str:
+        """Return normalized client devices currently reported online."""
+        return _json_text(service.client_devices_resource("active"))
+
+    @server.resource("deco://devices/inactive")
+    def inactive_devices_resource() -> str:
+        """Return normalized known client devices not currently reported online."""
+        return _json_text(service.client_devices_resource("inactive"))
+
+    @server.resource("deco://devices/blocked")
+    def blocked_devices_resource() -> str:
+        """Return normalized client devices present in the block list."""
+        return _json_text(service.client_devices_resource("blocked"))
+
+    @server.resource("deco://traffic")
+    def traffic_resource() -> str:
+        """Return normalized per-device and aggregate traffic speeds."""
+        return _json_text(service.traffic_resource())
 
     @server.resource("deco://address-reservations")
     def address_reservations_resource() -> str:

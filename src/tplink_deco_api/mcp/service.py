@@ -15,6 +15,7 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
+from .._json import get_bool, get_int, get_str
 from ..capability_routing import (
     CAPABILITY_ROUTES,
     MUTATION_CAPABILITY_ROUTES,
@@ -387,40 +388,110 @@ class DecoMcpService:
         result["router_contacted"] = True
         return result
 
-    def client_devices_resource(self) -> dict[str, JsonValue]:
-        """Return live client identity, topology, traffic, and blocking state."""
-        result = self.read_capability("clients")
+    def client_devices_resource(self, view: str = "all") -> dict[str, JsonValue]:
+        """Return one normalized live device view from every known client source."""
+        valid_views = {"all", "active", "inactive", "blocked"}
+        if view not in valid_views:
+            raise ValueError(f"Failed to read client devices: unknown view {view!r}")
+        capability = self.read_capability("clients")
         errors: list[dict[str, JsonValue]] = []
         node_clients: tuple[NodeClientList, ...] = ()
-        clients_by_node: list[JsonValue] = []
-        traffic_statistics: JsonValue = None
-        blocked_devices: JsonValue = None
+        blocked_result: JsonValue = None
+        reservations = AddressReservationTable((), 0)
         try:
             node_clients = self.get_clients_by_node()
-            clients_by_node = [item.to_dict() for item in node_clients]
         except _LIVE_READ_ERRORS as exc:
             errors.append(_configuration_error("clients_by_node", exc))
         with self._lock:
             client = self._get_client()
             try:
-                traffic_statistics = client.get_traffic_statistics()
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("traffic_statistics", exc))
-            try:
-                blocked_devices = client.call(get_endpoint("admin.client.black_list.list")).result
+                blocked_result = client.call(get_endpoint("admin.client.black_list.list")).result
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("blocked_devices", exc))
-        result.update(
-            {
-                "clients_by_node": clients_by_node,
-                "client_assignment_count": sum(len(item.clients) for item in node_clients),
-                "traffic_statistics": traffic_statistics,
-                "blocked_devices": blocked_devices,
-                "unavailable_sections": errors,
-            }
+            try:
+                reservations = client.get_address_reservations()
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("address_reservations", exc))
+
+        records: dict[str, dict[str, JsonValue]] = {}
+        client_rows = _json_rows(capability.get("data"))
+        for row in client_rows:
+            _merge_client_device(records, _normalized_client_device(row), "client_list")
+        for node in node_clients:
+            for client_device in node.clients:
+                _merge_client_device(
+                    records,
+                    client_device,
+                    "clients_by_node",
+                    connected_node=node.node_mac,
+                )
+        if isinstance(blocked_result, Mapping):
+            for row in _mapping_rows(blocked_result, "client_list"):
+                _merge_blocked_device(records, ClientDevice.from_api(row))
+        for reservation in reservations.reservations:
+            _merge_reserved_device(records, reservation.mac, reservation.ip)
+
+        devices = sorted(
+            (record for record in records.values() if _device_record_matches_view(record, view)),
+            key=lambda record: _record_string(record, "mac"),
         )
-        result["router_contacted"] = True
-        return result
+        return {
+            "schema_version": 1,
+            "view": view,
+            "devices": devices,
+            "device_count": len(devices),
+            "all_device_count": len(records),
+            "source_counts": {
+                "client_list": len(client_rows),
+                "node_client_assignments": sum(len(node.clients) for node in node_clients),
+                "blocked_devices": len(_mapping_rows(blocked_result, "client_list"))
+                if isinstance(blocked_result, Mapping)
+                else 0,
+                "address_reservations": len(reservations.reservations),
+            },
+            "provenance": capability.get("provenance"),
+            "unavailable_sections": errors,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def traffic_resource(self) -> dict[str, JsonValue]:
+        """Return normalized current per-device and aggregate traffic speeds."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read traffic: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+            )
+        errors: list[dict[str, JsonValue]] = []
+        traffic: JsonValue = None
+        with self._lock:
+            try:
+                traffic = self._get_client().get_traffic_statistics()
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("device_speeds", exc))
+        rows = _mapping_rows(traffic, "client_list_speed") if isinstance(traffic, Mapping) else ()
+        device_speeds: list[dict[str, JsonValue]] = [
+            {
+                "mac": ClientDevice.from_api(row).mac,
+                "up_speed": _record_integer(row, "up_speed"),
+                "down_speed": _record_integer(row, "down_speed"),
+            }
+            for row in rows
+        ]
+        return {
+            "schema_version": 1,
+            "device_speeds": device_speeds,
+            "device_count": len(device_speeds),
+            "aggregate_speed": {
+                "up_speed": sum(_record_integer(row, "up_speed") for row in rows),
+                "down_speed": sum(_record_integer(row, "down_speed") for row in rows),
+            },
+            "status": "available" if not errors else "unavailable",
+            "unavailable_sections": errors,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def logs_resource(self) -> dict[str, JsonValue]:
         """Return the live log-category catalogue without reading log contents."""
@@ -642,6 +713,9 @@ class DecoMcpService:
                 "status": "deco://status",
                 "mesh": "deco://mesh",
                 "client_devices": "deco://devices",
+                "active_client_devices": "deco://devices/active",
+                "blocked_client_devices": "deco://devices/blocked",
+                "traffic": "deco://traffic",
                 "address_reservations": "deco://address-reservations",
                 "logs": "deco://logs",
                 "capabilities": "deco://capabilities",
@@ -3442,6 +3516,155 @@ def _mapping_rows(data: Mapping[str, JsonValue], key: str) -> tuple[JsonObject, 
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
         return ()
     return tuple(row for row in value if isinstance(row, Mapping))
+
+
+def _json_rows(value: JsonValue | None) -> tuple[JsonObject, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        return ()
+    return tuple(row for row in value if isinstance(row, Mapping))
+
+
+def _merge_client_device(
+    records: dict[str, dict[str, JsonValue]],
+    client: ClientDevice,
+    source: str,
+    *,
+    connected_node: str | None = None,
+) -> None:
+    if not client.mac:
+        return
+    record = records.setdefault(client.mac, _client_device_record(client))
+    string_values = {
+        "ip": client.ip,
+        "name": client.name,
+        "client_type": client.client_type,
+        "wire_type": client.wire_type,
+        "connection_type": client.connection_type,
+        "interface": client.interface,
+        "space_id": client.space_id,
+        "access_host": client.access_host,
+        "owner_id": client.owner_id,
+    }
+    for key, value in string_values.items():
+        if value:
+            record[key] = value
+    record["up_speed"] = client.up_speed
+    record["down_speed"] = client.down_speed
+    record["remain_time"] = client.remain_time
+    active = record.get("active") is True or client.online
+    record["active"] = active
+    record["status"] = "active" if active else "inactive"
+    record["client_mesh"] = record.get("client_mesh") is True or client.client_mesh
+    record["prioritized"] = record.get("prioritized") is True or client.enable_priority
+    if connected_node:
+        record["connected_node"] = connected_node
+    _append_device_source(record, source)
+
+
+def _normalized_client_device(row: JsonObject) -> ClientDevice:
+    normalized_mac = ClientDevice.from_api({"mac": get_str(row, "mac")}).mac
+    return ClientDevice(
+        mac=normalized_mac,
+        ip=get_str(row, "ip"),
+        name=get_str(row, "name"),
+        up_speed=get_int(row, "up_speed"),
+        down_speed=get_int(row, "down_speed"),
+        wire_type=get_str(row, "wire_type"),
+        connection_type=get_str(row, "connection_type"),
+        space_id=get_str(row, "space_id"),
+        access_host=get_str(row, "access_host"),
+        interface=get_str(row, "interface"),
+        client_type=get_str(row, "client_type"),
+        owner_id=get_str(row, "owner_id"),
+        remain_time=get_int(row, "remain_time"),
+        online=get_bool(row, "online"),
+        client_mesh=get_bool(row, "client_mesh"),
+        enable_priority=get_bool(row, "enable_priority"),
+    )
+
+
+def _merge_blocked_device(
+    records: dict[str, dict[str, JsonValue]],
+    client: ClientDevice,
+) -> None:
+    if not client.mac:
+        return
+    record = records.setdefault(client.mac, _client_device_record(client))
+    if client.name:
+        record["name"] = client.name
+    if client.client_type:
+        record["client_type"] = client.client_type
+    record["blocked"] = True
+    record["access_status"] = "blocked"
+    _append_device_source(record, "blocked_devices")
+
+
+def _merge_reserved_device(
+    records: dict[str, dict[str, JsonValue]],
+    mac: str,
+    ip: str,
+) -> None:
+    client = ClientDevice.from_api({"mac": mac, "ip": ip})
+    if not client.mac:
+        return
+    record = records.setdefault(client.mac, _client_device_record(client))
+    if not _record_string(record, "ip"):
+        record["ip"] = ip
+    record["reserved"] = True
+    record["reservation_ip"] = ip
+    _append_device_source(record, "address_reservations")
+
+
+def _client_device_record(client: ClientDevice) -> dict[str, JsonValue]:
+    return {
+        "mac": client.mac,
+        "ip": client.ip,
+        "name": client.name,
+        "client_type": client.client_type,
+        "status": "active" if client.online else "inactive",
+        "active": client.online,
+        "access_status": "allowed",
+        "blocked": False,
+        "reserved": False,
+        "prioritized": client.enable_priority,
+        "reservation_ip": None,
+        "up_speed": client.up_speed,
+        "down_speed": client.down_speed,
+        "wire_type": client.wire_type,
+        "connection_type": client.connection_type,
+        "interface": client.interface,
+        "connected_node": None,
+        "space_id": client.space_id,
+        "access_host": client.access_host,
+        "owner_id": client.owner_id,
+        "remain_time": client.remain_time,
+        "client_mesh": client.client_mesh,
+        "sources": [],
+    }
+
+
+def _append_device_source(record: dict[str, JsonValue], source: str) -> None:
+    sources = record.get("sources")
+    if isinstance(sources, list) and source not in sources:
+        sources.append(source)
+
+
+def _device_record_matches_view(record: Mapping[str, JsonValue], view: str) -> bool:
+    if view == "all":
+        return True
+    if view == "active":
+        return record.get("active") is True
+    if view == "inactive":
+        return record.get("active") is not True
+    return record.get("blocked") is True
+
+
+def _record_string(record: Mapping[str, JsonValue], key: str) -> str:
+    return get_str(record, key)
+
+
+def _record_integer(record: Mapping[str, JsonValue], key: str) -> int:
+    return get_int(record, key)
 
 
 def _internet_status_view(status: InternetStatus) -> dict[str, JsonValue]:

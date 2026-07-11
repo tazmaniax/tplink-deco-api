@@ -85,9 +85,9 @@ because an already-open task may retain the earlier tool snapshot.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes five protocol-neutral tools and nine
+The current default surface exposes five protocol-neutral tools and 13
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 18 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 22 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -147,7 +147,7 @@ falls back to local token and cookie invalidation.
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices and address reservations additionally require
+devices, traffic and address reservations additionally require
 `DECO_MCP_ALLOW_SENSITIVE_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
@@ -156,7 +156,11 @@ devices and address reservations additionally require
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
-| `deco://devices` | Gated client identities, per-node associations, traffic statistics and blocked-device state. | `capability`, `schema_version`, `data`, `provenance`, `clients_by_node`, `client_assignment_count`, `traffic_statistics`, `blocked_devices`, `unavailable_sections`, `router_contacted`, `mutation_invoked` |
+| `deco://devices` | Every known device normalized from client, per-node, block-list and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
+| `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
+| `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
+| `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
 | `deco://logs` | Available log categories without reading actual log entries. | `schema_version`, `categories`, `category_count`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
 | `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
@@ -170,10 +174,13 @@ Each `capabilities[]` item contains `name`, `description`, `category`,
 `execution_scope`, `execution_status`, `required_gates`,
 `confirmation_required`, `preflight_available`, `verification_available`,
 `rollback_available`, `planner_tool`, `executor_tool` and `blockers`.
-Each `clients_by_node[]` item contains `node_mac` and `clients`; each nested
-client contains `mac`, `ip`, `name`, `up_speed`, `down_speed`, `wire_type`,
-`connection_type`, `space_id`, `access_host`, `interface`, `client_type`,
-`owner_id`, `remain_time`, `online`, `client_mesh` and `enable_priority`. Each
+Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
+`active`, `access_status`, `blocked`, `reserved`, `prioritized`,
+`reservation_ip`, `up_speed`, `down_speed`, `wire_type`, `connection_type`,
+`interface`, `connected_node`, `space_id`, `access_host`, `owner_id`,
+`remain_time`, `client_mesh` and `sources`. `status` is the connectivity state
+`active` or `inactive`; blocking is an independent access state. Each
+`device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each
 `categories[]` item contains `name` and `value`. Each `warnings[]` item contains
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
@@ -213,9 +220,10 @@ The legacy compound reads `deco_get_router_profile`,
 `deco_get_client_overview` and `deco_get_system_overview` remain available in
 diagnostic mode for compatibility. They are excluded from the default surface
 because their data is available through the semantic resources: configuration
-contains the detailed network features, devices contains topology, traffic and
-blocking state, status contains speed-test and firmware state, and logs exposes
-categories without contents. Client-bearing and private overview reads require
+contains the detailed network features, normalized device records contain
+topology and blocking state, traffic has its own resource, status contains
+speed-test and firmware state, and logs exposes categories without contents.
+Client-bearing and private overview reads require
 `DECO_MCP_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
 
 Every tool publishes MCP annotations. Read tools advertise `readOnlyHint=true`;

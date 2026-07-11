@@ -1546,37 +1546,113 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
     assert configuration["unavailable_sections"] == []
 
 
-def test_mcp_devices_resource_includes_topology_traffic_and_blocking_state() -> None:
+def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -> None:
     service = DecoMcpService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
-    client.get_traffic_statistics.return_value = {"traffic_stat_list": [{"tx": 1, "rx": 2}]}
     client.call.return_value = ApiResponse.from_api(
-        {"error_code": 0, "result": {"black_list": [{"mac": "AA:BB"}]}}
+        {
+            "error_code": 0,
+            "result": {
+                "client_list": [
+                    {"mac": "AA:BB:CC:DD:EE:03", "name": "QmxvY2tlZA==", "client_type": "iot"}
+                ]
+            },
+        }
+    )
+    client.get_address_reservations.return_value = AddressReservationTable(
+        (AddressReservation("AA:BB:CC:DD:EE:04", "192.0.2.40"),),
+        64,
     )
     capability = {
         "capability": "clients",
         "schema_version": 1,
-        "data": {"clients": []},
+        "data": [
+            {
+                "mac": "AA:BB:CC:DD:EE:01",
+                "ip": "192.0.2.10",
+                "name": "Active",
+                "online": True,
+                "enable_priority": True,
+                "up_speed": 10,
+                "down_speed": 20,
+            },
+            {
+                "mac": "AA:BB:CC:DD:EE:02",
+                "ip": "192.0.2.20",
+                "name": "Inactive",
+                "online": False,
+            },
+        ],
         "provenance": {},
         "mutation_invoked": False,
     }
     assigned_client = ClientDevice.from_api(
-        {"mac": "AA:BB:CC:DD:EE:01", "ip": "192.0.2.10", "name": "VGVzdA=="}
+        {
+            "mac": "AA:BB:CC:DD:EE:01",
+            "ip": "192.0.2.10",
+            "name": "QWN0aXZl",
+            "online": True,
+        }
     )
-    clients_by_node = (NodeClientList("AA:BB", (assigned_client, assigned_client)),)
+    clients_by_node = (NodeClientList("AA:BB:CC:DD:EE:FF", (assigned_client,)),)
 
     with (
         mock.patch.object(service, "read_capability", return_value=capability),
         mock.patch.object(service, "get_clients_by_node", return_value=clients_by_node),
         mock.patch.object(service, "_get_client", return_value=client),
     ):
-        devices = service.client_devices_resource()
+        devices = service.client_devices_resource("all")
+        active = service.client_devices_resource("active")
+        inactive = service.client_devices_resource("inactive")
+        blocked = service.client_devices_resource("blocked")
 
-    assert devices["client_assignment_count"] == 2
-    assert devices["clients_by_node"][0]["node_mac"] == "AA:BB"
-    assert devices["traffic_statistics"] == {"traffic_stat_list": [{"tx": 1, "rx": 2}]}
-    assert devices["blocked_devices"] == {"black_list": [{"mac": "AA:BB"}]}
+    records = {record["mac"]: record for record in devices["devices"]}
+    assert devices["device_count"] == devices["all_device_count"] == 4
+    assert records["AA:BB:CC:DD:EE:01"]["status"] == "active"
+    assert records["AA:BB:CC:DD:EE:01"]["connected_node"] == "AA:BB:CC:DD:EE:FF"
+    assert records["AA:BB:CC:DD:EE:01"]["prioritized"] is True
+    assert records["AA:BB:CC:DD:EE:03"]["blocked"] is True
+    assert records["AA:BB:CC:DD:EE:03"]["access_status"] == "blocked"
+    assert records["AA:BB:CC:DD:EE:04"]["reserved"] is True
+    assert records["AA:BB:CC:DD:EE:04"]["reservation_ip"] == "192.0.2.40"
+    assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
+    assert {record["mac"] for record in inactive["devices"]} == {
+        "AA:BB:CC:DD:EE:02",
+        "AA:BB:CC:DD:EE:03",
+        "AA:BB:CC:DD:EE:04",
+    }
+    assert [record["mac"] for record in blocked["devices"]] == ["AA:BB:CC:DD:EE:03"]
     assert devices["unavailable_sections"] == []
+
+    with pytest.raises(ValueError, match="unknown view"):
+        service.client_devices_resource("unknown")
+
+
+def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
+    with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
+        DecoMcpService(_config()).traffic_resource()
+
+    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    client = mock.Mock()
+    client.get_traffic_statistics.return_value = {
+        "client_list_speed": [
+            {"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20},
+            {"mac": "AA:BB:CC:DD:EE:02", "up_speed": 30, "down_speed": 40},
+        ]
+    }
+
+    with mock.patch.object(service, "_get_client", return_value=client):
+        traffic = service.traffic_resource()
+
+    assert traffic["device_count"] == 2
+    assert traffic["device_speeds"][0] == {
+        "mac": "AA:BB:CC:DD:EE:01",
+        "up_speed": 10,
+        "down_speed": 20,
+    }
+    assert traffic["aggregate_speed"] == {"up_speed": 40, "down_speed": 60}
+    assert traffic["status"] == "available"
+    assert traffic["unavailable_sections"] == []
 
 
 def test_mcp_logs_resource_excludes_log_contents() -> None:
@@ -2786,7 +2862,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     } <= tool_names
     assert "deco_invoke_mutation" not in tool_names
     assert len(tool_names) == 48
-    assert len(resources) == 18
+    assert len(resources) == 22
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

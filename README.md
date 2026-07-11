@@ -220,11 +220,12 @@ destructive operations and internal firmware calls have independent environment
 gates and default to disabled. See [the MCP guide](docs/mcp.md) for the tools,
 resources and safety contract.
 
-The default MCP surface contains five protocol-neutral tools and nine semantic
+The default MCP surface contains five protocol-neutral tools and 13 semantic
 resources: MCP state, live network status, sanitized configuration, mesh nodes,
-network client devices, address reservations, log categories, capabilities and
-mutations. The resources are canonical state views; default tools are limited
-to parameterized or specially gated reads and mutation planning/execution. The
+normalized and filtered network-client devices, traffic, address reservations,
+log categories, capabilities and mutations. The resources are canonical state
+views; default tools are limited to parameterized or specially gated reads and
+mutation planning/execution. The
 server detects the connected controller model, selects HTTP/LuCI or TMP/AppV2,
 and reports its choice in provenance. Six overlapping reads have explicit, live-evidenced
 read-only fallback contracts; mutations never fall back.
