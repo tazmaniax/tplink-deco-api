@@ -9,4 +9,7 @@ def md5_session_hash(username: str, password: str) -> str:
     """Return the legacy Deco protocol's session digest."""
     session_material = (username + password).encode()
     # TP-Link's wire protocol mandates MD5 here; this digest does not store or secure a password.
-    return hashlib.md5(session_material, usedforsecurity=False).hexdigest()
+    digest = hashlib.md5(
+        session_material, usedforsecurity=False
+    )  # lgtm[py/weak-sensitive-data-hashing]
+    return digest.hexdigest()
