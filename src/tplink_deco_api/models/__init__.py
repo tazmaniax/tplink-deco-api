@@ -24,6 +24,7 @@ from .internet_status import InternetStatus, IpStatus
 from .log_type import LogType
 from .login_result import LoginResult
 from .model_compatibility_profile import ModelCompatibilityProfile
+from .mutation_capability_route import MutationCapabilityRoute
 from .mutation_plan import MutationPlan
 from .network_totals import NetworkTotals
 from .node_client_list import NodeClientList
@@ -76,6 +77,7 @@ __all__ = [
     "LoginResult",
     "MloHost",
     "ModelCompatibilityProfile",
+    "MutationCapabilityRoute",
     "MutationPlan",
     "NetworkTotals",
     "NodeClientList",

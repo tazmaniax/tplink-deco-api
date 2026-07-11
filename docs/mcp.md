@@ -35,8 +35,9 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_TMP_HOST_KEY_SHA256` | — | Required pinned SSH host-key fingerprint for authenticated TMP connections. |
 | `DECO_MCP_ALLOW_TMP_READS` | off | Permit TMP reads that have positive P9 evidence. |
 | `DECO_MCP_ALLOW_UNVERIFIED_TMP_READS` | off | Additionally permit read-only opcodes not yet tested on the P9. |
-| `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit only the P9-verified TMP 802.11r current-value no-op; also requires the ordinary mutation and TMP-read gates. |
-| `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS` | off | Register protocol-specific catalogue, raw read, discovery and mutation-analysis tools in addition to the protocol-neutral agent surface. |
+| `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit P9-verified TMP current-value no-ops; also requires the ordinary mutation and TMP-read gates. |
+| `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS` | off | Register protocol-specific catalogue, raw read, discovery and mutation-analysis tools and resources. This changes discoverability only and is not a mutation authorization gate. |
+| `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS` | off | Register the raw endpoint mutation executor independently of diagnostics. All ordinary risk gates, model evidence and confirmations still apply. |
 
 Run the installed entry point:
 
@@ -70,6 +71,7 @@ codex mcp add tplink-deco \
   --env DECO_MCP_ALLOW_UNVERIFIED_TMP_READS=0 \
   --env DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=0 \
   --env DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=0 \
+  --env DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=0 \
   -- /opt/homebrew/bin/op run -- \
     /opt/homebrew/bin/uv run --project "$PWD" tplink-deco-mcp
 ```
@@ -83,9 +85,10 @@ because an already-open task may retain the earlier tool snapshot.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes seven protocol-neutral tools and ten
-resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes all 44 tools;
-the additional resource describes logical capability routing. With HTTP risk gates disabled and only
+The current default surface exposes ten protocol-neutral tools and seven
+semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
+tools and 16 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
 mutation before opening a router session, produced an offline reservation
@@ -142,28 +145,56 @@ falls back to local token and cookie invalidation.
 
 ## Resources
 
-| Resource | Contents |
+The default resources describe the configured Deco mesh rather than a protocol.
+Except for `deco://status`, reading one can authenticate to the router. Client
+devices and address reservations additionally require
+`DECO_MCP_ALLOW_SENSITIVE_READS=1`.
+
+| Resource | Contents | Top-level response attributes |
+|---|---|---|
+| `deco://status` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
+| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `time_settings`, `wireless_features`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh` | Controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
+| `deco://devices` | Client devices currently reported on the network. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
+| `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
+
+Each `capabilities[]` item contains `name`, `description`, `category`,
+`sensitivity`, `support_status`, `readable`, `mutable`, `read_tool`,
+`related_mutations`, `evidence_level` and `reason_unavailable`. Each
+`mutations[]` item contains `name`, `description`, `category`, `risk`,
+`sensitivity`, `scope`, `changes_schema`, `support_status`, `validation_status`,
+`execution_scope`, `execution_status`, `required_gates`,
+`confirmation_required`, `preflight_available`, `verification_available`,
+`rollback_available`, `planner_tool`, `executor_tool` and `blockers`.
+
+Protocol and evidence resources are diagnostic-only:
+
+| Diagnostic resource | Contents |
 |---|---|
-| `deco://endpoint-catalog` | Non-secret operation metadata; no router login required. |
-| `deco://status` | Non-secret server settings, enabled gates and connection state. |
-| `deco://transport-capabilities` | Implemented HTTP transports plus detected TMP/AppV2 evidence. |
-| `deco://compatibility/p9/tmp-opcodes` | Complete reverse-engineered AppV2 metadata with exact P9 observations. |
-| `deco://compatibility/p9/tmp-mutations` | Offline TMP write inventory with inferred preflight, verification and rollback relationships. |
-| `deco://compatibility/p9/coverage` | Unified offline HTTP, TMP, transport and mutation coverage with callable-path invariants and remaining gaps. |
-| `deco://compatibility/p9` | Observed P9 read support and untested same-form mutation candidates. |
-| `deco://compatibility/p9/operations` | Non-secret catalogue with P9 evidence on every operation. |
-| `deco://compatibility/p9/mutations` | P9 mutation candidates, evidence, safety-contract coverage and runtime eligibility. |
-| `deco://capability-routes` | Logical capabilities, preferred and fallback implementations, equivalence evidence, and current fallback readiness. |
+| `deco://diagnostics/operations` | Complete non-secret HTTP operation catalogue. |
+| `deco://diagnostics/transports` | Implemented HTTP and TMP transport details. |
+| `deco://diagnostics/routes` | Internal capability-to-protocol routes and fallback evidence. |
+| `deco://diagnostics/http/mutations` | Raw HTTP mutation evidence and safety contracts. |
+| `deco://diagnostics/tmp/opcodes` | Complete reverse-engineered TMP/AppV2 opcode catalogue. |
+| `deco://diagnostics/tmp/mutations` | Raw TMP write, preflight, verification and rollback evidence. |
+| `deco://diagnostics/coverage` | P9 HTTP/TMP evidence coverage and remaining gaps. |
+| `deco://profiles/P9` | Stored P9 model and firmware evidence. |
+| `deco://profiles/P9/operations` | Stored P9 evidence overlaid on raw operations. |
 
 ## Tools
 
-By default agents see only the seven protocol-neutral tools below. The server
-chooses the implementation for `deco_get_capability`; the six overview tools
-remain semantic composites and never ask the agent to select a transport.
+By default agents see only the ten protocol-neutral tools below. The server
+resolves the connected controller and chooses implementations; the agent never
+supplies a live model or protocol.
 
 | Primary tool | Behaviour |
 |---|---|
+| `deco_get_router_profile` | Resolve or refresh the connected controller and mesh-node identity read-only. |
 | `deco_get_capability` | Read `mesh_nodes`, `clients`, `internet_status`, `address_reservations`, `fast_roaming`, or `beamforming`; normalize the result and report source interface, operation, attempts and fallback use. |
+| `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
+| `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
 | `deco_get_network_overview` | Return opted-in mode, internet, WAN/LAN, performance, time and address-reservation state. |
 | `deco_get_mesh_overview` | Return mesh nodes and clients queried separately for each node. |
 | `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
@@ -171,13 +202,30 @@ remain semantic composites and never ask the agent to select a transport.
 | `deco_get_client_overview` | Return clients, traffic counters, blacklist and address reservations. |
 | `deco_get_system_overview` | Return speed-test, firmware-status, mesh nickname and log-type state. |
 
+The semantic mutation workflow is discover, plan, authorize and execute:
+
+1. Read `deco://mutations`. It includes all 21 known semantic intents, including
+   unverified or blocked entries, without exposing duplicate HTTP forms or TMP
+   opcodes.
+2. Call `deco_plan_mutation` with a semantic name, `changes_json`, and mode.
+   State-changing mode currently returns blockers because no general-scope P9
+   mutation is verified. `mode="verify_current_value_noop"` accepts no desired
+   changes and can issue a plan only for an exact connected P9 profile with all
+   required gates enabled.
+3. Review the returned model, scope, gates, blockers and exact confirmation.
+4. Call `deco_execute_mutation` with only the plan ID and confirmation. Plans
+   expire after five minutes, are bound to the controller identity, are consumed
+   once and never fall back to another protocol.
+
 Automatic fallback is limited to the six registry entries with live P9 schema
 or boolean-contract equivalence. HTTP is currently preferred because it has the
 stronger typed SDK façade. TMP fallback requires its ordinary read gate, pinned
 host key and credentials; secret logical capabilities also require the single
 sensitive-read gate before either transport is selected. Errors include only
 the failed interface and exception type in successful fallback provenance.
-Mutations are never retried or routed automatically.
+Mutations are never retried or routed automatically. Each semantic mutation
+route is fixed to one live-verified implementation before execution: HTTP for
+beamforming, fast roaming and time settings, and TMP/AppV2 for monthly report.
 
 This first registry intentionally covers only overlaps with demonstrated
 normalization equivalence. Protocol-unique datasets remain on the diagnostic
@@ -186,11 +234,15 @@ router never invents equivalence merely to hide a transport distinction.
 
 The remaining tools are registered only when
 `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1`. They support endpoint research, complete
-batch access, compatibility audits and explicitly gated mutation analysis.
+batch access, compatibility audits and explicitly gated mutation analysis. The
+flag does not authorize writes; all mutation gates and exact per-call
+confirmations still apply independently.
 
 | Tool | Behaviour |
 |---|---|
 | `deco_get_capability` | Protocol-neutral capability read; also remains present on the diagnostic surface. |
+| `deco_plan_capability_mutation` | Legacy fixed no-op route inspection retained on the diagnostic surface. |
+| `deco_verify_setting_noop` | Legacy direct semantic no-op verifier retained on the diagnostic surface; normal agents use plan and execute. |
 | `deco_endpoint_catalog` | Filter operations and optionally add a model overlay with `model="P9"`. |
 | `deco_p9_profile` | Return the bundled P9 observation summary and inferred, untested mutation candidates. |
 | `deco_transport_capabilities` | Explain implemented, unsupported and detected Deco transports. |
@@ -215,7 +267,7 @@ batch access, compatibility audits and explicitly gated mutation analysis.
 | `deco_discover_p9_untested_http_reads` | Probe any remaining untested, non-secret P9 JSON reads using implemented owner-session or plaintext-bootstrap transport; currently none remain. |
 | `deco_read_endpoint` | Call one read-only operation and return its complete firmware envelope. |
 | `deco_validate_operation` | Check required parameters and SDK transport support without contacting the router. |
-| `deco_plan_mutation` | Build a dry-run preflight, verification and rollback plan without contacting the router. |
+| `deco_plan_raw_mutation` | Build a raw endpoint-level preflight, verification and rollback plan without contacting the router. |
 | `deco_preflight_mutation` | Evaluate a known mutation preflight against live read-only router state; never invokes a mutation. |
 | `deco_read_binary_endpoint` | Download an opted-in binary read and return size/SHA-256 metadata; requires sensitive and bulk-secret gates, plus the content-export gate for base64. |
 | `deco_discover_p9_binary_reads` | Recheck the three P9 backup/log candidates behind sensitive and bulk-secret gates and return digest metadata only. |
@@ -227,7 +279,12 @@ batch access, compatibility audits and explicitly gated mutation analysis.
 | `deco_get_clients_by_node` | Query `client_list` separately for every Deco MAC and retain node-to-client associations. |
 | `deco_build_compatibility_manifest` | Return a value-free P9 manifest; pass `full=true` to probe the complete supported non-secret HTTP read catalog. |
 | `deco_compare_manifests` | Compare two saved manifests locally without contacting a router. |
-| `deco_invoke_mutation` | Call an enabled, model-verified non-read operation when its exact plan hash is confirmed. |
+
+`deco_invoke_mutation` is not part of either the default or ordinary diagnostic
+surface. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` exposes it independently for
+endpoint-level research; execution still requires the applicable mutation,
+destructive or internal gate, an exact model-evidence contract, the reviewed
+parameter-bound plan hash and exact operation-name confirmation.
 
 `params_json` is a JSON object containing the endpoint's `params` fields. For
 example, a node-targeted read can pass:
@@ -327,12 +384,12 @@ DECO_PASSWORD='op://Private/tplinkdeco.net/password' \
 
 Mutation calls must pass the endpoint's full dotted name twice: once as `name`
 and again as `confirmation`. They must also copy `confirmation_sha256` from the
-reviewed `deco_plan_mutation` result into `plan_confirmation`. The hash binds the
+reviewed `deco_plan_raw_mutation` result into `plan_confirmation`. The hash binds the
 operation name and exact JSON parameters, so changing parameters invalidates
 the confirmation. Environment gates, the hash, and model verification are all
 checked before a router connection is opened.
 
-Call `deco_plan_mutation` before considering a write. The planner validates the
+Call `deco_plan_raw_mutation` before considering a raw endpoint write. The planner validates the
 parameters and transport, reports the model evidence and server gate, and
 describes any known preflight read, success condition and rollback operation.
 It never opens a router session. Address-reservation plans use `getlist` before
@@ -665,17 +722,18 @@ is in [`p9-tmp-ieee80211r-noop.json`](api-responses/p9-tmp-ieee80211r-noop.json)
 The other 345 mutation candidates remain untested. No generic TMP mutation
 tool is exposed.
 
-`deco_verify_tmp_ieee80211r_noop` is the only TMP write surface. It remains
-disabled unless `DECO_MCP_ALLOW_MUTATIONS=1`, `DECO_MCP_ALLOW_TMP_READS=1` and
-`DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=1` are all set before server startup. Each
-call must also repeat the exact confirmation reported by the mutation inventory.
-The tool obtains the current boolean from `0x4208`, sends only that same value to
-`0x4209`, immediately verifies through `0x4208`, and restores the preflight
-value if verification fails. It returns value-free evidence and never accepts a
-desired setting value. Calls are serialized, and any result other than
-`verified_noop` trips a process-lifetime safety latch that rejects further
-attempts until the MCP server is restarted. Enabling or disabling 802.11r
-remains unsupported.
+The unified `deco_verify_setting_noop` tool exposes the verified monthly-report
+TMP no-op as capability `monthly_report`; the protocol-specific
+`deco_verify_tmp_ieee80211r_noop` remains available only on the diagnostic
+surface. Both remain disabled unless `DECO_MCP_ALLOW_MUTATIONS=1`,
+`DECO_MCP_ALLOW_TMP_READS=1` and `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=1` are all
+set before server startup. Each call must repeat its exact confirmation. The
+tools obtain the current boolean, send only that same value, immediately verify
+it and restore the preflight value if verification fails. They return
+value-free evidence and never accept a desired setting value. Calls are
+serialized, and any result other than `verified_noop` trips a process-lifetime
+safety latch that rejects further attempts until the MCP server is restarted.
+Enabling or disabling either setting remains unsupported.
 
 `deco_p9_tmp_mutation_verification_queue` converts that inventory into seven
 agent-readable tiers without opening either router transport. `11R_SET`,

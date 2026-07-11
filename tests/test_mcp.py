@@ -74,6 +74,23 @@ def _config(**overrides: bool) -> McpConfig:
     )
 
 
+def _p9_controller() -> Device:
+    return Device.from_api(
+        {
+            "mac": "AA:BB:CC:DD:EE:FF",
+            "device_ip": "192.0.2.1",
+            "device_model": "P9",
+            "role": "master",
+            "hardware_ver": "2.0",
+            "software_ver": "1.3.0 Build 20250804 Rel. 58832",
+        }
+    )
+
+
+def _prime_p9_profile(service: DecoMcpService) -> None:
+    service._device_cache = (_p9_controller(),)
+
+
 def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DECO_HOST", "192.0.2.2")
     monkeypatch.setenv("DECO_USERNAME", "owner")
@@ -92,6 +109,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS", "on")
+    monkeypatch.setenv("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS", "on")
 
     config = McpConfig.from_env()
     public = config.public_settings()
@@ -111,6 +129,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert config.allow_tmp_noop_verification
     assert config.allow_http_noop_verification
     assert config.expose_diagnostic_tools
+    assert config.expose_raw_mutation_tools
     assert public["password_configured"] is True
     assert public["tp_link_id_configured"] is True
     assert public["tmp_host_key_sha256"] == "SHA256:test"
@@ -119,6 +138,7 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert public["allow_bulk_secret_reads"] is True
     assert public["allow_binary_content"] is True
     assert public["expose_diagnostic_tools"] is True
+    assert public["expose_raw_mutation_tools"] is True
     assert "password" not in public
     assert "owner@example.com" not in str(public)
 
@@ -307,8 +327,9 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
     assert coverage["unified_agent_surface"]["capability_count"] == 6
-    assert coverage["unified_agent_surface"]["default_tool_count"] == 7
-    assert coverage["unified_agent_surface"]["diagnostic_tool_count"] == 44
+    assert coverage["unified_agent_surface"]["mutation_capability_count"] == 4
+    assert coverage["unified_agent_surface"]["default_tool_count"] == 10
+    assert coverage["unified_agent_surface"]["diagnostic_tool_count"] == 48
     assert coverage["unified_agent_surface"]["agent_selects_protocol"] is False
     assert coverage["unified_agent_surface"]["automatic_mutation_fallback"] is False
     assert coverage["http"]["catalogued_read_count"] == 219
@@ -359,7 +380,10 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "scoped_noop_operation_count": 3,
         "scoped_noop_runtime_gate_enabled": False,
         "scoped_noop_execution_eligible_count": 0,
-        "scoped_noop_tool": "deco_verify_p9_http_noop",
+        "scoped_noop_tools": [
+            "deco_verify_setting_noop",
+            "deco_verify_p9_http_noop",
+        ],
     }
     assert coverage["mutations"]["tmp"] == {
         "candidate_count": 348,
@@ -375,9 +399,12 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "execution_eligible_count": 0,
         "execution_tool_exposed": True,
         "generic_execution_tool_exposed": False,
-        "scoped_noop_tool_count": 1,
+        "scoped_noop_tool_count": 2,
         "scoped_noop_runtime_gate_enabled": False,
-        "scoped_noop_tool": "deco_verify_tmp_ieee80211r_noop",
+        "scoped_noop_tools": [
+            "deco_verify_setting_noop",
+            "deco_verify_tmp_ieee80211r_noop",
+        ],
         "verification_candidate_count": 0,
         "default_verification_queue_count": 0,
         "verification_queue_tool": "deco_p9_tmp_mutation_verification_queue",
@@ -509,7 +536,7 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
     assert inventory["execution_eligible_count"] == 0
     assert inventory["execution_tool_exposed"] is True
     assert inventory["generic_execution_tool_exposed"] is False
-    assert inventory["scoped_noop_tool_count"] == 1
+    assert inventory["scoped_noop_tool_count"] == 2
     assert inventory["scoped_noop_runtime_gate_enabled"] is False
     assert inventory["scoped_noop_operations"][0]["tool"] == ("deco_verify_tmp_ieee80211r_noop")
     assert inventory["prepared_verification_harness_count"] == 2
@@ -534,7 +561,9 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
             "exact_confirmation_required": True,
             "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
             "live_invoked": True,
-            "mcp_execution_exposed": False,
+            "mcp_execution_exposed": True,
+            "mcp_tool": "deco_verify_setting_noop",
+            "mcp_capability": "monthly_report",
         },
     ]
     ieee80211r = next(plan for plan in inventory["plans"] if plan["code"] == 0x4209)
@@ -551,7 +580,11 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
     assert monthly_report["verification_harness"] == ("examples/verify_tmp_monthly_report_noop.py")
     assert monthly_report["verification_confirmation"] == (TMP_MONTHLY_REPORT_NOOP_CONFIRMATION)
     assert monthly_report["live_verification_invoked"] is True
-    assert monthly_report["scoped_mcp_execution_supported"] is False
+    assert monthly_report["scoped_mcp_execution_supported"] is True
+    assert monthly_report["scoped_mcp_tool"] == "deco_verify_setting_noop"
+    assert monthly_report["scoped_mcp_capability"] == "monthly_report"
+    assert monthly_report["runtime_gate_enabled"] is False
+    assert monthly_report["execution_eligible"] is False
     qos = next(plan for plan in inventory["plans"] if plan["code"] == 0x4037)
     assert qos["preflight_result_keys"] == ("custom_detail",)
     assert qos["preflight_missing_candidate_keys"] == ("qos_mode",)
@@ -575,7 +608,7 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
             allow_tmp_noop_verification=True,
         )
     ).p9_tmp_mutation_inventory()
-    assert enabled["execution_eligible_count"] == 1
+    assert enabled["execution_eligible_count"] == 2
     assert enabled["scoped_noop_runtime_gate_enabled"] is True
 
 
@@ -643,6 +676,7 @@ def test_mcp_tmp_noop_verification_executes_only_verified_current_value() -> Non
             allow_tmp_noop_verification=True,
         )
     )
+    _prime_p9_profile(service)
     client = mock.Mock()
     client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"enable": True}},
@@ -671,6 +705,7 @@ def test_mcp_tmp_noop_verification_latches_after_nonverified_outcome() -> None:
             allow_tmp_noop_verification=True,
         )
     )
+    _prime_p9_profile(service)
     client = mock.Mock()
     client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"enable": False}},
@@ -732,6 +767,7 @@ def test_mcp_http_noop_verification_executes_only_verified_current_value() -> No
             allow_http_noop_verification=True,
         )
     )
+    _prime_p9_profile(service)
     client = mock.Mock()
     client.call.side_effect = [
         ApiResponse.from_api({"error_code": 0, "result": state}),
@@ -765,6 +801,7 @@ def test_mcp_http_noop_verification_latches_after_nonverified_outcome() -> None:
             allow_http_noop_verification=True,
         )
     )
+    _prime_p9_profile(service)
     client = mock.Mock()
     client.call.side_effect = [
         ApiResponse.from_api({"error_code": 0, "result": state}),
@@ -1446,6 +1483,53 @@ def test_mcp_service_network_overview_uses_confirmed_high_level_reads() -> None:
     ]
 
 
+def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() -> None:
+    service = DecoMcpService(_config())
+    _prime_p9_profile(service)
+    client = mock.Mock()
+    client.get_device_mode.return_value = DeviceMode("router", "Router", "GB")
+    ip_status = IpStatus("connected", "connected", "dynamic", "dynamic", 0)
+    client.get_internet_status.return_value = InternetStatus(ip_status, ip_status, "up")
+    wan_ip = IpInfo(
+        "198.51.100.10",
+        "255.255.255.0",
+        "AA:BB:CC:DD:EE:FF",
+        "198.51.100.1",
+        "1.1.1.1",
+        "8.8.8.8",
+    )
+    lan_ip = IpInfo("192.168.68.1", "255.255.255.0", "AA:BB:CC:DD:EE:00", "", "", "")
+    client.get_wan_info.return_value = WanInfo(
+        WanDetails(wan_ip, "dynamic", True),
+        LanDetails(lan_ip),
+    )
+    client.get_dhcp_info.return_value = {"enable": True, "pool_start": "192.168.68.100"}
+    client.get_time_settings.return_value = TimeSettings(
+        "12:00:00",
+        "2026-07-10",
+        "GMT0BST",
+        "Europe/London",
+        "Europe",
+        "enabled",
+    )
+    client.get_wireless_operation_mode.return_value = {"mode": "host"}
+    client.get_bridge_status.return_value = {"enable": False}
+    client.get_fast_roaming.return_value = {"enable": True}
+    client.get_beamforming.return_value = {"enable": True}
+
+    with mock.patch.object(service, "_get_client", return_value=client):
+        configuration = service.configuration_resource()
+
+    assert configuration["controller"]["model"] == "P9"
+    assert configuration["operating_mode"]["workmode"] == "router"
+    assert configuration["wireless_features"]["beamforming"] == {"enabled": True}
+    assert configuration["related_resources"]["client_devices"] == "deco://devices"
+    assert configuration["passwords_included"] is False
+    assert configuration["client_identities_included"] is False
+    assert configuration["address_reservations_included"] is False
+    assert configuration["unavailable_sections"] == []
+
+
 def test_mcp_service_mesh_overview_preserves_per_node_associations() -> None:
     service = DecoMcpService(_config())
     device = Device.from_api(
@@ -1958,11 +2042,14 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
         "verified_noop": 4,
     }
     assert inventory["verification_queue_tool"] == ("deco_p9_http_mutation_verification_queue")
-    assert inventory["scoped_noop_tool_count"] == 1
+    assert inventory["scoped_noop_tool_count"] == 2
     assert inventory["scoped_noop_operation_count"] == 3
     assert inventory["scoped_noop_runtime_gate_enabled"] is False
     assert inventory["scoped_noop_execution_eligible_count"] == 0
-    assert inventory["scoped_noop_tool"] == "deco_verify_p9_http_noop"
+    assert inventory["scoped_noop_tools"] == [
+        "deco_verify_setting_noop",
+        "deco_verify_p9_http_noop",
+    ]
     assert [item["operation"] for item in inventory["scoped_noop_operations"]] == list(
         HTTP_NOOP_CONFIRMATIONS
     )
@@ -2410,17 +2497,22 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         {},
     )
     status_result = await server.read_resource("deco://status")
-    catalog_resource = await server.read_resource("deco://endpoint-catalog")
-    p9_resource = await server.read_resource("deco://compatibility/p9")
-    p9_operations_resource = await server.read_resource("deco://compatibility/p9/operations")
-    p9_mutations_resource = await server.read_resource("deco://compatibility/p9/mutations")
-    transport_resource = await server.read_resource("deco://transport-capabilities")
-    tmp_opcodes_resource = await server.read_resource("deco://compatibility/p9/tmp-opcodes")
-    tmp_mutations_resource = await server.read_resource("deco://compatibility/p9/tmp-mutations")
-    coverage_resource = await server.read_resource("deco://compatibility/p9/coverage")
+    catalog_resource = await server.read_resource("deco://diagnostics/operations")
+    p9_resource = await server.read_resource("deco://profiles/P9")
+    p9_operations_resource = await server.read_resource("deco://profiles/P9/operations")
+    p9_mutations_resource = await server.read_resource("deco://diagnostics/http/mutations")
+    transport_resource = await server.read_resource("deco://diagnostics/transports")
+    tmp_opcodes_resource = await server.read_resource("deco://diagnostics/tmp/opcodes")
+    tmp_mutations_resource = await server.read_resource("deco://diagnostics/tmp/mutations")
+    coverage_resource = await server.read_resource("deco://diagnostics/coverage")
 
     assert {
         "deco_get_capability",
+        "deco_get_router_profile",
+        "deco_execute_mutation",
+        "deco_plan_capability_mutation",
+        "deco_plan_raw_mutation",
+        "deco_verify_setting_noop",
         "deco_endpoint_catalog",
         "deco_p9_profile",
         "deco_transport_capabilities",
@@ -2463,10 +2555,10 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         "deco_get_clients_by_node",
         "deco_build_compatibility_manifest",
         "deco_compare_manifests",
-        "deco_invoke_mutation",
     } <= tool_names
-    assert len(tool_names) == 44
-    assert len(resources) == 10
+    assert "deco_invoke_mutation" not in tool_names
+    assert len(tool_names) == 48
+    assert len(resources) == 16
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

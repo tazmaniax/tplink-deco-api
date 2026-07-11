@@ -18,7 +18,10 @@ if TYPE_CHECKING:
 
 _PRIMARY_TOOL_NAMES: frozenset[str] = frozenset(
     {
+        "deco_get_router_profile",
         "deco_get_capability",
+        "deco_plan_mutation",
+        "deco_execute_mutation",
         "deco_get_network_overview",
         "deco_get_mesh_overview",
         "deco_get_wlan_state",
@@ -27,6 +30,18 @@ _PRIMARY_TOOL_NAMES: frozenset[str] = frozenset(
         "deco_get_system_overview",
     }
 )
+_PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
+    {
+        "deco://status",
+        "deco://configuration",
+        "deco://mesh",
+        "deco://devices",
+        "deco://address-reservations",
+        "deco://capabilities",
+        "deco://mutations",
+    }
+)
+_RAW_MUTATION_TOOL_NAMES: frozenset[str] = frozenset({"deco_invoke_mutation"})
 
 
 def _json_text(value: JsonValue) -> str:
@@ -63,15 +78,17 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
             "Sensitive reads, mutations, destructive operations, and internal operations each "
             "require a separate server-side environment opt-in. Bulk-secret downloads and "
             "binary content export have additional independent gates. TMP reads have independent "
-            "verified and unverified gates and require a pinned SSH host key. Plan every "
-            "mutation before requesting execution; a plan never contacts the router. HTTP "
-            "setting no-ops and the TMP 802.11r no-op use separate dedicated gates, accept no "
-            "desired values, and latch off after any non-verified outcome."
+            "verified and unverified gates and require a pinned SSH host key. Read semantic "
+            "resources to discover the connected mesh, configuration, capabilities and mutation "
+            "eligibility. Plan every mutation before requesting execution; planning may resolve "
+            "the controller read-only but never writes. Eligible plans are short-lived, one-shot, "
+            "identity-bound and have no mutation fallback. Current verified execution accepts no "
+            "desired values and latches off after any non-verified outcome."
         ),
         lifespan=lifespan,
     )
 
-    @server.resource("deco://endpoint-catalog")
+    @server.resource("deco://diagnostics/operations")
     def endpoint_catalog_resource() -> str:
         """Return the non-secret endpoint catalogue as JSON."""
         return _json_text(service.endpoint_catalog())
@@ -81,42 +98,72 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         """Return non-secret configuration and connection status."""
         return _json_text(service.public_status())
 
-    @server.resource("deco://transport-capabilities")
+    @server.resource("deco://configuration")
+    def configuration_resource() -> str:
+        """Return a sanitized live overview of the connected Deco configuration."""
+        return _json_text(service.configuration_resource())
+
+    @server.resource("deco://mesh")
+    def mesh_resource() -> str:
+        """Return connected controller and node identities using a cached live read."""
+        return _json_text(service.device_inventory())
+
+    @server.resource("deco://devices")
+    def devices_resource() -> str:
+        """Return the gated live inventory of client devices on the network."""
+        return _json_text(service.client_devices_resource())
+
+    @server.resource("deco://address-reservations")
+    def address_reservations_resource() -> str:
+        """Return the gated live address-reservation table."""
+        return _json_text(service.address_reservations_resource())
+
+    @server.resource("deco://capabilities")
+    def capabilities_resource() -> str:
+        """Return semantic read capabilities for the connected controller."""
+        return _json_text(service.capabilities())
+
+    @server.resource("deco://mutations")
+    def mutations_resource() -> str:
+        """Return semantic mutation candidates and execution eligibility."""
+        return _json_text(service.semantic_mutations())
+
+    @server.resource("deco://diagnostics/transports")
     def transport_capabilities_resource() -> str:
         """Return implemented and catalogued transport coverage."""
         return _json_text(service.transport_capabilities())
 
-    @server.resource("deco://capability-routes")
+    @server.resource("deco://diagnostics/routes")
     def capability_routes_resource() -> str:
         """Return logical capability routes and fallback readiness without router contact."""
         return _json_text(service.capability_routes())
 
-    @server.resource("deco://compatibility/p9/tmp-opcodes")
+    @server.resource("deco://diagnostics/tmp/opcodes")
     def p9_tmp_opcodes_resource() -> str:
         """Return TMP/AppV2 opcode metadata with exact P9 observations."""
         return _json_text(service.p9_tmp_opcode_catalog())
 
-    @server.resource("deco://compatibility/p9/tmp-mutations")
+    @server.resource("deco://diagnostics/tmp/mutations")
     def p9_tmp_mutations_resource() -> str:
         """Return TMP mutation safety evidence and narrowly scoped execution metadata."""
         return _json_text(service.p9_tmp_mutation_inventory())
 
-    @server.resource("deco://compatibility/p9/coverage")
+    @server.resource("deco://diagnostics/coverage")
     def p9_coverage_resource() -> str:
         """Return unified P9 access coverage, call paths, and remaining gaps."""
         return _json_text(service.p9_access_coverage())
 
-    @server.resource("deco://compatibility/p9")
+    @server.resource("deco://profiles/P9")
     def p9_profile_resource() -> str:
         """Return the bundled value-free P9 compatibility summary."""
         return _json_text(service.p9_profile())
 
-    @server.resource("deco://compatibility/p9/operations")
+    @server.resource("deco://profiles/P9/operations")
     def p9_operations_resource() -> str:
         """Return model evidence overlaid on every non-secret catalogue operation."""
         return _json_text(service.endpoint_catalog(model="P9"))
 
-    @server.resource("deco://compatibility/p9/mutations")
+    @server.resource("deco://diagnostics/http/mutations")
     def p9_mutations_resource() -> str:
         """Return P9 mutation evidence and safety-contract coverage."""
         return _json_text(service.p9_mutation_inventory())
@@ -300,9 +347,44 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         return _json_text(service.operation_compatibility(name, model))
 
     @server.tool()
+    def deco_get_router_profile(refresh: bool = False) -> str:
+        """Resolve the connected controller and mesh-node identities read-only."""
+        return _json_text(service.device_inventory(refresh=refresh))
+
+    @server.tool()
     def deco_get_capability(name: str) -> str:
         """Read one logical capability while the server selects and normalizes its protocol."""
         return _json_text(service.read_capability(name))
+
+    @server.tool()
+    def deco_plan_mutation(
+        name: str,
+        changes_json: str = "{}",
+        mode: str = "change",
+    ) -> str:
+        """Plan one semantic mutation and issue a one-shot execution ID only when eligible."""
+        return _json_text(
+            service.plan_semantic_mutation(
+                name,
+                _params(changes_json),
+                mode=mode,
+            )
+        )
+
+    @server.tool()
+    def deco_execute_mutation(plan_id: str, confirmation: str) -> str:
+        """Execute one eligible semantic plan exactly once with no protocol fallback."""
+        return _json_text(service.execute_semantic_mutation(plan_id, confirmation))
+
+    @server.tool()
+    def deco_plan_capability_mutation(name: str) -> str:
+        """Plan one semantic verified no-op offline and report its fixed implementation."""
+        return _json_text(service.plan_capability_mutation(name))
+
+    @server.tool()
+    def deco_verify_setting_noop(name: str, confirmation: str) -> str:
+        """Run one semantic current-value no-op through its fixed verified implementation."""
+        return _json_text(service.verify_setting_noop(name, confirmation))
 
     @server.tool()
     def deco_get_network_overview() -> str:
@@ -367,12 +449,12 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         return _json_text(service.validate_operation(name, _params(params_json), model))
 
     @server.tool()
-    def deco_plan_mutation(
+    def deco_plan_raw_mutation(
         name: str,
         params_json: str = "{}",
         model: str = "P9",
     ) -> str:
-        """Plan preflight, verification, and rollback without contacting the router."""
+        """Plan one raw endpoint mutation for diagnostic analysis only."""
         return _json_text(service.plan_mutation(name, _params(params_json), model))
 
     @server.tool()
@@ -482,10 +564,19 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
             ).payload
         )
 
-    if not effective_config.expose_diagnostic_tools:
-        for tool in server._tool_manager.list_tools():
-            if tool.name not in _PRIMARY_TOOL_NAMES:
+    for tool in server._tool_manager.list_tools():
+        if tool.name in _PRIMARY_TOOL_NAMES:
+            continue
+        if tool.name in _RAW_MUTATION_TOOL_NAMES:
+            if not effective_config.expose_raw_mutation_tools:
                 server._tool_manager.remove_tool(tool.name)
+            continue
+        if not effective_config.expose_diagnostic_tools:
+            server._tool_manager.remove_tool(tool.name)
+    if not effective_config.expose_diagnostic_tools:
+        for uri in tuple(server._resource_manager._resources):
+            if uri not in _PRIMARY_RESOURCE_URIS:
+                del server._resource_manager._resources[uri]
 
     return server
 

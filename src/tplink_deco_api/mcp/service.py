@@ -7,6 +7,7 @@ import hashlib
 import ipaddress
 import json
 import re
+import secrets
 import socket
 import threading
 import time
@@ -14,7 +15,12 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
-from ..capability_routing import CAPABILITY_ROUTES, get_capability_route
+from ..capability_routing import (
+    CAPABILITY_ROUTES,
+    MUTATION_CAPABILITY_ROUTES,
+    get_capability_route,
+    get_mutation_capability_route,
+)
 from ..client import DecoClient
 from ..endpoint_catalog import (
     CATALOG_VERSION,
@@ -52,7 +58,10 @@ from ..models import (
 from ..mutation_planner import build_mutation_plan
 from ..tmp_beamforming_noop_verification import TMP_BEAMFORMING_NOOP_CONFIRMATION
 from ..tmp_client import DecoTmpClient
-from ..tmp_monthly_report_noop_verification import TMP_MONTHLY_REPORT_NOOP_CONFIRMATION
+from ..tmp_monthly_report_noop_verification import (
+    TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+    verify_tmp_monthly_report_noop,
+)
 from ..tmp_mutation_planner import build_tmp_mutation_plan
 from ..tmp_mutation_verification import build_tmp_mutation_verification_queue
 from ..tmp_noop_verification import (
@@ -63,6 +72,7 @@ from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
+from ._pending_mutation_plan import _PendingMutationPlan
 
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
@@ -88,6 +98,80 @@ _P9_BINARY_READ_NAMES: tuple[str, ...] = (
 )
 _TMP_PARAMETER_SOURCE_OPCODES: tuple[int, ...] = (0x4012, 0x4029, 0x4060)
 _TMP_OWNER_PARAMETERIZED_OPCODES: frozenset[int] = frozenset({0x402D, 0x402F, 0x4031})
+_SEMANTIC_MUTATION_OPERATIONS: dict[str, tuple[str, ...]] = {
+    "wan_mode": ("admin.network.wan_mode.write",),
+    "lan_ip": ("admin.network.lan_ip.write",),
+    "vlan": ("admin.network.vlan.write", "admin.network.vlan.set_vlan"),
+    "mac_clone": ("admin.network.mac_clone.write",),
+    "wireless_operation_mode": ("admin.wireless.operation_mode.write",),
+    "fast_roaming": ("admin.wireless.ieee80211r.write",),
+    "beamforming": ("admin.wireless.beamforming.write",),
+    "remove_device": ("admin.device.device_list.remove",),
+    "speed_test_start": ("admin.device.speedtest.write",),
+    "speed_test_stop": ("admin.device.speedtest.stop",),
+    "time_settings": ("admin.device.timesetting.write", "admin.device.timesetting.gmt"),
+    "language": ("locale.lang.write",),
+    "country": ("locale.country.write",),
+    "block_client": ("admin.client.black_list.add",),
+    "unblock_client": ("admin.client.black_list.remove",),
+    "address_reservation_add": ("admin.client.addr_reservation.add",),
+    "address_reservation_modify": ("admin.client.addr_reservation.modify",),
+    "address_reservation_remove": ("admin.client.addr_reservation.remove",),
+    "nickname": ("admin.cloud.nickname.write",),
+    "firmware_upgrade": (
+        "admin.cloud.firmware_status.upgrade",
+        "admin.cloud.firmware_status.local_upgrade",
+    ),
+    "monthly_report": (),
+}
+_SEMANTIC_MUTATION_DESCRIPTIONS: dict[str, str] = {
+    "wan_mode": "Change the WAN operating mode",
+    "lan_ip": "Change the LAN IP configuration",
+    "vlan": "Change the internet VLAN configuration",
+    "mac_clone": "Change WAN MAC-clone configuration",
+    "wireless_operation_mode": "Change the wireless operation mode",
+    "fast_roaming": "Change 802.11r fast roaming",
+    "beamforming": "Change wireless beamforming",
+    "remove_device": "Remove a Deco node from the mesh",
+    "speed_test_start": "Start the built-in speed test",
+    "speed_test_stop": "Stop the built-in speed test",
+    "time_settings": "Change timezone and regional time settings",
+    "language": "Change the router interface language",
+    "country": "Change the router country setting",
+    "block_client": "Add a client to the block list",
+    "unblock_client": "Remove a client from the block list",
+    "address_reservation_add": "Add an address reservation",
+    "address_reservation_modify": "Modify an address reservation",
+    "address_reservation_remove": "Remove an address reservation",
+    "nickname": "Change the mesh nickname",
+    "firmware_upgrade": "Start a firmware upgrade",
+    "monthly_report": "Change monthly-report generation",
+}
+_SEMANTIC_MUTATION_CATEGORIES: dict[str, str] = {
+    "wan_mode": "network",
+    "lan_ip": "network",
+    "vlan": "network",
+    "mac_clone": "network",
+    "wireless_operation_mode": "wireless",
+    "fast_roaming": "wireless",
+    "beamforming": "wireless",
+    "remove_device": "mesh",
+    "speed_test_start": "diagnostics",
+    "speed_test_stop": "diagnostics",
+    "time_settings": "system",
+    "language": "system",
+    "country": "system",
+    "block_client": "clients",
+    "unblock_client": "clients",
+    "address_reservation_add": "clients",
+    "address_reservation_modify": "clients",
+    "address_reservation_remove": "clients",
+    "nickname": "mesh",
+    "firmware_upgrade": "firmware",
+    "monthly_report": "reporting",
+}
+_SEMANTIC_PLAN_TTL_SECONDS = 300.0
+_LIVE_READ_ERRORS = (DecoError, OSError, TimeoutError, ValueError)
 
 
 class DecoMcpService:
@@ -97,6 +181,8 @@ class DecoMcpService:
         self._config = config
         self._client: DecoClient | None = None
         self._tmp_client: DecoTmpClient | None = None
+        self._device_cache: tuple[Device, ...] | None = None
+        self._pending_mutation_plans: dict[str, _PendingMutationPlan] = {}
         self._http_mutation_latched = False
         self._tmp_mutation_latched = False
         self._lock = threading.RLock()
@@ -106,6 +192,8 @@ class DecoMcpService:
         with self._lock:
             client, self._client = self._client, None
             tmp_client, self._tmp_client = self._tmp_client, None
+            self._device_cache = None
+            self._pending_mutation_plans.clear()
             try:
                 if client is not None:
                     client.logout()
@@ -121,10 +209,265 @@ class DecoMcpService:
         status["http_mutation_latched"] = self._http_mutation_latched
         status["tmp_mutation_latched"] = self._tmp_mutation_latched
         status["catalogued_operations"] = len(ENDPOINT_CATALOG)
+        status["schema_version"] = 1
+        status["identity_resolved"] = self._device_cache is not None
+        status["pending_mutation_plan_count"] = len(self._pending_mutation_plans)
         return status
 
+    def device_inventory(self, *, refresh: bool = False) -> dict[str, JsonValue]:
+        """Return connected Deco identities and cache the controller profile."""
+        router_contacted = False
+        with self._lock:
+            if refresh or self._device_cache is None:
+                self._device_cache = tuple(self._get_client().get_device_list())
+                router_contacted = True
+            devices = self._device_cache
+        controller = _controller_device(devices)
+        profile_match = _profile_match(controller)
+        return {
+            "schema_version": 1,
+            "resolution_status": "resolved",
+            "controller": _device_view(controller),
+            "nodes": [_device_view(device) for device in devices],
+            "node_count": len(devices),
+            "mixed_model_mesh": len({device.device_model for device in devices}) > 1,
+            "identity_source": "admin.device.device_list.read",
+            "profile_match": profile_match,
+            "profile_name": "P9" if profile_match in {"exact", "model_only"} else None,
+            "cached": not router_contacted,
+            "router_contacted": router_contacted,
+            "mutation_invoked": False,
+        }
+
+    def capabilities(self) -> dict[str, JsonValue]:
+        """Return semantic read capabilities for the connected controller."""
+        inventory = self.device_inventory()
+        profile_match = _json_string(inventory, "profile_match")
+        capabilities: list[dict[str, JsonValue]] = []
+        for route in CAPABILITY_ROUTES:
+            support_status = "supported" if profile_match == "exact" else "unverified"
+            reason = "" if profile_match == "exact" else "no exact model and firmware profile"
+            related_mutations = [route.name] if route.name in _SEMANTIC_MUTATION_OPERATIONS else []
+            capabilities.append(
+                {
+                    "name": route.name,
+                    "description": route.description,
+                    "category": _capability_category(route.name),
+                    "sensitivity": route.sensitivity,
+                    "support_status": support_status,
+                    "readable": True,
+                    "mutable": bool(related_mutations),
+                    "read_tool": "deco_get_capability",
+                    "related_mutations": related_mutations,
+                    "evidence_level": route.equivalence_evidence
+                    if profile_match == "exact"
+                    else "unknown",
+                    "reason_unavailable": reason,
+                }
+            )
+        counts = Counter(item["support_status"] for item in capabilities)
+        return {
+            "schema_version": 1,
+            "resolution_status": inventory["resolution_status"],
+            "controller": inventory["controller"],
+            "profile_match": profile_match,
+            "capabilities": capabilities,
+            "supported_count": counts["supported"],
+            "unknown_count": counts["unverified"],
+            "unsupported_count": counts["unsupported"],
+            "router_contacted": inventory["router_contacted"],
+            "mutation_invoked": False,
+        }
+
+    def semantic_mutations(self) -> dict[str, JsonValue]:
+        """Return every known semantic mutation and its current execution status."""
+        inventory = self.device_inventory()
+        profile_match = _json_string(inventory, "profile_match")
+        mutations = [
+            self._semantic_mutation_entry(name, operations, profile_match)
+            for name, operations in _SEMANTIC_MUTATION_OPERATIONS.items()
+        ]
+        execution_counts: Counter[str] = Counter()
+        for mutation in mutations:
+            execution_status = mutation["execution_status"]
+            if isinstance(execution_status, str):
+                execution_counts[execution_status] += 1
+        return {
+            "schema_version": 1,
+            "resolution_status": inventory["resolution_status"],
+            "controller": inventory["controller"],
+            "profile_match": profile_match,
+            "mutations": mutations,
+            "candidate_count": len(mutations),
+            "execution_counts": dict(sorted(execution_counts.items())),
+            "mutation_gate_status": {
+                "ordinary": self._config.allow_mutations,
+                "destructive": self._config.allow_destructive,
+                "internal": self._config.allow_internal,
+                "http_noop": self._config.allow_http_noop_verification,
+                "tmp_noop": self._config.allow_tmp_noop_verification,
+            },
+            "router_contacted": inventory["router_contacted"],
+            "mutation_invoked": False,
+        }
+
+    def _semantic_mutation_entry(
+        self,
+        name: str,
+        operations: tuple[str, ...],
+        profile_match: str,
+    ) -> dict[str, JsonValue]:
+        route = next((item for item in MUTATION_CAPABILITY_ROUTES if item.name == name), None)
+        endpoints = tuple(get_endpoint(operation) for operation in operations)
+        compatibilities = (
+            tuple(P9_COMPATIBILITY_PROFILE.get(operation) for operation in operations)
+            if profile_match in {"exact", "model_only"}
+            else ()
+        )
+        scopes = {compatibility.mutation_test_scope for compatibility in compatibilities}
+        validation_status = (
+            "general_verified"
+            if "general" in scopes
+            else "noop_verified"
+            if "noop_only" in scopes or route is not None
+            else "unverified"
+        )
+        gates = list(route.required_environment_gates) if route is not None else []
+        gate_status = {gate: self._mutation_gate_enabled(gate) for gate in gates}
+        exact_route = route is not None and profile_match == "exact"
+        execution_scope = "noop_only" if exact_route else "none"
+        if not exact_route:
+            execution_status = "blocked"
+        elif all(gate_status.values()):
+            execution_status = "ready"
+        else:
+            execution_status = "gated"
+        blockers: list[str] = []
+        if profile_match != "exact":
+            blockers.append("no exact connected model, hardware, and firmware profile")
+        if route is None:
+            blockers.append("no complete verified semantic execution route")
+        elif route is not None:
+            blockers.append("state-changing behavior has not been validated")
+        blockers.extend(
+            f"{gate} is disabled" for gate, enabled in gate_status.items() if not enabled
+        )
+        required = sorted({key for endpoint in endpoints for key in endpoint.required_params})
+        optional = sorted({key for endpoint in endpoints for key in endpoint.optional_params})
+        if name == "monthly_report":
+            required = ["enable"]
+        risks: set[str] = {endpoint.safety for endpoint in endpoints} or {"mutation"}
+        sensitivities: set[str] = {endpoint.sensitivity for endpoint in endpoints} or {"normal"}
+        return {
+            "name": name,
+            "description": _SEMANTIC_MUTATION_DESCRIPTIONS[name],
+            "category": _SEMANTIC_MUTATION_CATEGORIES[name],
+            "risk": _highest_risk(risks),
+            "sensitivity": _highest_sensitivity(sensitivities),
+            "scope": "mesh" if name not in {"remove_device"} else "node",
+            "changes_schema": {"required": required, "optional": optional},
+            "support_status": "supported" if profile_match == "exact" else "unverified",
+            "validation_status": validation_status,
+            "execution_scope": execution_scope,
+            "execution_status": execution_status,
+            "required_gates": gates,
+            "confirmation_required": exact_route,
+            "preflight_available": bool(route and route.preflight_operation),
+            "verification_available": exact_route,
+            "rollback_available": exact_route,
+            "planner_tool": "deco_plan_mutation",
+            "executor_tool": "deco_execute_mutation" if exact_route else None,
+            "blockers": blockers,
+        }
+
+    def address_reservations_resource(self) -> dict[str, JsonValue]:
+        """Return the live address-reservation table through the semantic read path."""
+        result = self.read_capability("address_reservations")
+        result["router_contacted"] = True
+        return result
+
+    def client_devices_resource(self) -> dict[str, JsonValue]:
+        """Return the live network-client inventory through the semantic read path."""
+        result = self.read_capability("clients")
+        result["router_contacted"] = True
+        return result
+
+    def configuration_resource(self) -> dict[str, JsonValue]:
+        """Return a sanitized live configuration overview without secret datasets."""
+        inventory = self.device_inventory()
+        sections: dict[str, JsonValue] = {}
+        errors: list[dict[str, JsonValue]] = []
+        with self._lock:
+            client = self._get_client()
+            try:
+                mode = client.get_device_mode()
+                sections["operating_mode"] = {
+                    "workmode": mode.workmode,
+                    "sysmode": mode.sysmode,
+                    "region": mode.region,
+                }
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("operating_mode", exc))
+            try:
+                sections["internet"] = _internet_status_view(client.get_internet_status())
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("internet", exc))
+            try:
+                wan_info = client.get_wan_info()
+                sections["wan"] = {
+                    "ip_info": _ip_info(wan_info.wan.ip_info),
+                    "dial_type": wan_info.wan.dial_type,
+                    "enable_auto_dns": wan_info.wan.enable_auto_dns,
+                }
+                sections["lan"] = {"ip_info": _ip_info(wan_info.lan.ip_info)}
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("wan_lan", exc))
+            try:
+                sections["dhcp"] = client.get_dhcp_info()
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("dhcp", exc))
+            try:
+                time_settings = client.get_time_settings()
+                sections["time_settings"] = {
+                    "time": time_settings.time,
+                    "date": time_settings.date,
+                    "timezone": time_settings.timezone,
+                    "tz_region": time_settings.tz_region,
+                    "continent": time_settings.continent,
+                    "dst_status": time_settings.dst_status,
+                }
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("time_settings", exc))
+            try:
+                sections["wireless_features"] = {
+                    "operation_mode": client.get_wireless_operation_mode(),
+                    "bridge": client.get_bridge_status(),
+                    "fast_roaming": _boolean_setting_view(client.get_fast_roaming()),
+                    "beamforming": _boolean_setting_view(client.get_beamforming()),
+                }
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("wireless_features", exc))
+        return {
+            "schema_version": 1,
+            "controller": inventory["controller"],
+            **sections,
+            "related_resources": {
+                "mesh": "deco://mesh",
+                "client_devices": "deco://devices",
+                "address_reservations": "deco://address-reservations",
+                "capabilities": "deco://capabilities",
+                "mutations": "deco://mutations",
+            },
+            "unavailable_sections": errors,
+            "passwords_included": False,
+            "client_identities_included": False,
+            "address_reservations_included": False,
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
     def capability_routes(self) -> dict[str, JsonValue]:
-        """Return logical read routes and current fallback readiness offline."""
+        """Return logical read and mutation routes offline."""
         tmp_configured = bool(
             self._config.tp_link_id and self._config.password and self._config.tmp_host_key_sha256
         )
@@ -143,7 +486,230 @@ class DecoMcpService:
                 }
                 for route in CAPABILITY_ROUTES
             ],
+            "mutation_routes": [
+                {
+                    **route.to_dict(),
+                    "environment_gate_status": {
+                        gate: self._mutation_gate_enabled(gate)
+                        for gate in route.required_environment_gates
+                    },
+                    "all_environment_gates_enabled": all(
+                        self._mutation_gate_enabled(gate)
+                        for gate in route.required_environment_gates
+                    ),
+                }
+                for route in MUTATION_CAPABILITY_ROUTES
+            ],
         }
+
+    def plan_capability_mutation(self, name: str) -> dict[str, JsonValue]:
+        """Plan one fixed semantic no-op without contacting the router."""
+        try:
+            route = get_mutation_capability_route(name)
+        except KeyError as exc:
+            raise ValueError(
+                f"Failed to plan capability mutation: unknown capability {name!r}"
+            ) from exc
+        gate_status = {
+            gate: self._mutation_gate_enabled(gate) for gate in route.required_environment_gates
+        }
+        return {
+            **route.to_dict(),
+            "model": "P9",
+            "environment_gate_status": gate_status,
+            "all_environment_gates_enabled": all(gate_status.values()),
+            "router_contacted": False,
+            "mutation_invoked": False,
+            "agent_selects_protocol": False,
+        }
+
+    def plan_semantic_mutation(
+        self,
+        name: str,
+        changes: Mapping[str, JsonValue] | None,
+        *,
+        mode: str = "change",
+    ) -> dict[str, JsonValue]:
+        """Create a short-lived semantic mutation plan bound to this controller."""
+        if mode not in {"change", "verify_current_value_noop"}:
+            raise ValueError(f"Failed to plan semantic mutation: unsupported mode {mode!r}")
+        catalog = self.semantic_mutations()
+        entries = catalog["mutations"]
+        if not isinstance(entries, Sequence):
+            raise ValueError("Failed to plan semantic mutation: mutation catalogue is invalid")
+        entry = next(
+            (item for item in entries if isinstance(item, Mapping) and item.get("name") == name),
+            None,
+        )
+        if entry is None:
+            raise ValueError(f"Failed to plan semantic mutation: unknown mutation {name!r}")
+        selected_changes = dict(changes or {})
+        route = next((item for item in MUTATION_CAPABILITY_ROUTES if item.name == name), None)
+        blockers = list(_json_string_list(entry, "blockers"))
+        if mode == "change":
+            blockers.append("state-changing semantic execution is not yet validated")
+        elif selected_changes:
+            blockers.append("current-value no-op verification does not accept desired changes")
+        blockers = list(dict.fromkeys(blockers))
+        if mode == "verify_current_value_noop":
+            blockers = [
+                blocker
+                for blocker in blockers
+                if blocker != "state-changing behavior has not been validated"
+            ]
+        execution_allowed = (
+            mode == "verify_current_value_noop"
+            and not selected_changes
+            and route is not None
+            and catalog["profile_match"] == "exact"
+            and all(self._mutation_gate_enabled(gate) for gate in route.required_environment_gates)
+        )
+        plan_id: str | None = None
+        confirmation: str | None = None
+        expires_in_seconds: float | None = None
+        if execution_allowed and route is not None:
+            plan_id = secrets.token_urlsafe(24)
+            confirmation = route.confirmation
+            expires_at = time.monotonic() + _SEMANTIC_PLAN_TTL_SECONDS
+            with self._lock:
+                controller_identity = self._controller_identity()
+                self._pending_mutation_plans[plan_id] = _PendingMutationPlan(
+                    plan_id=plan_id,
+                    mutation=name,
+                    mode=mode,
+                    confirmation=confirmation,
+                    controller_identity=controller_identity,
+                    expires_at=expires_at,
+                )
+            expires_in_seconds = _SEMANTIC_PLAN_TTL_SECONDS
+        return {
+            "schema_version": 1,
+            "mutation": name,
+            "mode": mode,
+            "changes": selected_changes,
+            "model": _controller_model(catalog["controller"]),
+            "profile_match": catalog["profile_match"],
+            "validation_status": entry.get("validation_status"),
+            "execution_scope": entry.get("execution_scope"),
+            "execution_allowed": execution_allowed,
+            "plan_id": plan_id,
+            "expires_in_seconds": expires_in_seconds,
+            "required_confirmation": confirmation,
+            "required_gates": entry.get("required_gates"),
+            "preflight_available": entry.get("preflight_available"),
+            "verification_available": entry.get("verification_available"),
+            "rollback_available": entry.get("rollback_available"),
+            "blockers": [] if execution_allowed else blockers,
+            "router_contacted": catalog["router_contacted"],
+            "mutation_invoked": False,
+            "fallback_policy": "none",
+        }
+
+    def execute_semantic_mutation(
+        self,
+        plan_id: str,
+        confirmation: str,
+    ) -> dict[str, JsonValue]:
+        """Execute one unexpired semantic plan exactly once without fallback."""
+        with self._lock:
+            plan = self._pending_mutation_plans.get(plan_id)
+            if plan is None:
+                raise PermissionError("Failed to execute semantic mutation: unknown plan ID")
+            if time.monotonic() > plan.expires_at:
+                del self._pending_mutation_plans[plan_id]
+                raise PermissionError("Failed to execute semantic mutation: plan has expired")
+            if confirmation != plan.confirmation:
+                raise PermissionError(
+                    "Failed to execute semantic mutation: exact plan confirmation is required"
+                )
+            self.device_inventory(refresh=True)
+            if self._controller_identity() != plan.controller_identity:
+                del self._pending_mutation_plans[plan_id]
+                raise PermissionError(
+                    "Failed to execute semantic mutation: connected controller identity changed"
+                )
+            del self._pending_mutation_plans[plan_id]
+        if plan.mode != "verify_current_value_noop":
+            raise PermissionError("Failed to execute semantic mutation: unsupported execution mode")
+        result = self.verify_setting_noop(plan.mutation, confirmation)
+        result.update(
+            {
+                "plan_id": plan.plan_id,
+                "plan_consumed": True,
+                "fallback_policy": "none",
+                "fallback_used": False,
+            }
+        )
+        return result
+
+    def _controller_identity(self) -> str:
+        devices = self._device_cache
+        if devices is None:
+            raise PermissionError(
+                "Failed to resolve controller identity: call the device profile first"
+            )
+        controller = _controller_device(devices)
+        identity = "\n".join(
+            (
+                controller.mac,
+                controller.device_model,
+                controller.hardware_ver,
+                controller.software_ver,
+            )
+        )
+        return hashlib.sha256(identity.encode()).hexdigest()
+
+    def _require_exact_p9_profile(self, label: str) -> None:
+        inventory = self.device_inventory()
+        if inventory["profile_match"] != "exact":
+            raise PermissionError(
+                f"Failed to {label}: connected controller lacks the exact verified P9 profile"
+            )
+
+    def verify_setting_noop(
+        self,
+        name: str,
+        confirmation: str,
+    ) -> dict[str, JsonValue]:
+        """Run one fixed P9-verified semantic no-op without protocol fallback."""
+        try:
+            route = get_mutation_capability_route(name)
+        except KeyError as exc:
+            raise ValueError(
+                f"Failed to verify setting no-op: unknown capability {name!r}"
+            ) from exc
+        if confirmation != route.confirmation:
+            raise PermissionError(
+                "Failed to verify setting no-op: exact per-call confirmation is required"
+            )
+        if route.interface == "http_luci":
+            evidence = self.verify_p9_http_noop(route.operation, confirmation)
+        elif name == "monthly_report":
+            evidence = self._verify_tmp_monthly_report_noop(confirmation)
+        else:
+            raise PermissionError(
+                f"Failed to verify setting no-op: no executor for capability {name!r}"
+            )
+        evidence.update(
+            {
+                "capability": route.name,
+                "selected_interface": route.interface,
+                "selected_operation": route.operation,
+                "fallback_policy": "none",
+                "fallback_used": False,
+                "agent_selected_protocol": False,
+            }
+        )
+        return evidence
+
+    def _mutation_gate_enabled(self, gate: str) -> bool:
+        states = {
+            "DECO_MCP_ALLOW_MUTATIONS": self._config.allow_mutations,
+            "DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION": (self._config.allow_http_noop_verification),
+            "DECO_MCP_ALLOW_TMP_READS": self._config.allow_tmp_reads,
+            "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION": (self._config.allow_tmp_noop_verification),
+        }
+        return states[gate]
 
     def read_capability(self, name: str) -> dict[str, JsonValue]:
         """Read one logical capability and apply only proven read-only fallback."""
@@ -155,6 +721,7 @@ class DecoMcpService:
             raise PermissionError(
                 "Failed to read capability: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
             )
+        self.device_inventory()
         attempts: list[dict[str, JsonValue]] = []
         try:
             data = self._read_http_capability(name)
@@ -198,7 +765,9 @@ class DecoMcpService:
         with self._lock:
             client = self._get_client()
             if name == "mesh_nodes":
-                return [_device_view(device) for device in client.get_device_list()]
+                devices = self._device_cache or tuple(client.get_device_list())
+                self._device_cache = devices
+                return [_device_view(device) for device in devices]
             if name == "clients":
                 clients = tuple(client.get_client_list())
                 return NodeClientList("default", clients).to_dict()["clients"]
@@ -249,6 +818,8 @@ class DecoMcpService:
             and bool(self._config.tp_link_id)
             and bool(self._config.password)
             and bool(self._config.tmp_host_key_sha256)
+            and self._device_cache is not None
+            and _profile_match(_controller_device(self._device_cache)) == "exact"
             and (sensitivity != "secret" or self._config.allow_sensitive_reads)
         )
 
@@ -378,6 +949,7 @@ class DecoMcpService:
             raise PermissionError(
                 "Failed to verify TMP 802.11r no-op: P9 safety evidence is incomplete"
             )
+        self._require_exact_p9_profile("verify TMP 802.11r no-op")
         with self._lock:
             if self._tmp_mutation_latched:
                 raise PermissionError(
@@ -387,6 +959,55 @@ class DecoMcpService:
                 self._get_tmp_client(),
                 confirmation,
             )
+            if not result.verified_noop:
+                self._tmp_mutation_latched = True
+        evidence = result.to_dict()
+        evidence.update(
+            {
+                "model": "P9",
+                "execution_scope": "verified_current_value_noop_only",
+                "runtime_gates": [
+                    "DECO_MCP_ALLOW_MUTATIONS",
+                    "DECO_MCP_ALLOW_TMP_READS",
+                    "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                ],
+                "generic_tmp_mutation_supported": False,
+                "requires_attention": not result.verified_noop,
+            }
+        )
+        return evidence
+
+    def _verify_tmp_monthly_report_noop(self, confirmation: str) -> dict[str, JsonValue]:
+        if confirmation != TMP_MONTHLY_REPORT_NOOP_CONFIRMATION:
+            raise PermissionError(
+                "Failed to verify TMP monthly-report no-op: exact per-call confirmation is required"
+            )
+        if not self._config.allow_mutations:
+            raise PermissionError(
+                "Failed to verify TMP monthly-report no-op: DECO_MCP_ALLOW_MUTATIONS is disabled"
+            )
+        if not self._config.allow_tmp_reads:
+            raise PermissionError(
+                "Failed to verify TMP monthly-report no-op: DECO_MCP_ALLOW_TMP_READS is disabled"
+            )
+        if not self._config.allow_tmp_noop_verification:
+            raise PermissionError(
+                "Failed to verify TMP monthly-report no-op: "
+                "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION is disabled"
+            )
+        plan = build_tmp_mutation_plan(0x4223)
+        if not plan.complete_safety_contract or plan.p9_mutation_observation != "verified_noop":
+            raise PermissionError(
+                "Failed to verify TMP monthly-report no-op: P9 safety evidence is incomplete"
+            )
+        self._require_exact_p9_profile("verify TMP monthly-report no-op")
+        with self._lock:
+            if self._tmp_mutation_latched:
+                raise PermissionError(
+                    "Failed to verify TMP monthly-report no-op: "
+                    "safety latch requires server restart"
+                )
+            result = verify_tmp_monthly_report_noop(self._get_tmp_client(), confirmation)
             if not result.verified_noop:
                 self._tmp_mutation_latched = True
         evidence = result.to_dict()
@@ -435,6 +1056,7 @@ class DecoMcpService:
             raise PermissionError(
                 "Failed to verify P9 HTTP no-op: P9 safety evidence is incomplete"
             )
+        self._require_exact_p9_profile("verify P9 HTTP no-op")
         with self._lock:
             if self._http_mutation_latched:
                 raise PermissionError(
@@ -874,12 +1496,14 @@ class DecoMcpService:
             "router_contacted": False,
             "unified_agent_surface": {
                 "capability_count": len(CAPABILITY_ROUTES),
-                "default_tool_count": 7,
-                "diagnostic_tool_count": 44,
+                "mutation_capability_count": len(MUTATION_CAPABILITY_ROUTES),
+                "default_tool_count": 10,
+                "diagnostic_tool_count": 48,
                 "agent_selects_protocol": False,
                 "automatic_fallback_scope": "proven_equivalent_reads_only",
                 "automatic_mutation_fallback": False,
                 "routes": [route.to_dict() for route in CAPABILITY_ROUTES],
+                "mutation_routes": [route.to_dict() for route in MUTATION_CAPABILITY_ROUTES],
             },
             "http": {
                 "catalogued_read_count": len(http_reads),
@@ -1016,7 +1640,7 @@ class DecoMcpService:
                     "scoped_noop_execution_eligible_count": http_mutations[
                         "scoped_noop_execution_eligible_count"
                     ],
-                    "scoped_noop_tool": http_mutations["scoped_noop_tool"],
+                    "scoped_noop_tools": http_mutations["scoped_noop_tools"],
                 },
                 "tmp": {
                     "candidate_count": tmp_mutations["candidate_count"],
@@ -1050,7 +1674,10 @@ class DecoMcpService:
                     "scoped_noop_runtime_gate_enabled": tmp_mutations[
                         "scoped_noop_runtime_gate_enabled"
                     ],
-                    "scoped_noop_tool": "deco_verify_tmp_ieee80211r_noop",
+                    "scoped_noop_tools": [
+                        "deco_verify_setting_noop",
+                        "deco_verify_tmp_ieee80211r_noop",
+                    ],
                     "verification_candidate_count": tmp_verification_queue[
                         "verification_candidate_count"
                     ],
@@ -1281,9 +1908,11 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                         "live_verification_invoked": plan.p9_opcode_tested,
-                        "scoped_mcp_execution_supported": False,
-                        "runtime_gate_enabled": False,
-                        "execution_eligible": False,
+                        "scoped_mcp_tool": "deco_verify_setting_noop",
+                        "scoped_mcp_capability": "monthly_report",
+                        "scoped_mcp_execution_supported": True,
+                        "runtime_gate_enabled": scoped_noop_gate_enabled,
+                        "execution_eligible": scoped_noop_gate_enabled,
                     }
                 )
             plan_payloads.append(payload)
@@ -1357,10 +1986,10 @@ class DecoMcpService:
             ),
             "mutation_tested_count": sum(plan.p9_opcode_tested for plan in plans),
             "complete_safety_contract_count": sum(plan.complete_safety_contract for plan in plans),
-            "execution_eligible_count": int(scoped_noop_gate_enabled),
+            "execution_eligible_count": 2 * int(scoped_noop_gate_enabled),
             "execution_tool_exposed": True,
             "generic_execution_tool_exposed": False,
-            "scoped_noop_tool_count": 1,
+            "scoped_noop_tool_count": 2,
             "scoped_noop_runtime_gate_enabled": scoped_noop_gate_enabled,
             "scoped_noop_operations": [
                 {
@@ -1375,7 +2004,21 @@ class DecoMcpService:
                         "DECO_MCP_ALLOW_TMP_READS",
                         "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
                     ],
-                }
+                },
+                {
+                    "code": 0x4223,
+                    "hex_code": "0x4223",
+                    "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
+                    "tool": "deco_verify_setting_noop",
+                    "capability": "monthly_report",
+                    "execution_scope": "verified_current_value_noop_only",
+                    "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+                    "required_environment_gates": [
+                        "DECO_MCP_ALLOW_MUTATIONS",
+                        "DECO_MCP_ALLOW_TMP_READS",
+                        "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                    ],
+                },
             ],
             "prepared_verification_harness_count": 2,
             "prepared_verification_harnesses": [
@@ -1399,7 +2042,9 @@ class DecoMcpService:
                     "exact_confirmation_required": True,
                     "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                     "live_invoked": True,
-                    "mcp_execution_exposed": False,
+                    "mcp_execution_exposed": True,
+                    "mcp_tool": "deco_verify_setting_noop",
+                    "mcp_capability": "monthly_report",
                 },
             ],
             "evidence": (
@@ -1455,7 +2100,9 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                         "live_invoked": candidate.plan.p9_opcode_tested,
-                        "mcp_execution_exposed": False,
+                        "mcp_execution_exposed": True,
+                        "mcp_tool": "deco_verify_setting_noop",
+                        "mcp_capability": "monthly_report",
                     }
                 )
             candidate_payloads.append(payload)
@@ -1650,6 +2297,7 @@ class DecoMcpService:
         with self._lock:
             client = self._get_client()
             devices = client.get_device_list()
+            self._device_cache = tuple(devices)
             clients_by_node = client.get_clients_by_node()
         return {
             "node_count": len(devices),
@@ -2018,13 +2666,16 @@ class DecoMcpService:
                 sorted(Counter(candidate.tier for candidate in verification_queue).items())
             ),
             "verification_queue_tool": "deco_p9_http_mutation_verification_queue",
-            "scoped_noop_tool_count": 1,
+            "scoped_noop_tool_count": 2,
             "scoped_noop_operation_count": len(HTTP_NOOP_CONFIRMATIONS),
             "scoped_noop_runtime_gate_enabled": scoped_noop_gate_enabled,
             "scoped_noop_execution_eligible_count": (
                 len(HTTP_NOOP_CONFIRMATIONS) if scoped_noop_gate_enabled else 0
             ),
-            "scoped_noop_tool": "deco_verify_p9_http_noop",
+            "scoped_noop_tools": [
+                "deco_verify_setting_noop",
+                "deco_verify_p9_http_noop",
+            ],
             "scoped_noop_operations": [
                 {
                     "operation": operation,
@@ -2713,6 +3364,74 @@ def _device_view(device: Device) -> dict[str, JsonValue]:
             "5ghz": device.signal_level.band5,
             "6ghz": device.signal_level.band6,
         },
+    }
+
+
+def _controller_device(devices: tuple[Device, ...]) -> Device:
+    if not devices:
+        raise ValueError("Failed to resolve controller identity: device list is empty")
+    return next((device for device in devices if device.role == "master"), devices[0])
+
+
+def _profile_match(controller: Device) -> str:
+    if controller.device_model.strip().upper() != "P9":
+        return "unknown"
+    if (
+        controller.hardware_ver in P9_PROFILE_HARDWARE_VERSIONS
+        and controller.software_ver == P9_PROFILE_FIRMWARE
+    ):
+        return "exact"
+    return "model_only"
+
+
+def _controller_model(value: JsonValue) -> str:
+    if not isinstance(value, Mapping):
+        return ""
+    model = value.get("model")
+    return model if isinstance(model, str) else ""
+
+
+def _json_string(value: Mapping[str, JsonValue], key: str) -> str:
+    selected = value.get(key)
+    if not isinstance(selected, str):
+        raise ValueError(f"Failed to read MCP resource: {key} is not a string")
+    return selected
+
+
+def _json_string_list(value: Mapping[str, JsonValue], key: str) -> tuple[str, ...]:
+    selected = value.get(key)
+    if not isinstance(selected, Sequence) or isinstance(selected, (str, bytes)):
+        return ()
+    return tuple(item for item in selected if isinstance(item, str))
+
+
+def _capability_category(name: str) -> str:
+    categories = {
+        "mesh_nodes": "mesh",
+        "clients": "clients",
+        "internet_status": "network",
+        "address_reservations": "clients",
+        "fast_roaming": "wireless",
+        "beamforming": "wireless",
+    }
+    return categories[name]
+
+
+def _highest_risk(values: set[str]) -> str:
+    order = ("read_only", "mutation", "internal", "destructive")
+    return max(values, key=order.index)
+
+
+def _highest_sensitivity(values: set[str]) -> str:
+    order = ("normal", "private", "secret")
+    return max(values, key=order.index)
+
+
+def _configuration_error(section: str, error: BaseException) -> dict[str, JsonValue]:
+    return {
+        "section": section,
+        "status": "unavailable",
+        "error_type": type(error).__name__,
     }
 
 

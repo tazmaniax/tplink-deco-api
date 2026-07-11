@@ -37,6 +37,7 @@ class McpConfig:
     allow_tmp_noop_verification: bool = False
     allow_http_noop_verification: bool = False
     expose_diagnostic_tools: bool = False
+    expose_raw_mutation_tools: bool = False
 
     @classmethod
     def from_env(cls) -> McpConfig:
@@ -66,6 +67,7 @@ class McpConfig:
             allow_tmp_noop_verification=_get_bool("DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION"),
             allow_http_noop_verification=_get_bool("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION"),
             expose_diagnostic_tools=_get_bool("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS"),
+            expose_raw_mutation_tools=_get_bool("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS"),
         )
 
     def public_settings(self) -> dict[str, JsonValue]:
@@ -88,4 +90,5 @@ class McpConfig:
             "allow_tmp_noop_verification": self.allow_tmp_noop_verification,
             "allow_http_noop_verification": self.allow_http_noop_verification,
             "expose_diagnostic_tools": self.expose_diagnostic_tools,
+            "expose_raw_mutation_tools": self.expose_raw_mutation_tools,
         }

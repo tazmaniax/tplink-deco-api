@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .capability_routing import CAPABILITY_ROUTES, get_capability_route
+from .capability_routing import (
+    CAPABILITY_ROUTES,
+    MUTATION_CAPABILITY_ROUTES,
+    get_capability_route,
+    get_mutation_capability_route,
+)
 from .client import DecoClient
 from .endpoint_catalog import (
     CAPABILITY_ENDPOINTS,
@@ -70,6 +75,7 @@ from .models import (
     LogType,
     MloHost,
     ModelCompatibilityProfile,
+    MutationCapabilityRoute,
     MutationPlan,
     NetworkTotals,
     NodeClientList,
@@ -125,6 +131,7 @@ __all__ = [
     "ENDPOINT_CATALOG",
     "HTTP_NOOP_CONFIRMATIONS",
     "HTTP_NOOP_PREFLIGHT_OPERATIONS",
+    "MUTATION_CAPABILITY_ROUTES",
     "MUTATION_ENDPOINTS",
     "P9_COMPATIBILITY_PROFILE",
     "P9_MUTATION_CANDIDATES",
@@ -173,6 +180,7 @@ __all__ = [
     "LoginResult",
     "MloHost",
     "ModelCompatibilityProfile",
+    "MutationCapabilityRoute",
     "MutationPlan",
     "NetworkTotals",
     "NodeClientList",
@@ -207,6 +215,7 @@ __all__ = [
     "get_capability_route",
     "get_compatibility_profile",
     "get_endpoint",
+    "get_mutation_capability_route",
     "get_tmp_opcode",
     "probe_tmp_read_contracts",
     "probe_tmp_unverified_reads",

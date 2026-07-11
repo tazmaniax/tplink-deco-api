@@ -220,30 +220,28 @@ destructive operations and internal firmware calls have independent environment
 gates and default to disabled. See [the MCP guide](docs/mcp.md) for the tools,
 resources and safety contract.
 
-The default MCP surface contains seven protocol-neutral tools. Agents request a
-logical capability or consolidated overview; the server selects HTTP/LuCI or
-TMP/AppV2 and reports its choice in provenance. Six overlapping reads have
-explicit, live-evidenced read-only fallback contracts. Mutations are never
-retried through another protocol. Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` only
-when an expert agent needs the complete 44-tool raw catalogue, discovery and
-compatibility surface. The initial registry covers six overlaps with proven
-normalization equivalence; protocol-unique datasets remain diagnostic until a
-stable logical schema is defined. Network, WLAN and cloud views honor the sensitive-read
-gate. Before any write, the
-dry-run mutation planner reports parameter validity, model evidence, preflight
-and verification reads, and any known rollback without connecting to the Deco.
-Execution also requires the plan's parameter-bound confirmation hash and an
-exact mutation with general-scope evidence in the model overlay. Reservation
-`modify`, beamforming `write`, 802.11r `write` and time-settings `write` have
-only unchanged-value no-op evidence, so they and every other current P9
-candidate remain unavailable to the generic MCP mutation tool. TMP 802.11r is
-separately exposed only as a current-value no-op verifier. A separate HTTP
-verifier may repeat only beamforming, 802.11r or time settings with their live
-current values; reservation modification is excluded because it lacks a
-complete rollback. It requires the mutation gate, a dedicated HTTP-no-op gate
-and exact per-operation confirmation. The TMP verifier has its own TMP gates.
-Neither surface accepts desired values, and a non-verified outcome latches its
-scoped write path off until server restart.
+The default MCP surface contains ten protocol-neutral tools and seven semantic
+resources: status, sanitized configuration, mesh nodes, network client devices,
+address reservations, capabilities and mutations. The server detects the
+connected controller model, selects HTTP/LuCI or TMP/AppV2, and reports its
+choice in provenance. Six overlapping reads have explicit, live-evidenced
+read-only fallback contracts; mutations never fall back.
+
+`deco://mutations` lists 21 deduplicated semantic mutation intents, including
+blocked and unverified candidates. `deco_plan_mutation` resolves one against the
+connected controller and issues a short-lived one-shot plan ID only for an
+eligible, fully gated current-value verification. `deco_execute_mutation`
+checks the plan confirmation and controller identity, consumes the plan once,
+and verifies or rolls back immediately. State-changing semantic execution
+remains blocked because current P9 write evidence is limited to unchanged-value
+tests.
+
+Set `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` only when an expert agent needs the
+48-tool, 16-resource protocol catalogue, discovery and evidence surface. Raw
+endpoint execution is independently hidden behind
+`DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` and still requires every applicable risk
+gate and exact confirmation. Network, WLAN, cloud, client-device and
+address-reservation data continue to honor their sensitivity gates.
 
 Controller- and category-scoped batch tools expose the complete positively
 observed JSON surface without requiring an agent to coordinate dozens of calls:
