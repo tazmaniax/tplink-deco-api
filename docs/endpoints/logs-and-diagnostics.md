@@ -7,6 +7,7 @@ connectivity self-tests, ARP-table sync and telemetry collection. Endpoints:
 |----------|-----|
 | `/admin/log` | app |
 | `/admin/log_export` | web + app |
+| `/admin/syslog` | web |
 | `/admin/debug` | web + app |
 | `/admin/auto_test` | app |
 | `/admin/arptbl` | app |
@@ -27,7 +28,9 @@ download. Related: [system.md](./system.md), [README.md](./README.md).
 | `/admin/log_export` · `types` | read | web | Available log levels. |
 | `/admin/log_export` · `save` | write | web | Apply export level / restart logging. |
 | `/admin/log_export` · `save_log` | (download) | web · **plain** | Download the log as a file. |
-| `/admin/log_export` · `feedback_log` | build | web + app | Build an encrypted feedback bundle. |
+| `/admin/log_export` · `feedback_log` | read, build | web + app | Read paginated logs or build a feedback bundle. |
+| `/admin/syslog` · `mail` | read, write | web | SMTP and scheduled-email settings. |
+| `/admin/syslog` · `log` | mail | web | Send the current log by email. |
 | `/admin/debug` · `qlog` | start, stop | app | QLog modem-trace daemon (port 9000). |
 | `/admin/debug` · `simplecom` | start, stop | app | `simplecom` serial daemon (port 9999). |
 | `/admin/debug` · `tty2tcp` | start, stop | app | Bridge a serial port to TCP. |
@@ -67,6 +70,11 @@ Web-UI log export + feedback bundle. Log levels (`types` → read):
 > The web side also has internal `read` (paginated lines: `content`,
 > `totalNum`, `currentIndex`, `logList`) and `remove` operations used by the
 > in-UI log viewer.
+
+The P9 `mail` model exposes SMTP credentials and is therefore classified
+`secret`. Its fields are `from`, `auth`, `password`, `smtp_server`, `port`,
+`to`, `auto_mail`, `auto_mail_type`, `every_day_time`, `every_hours`, and
+`mail_again`. Automatic discovery never invokes either syslog form.
 
 ## `/admin/debug`
 

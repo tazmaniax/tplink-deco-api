@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-11T08:40:28Z",
+  "model": "P9",
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "endpoint": {
+    "name": "admin.firmware.config_multipart.backup",
+    "path": "admin/firmware",
+    "form": "config_multipart",
+    "operation": "backup",
+    "authentication": "authenticated_multipart",
+    "response_kind": "binary",
+    "sensitivity": "secret",
+    "live_compatibility": "untested"
+  },
+  "static_contract": {
+    "method": "POST",
+    "content_type": "multipart/form-data",
+    "form_fields": {
+      "operation": "backup"
+    },
+    "file_part_present": false,
+    "response_handling": "browser_file_download",
+    "generic_upload_supported": false,
+    "restore_supported": false,
+    "firmware_upgrade_supported": false
+  },
+  "source_evidence": [
+    {
+      "path": "webpages/modules/advanced/system/backupRestore/models.js",
+      "sha256": "bba8432210721df11d2a673f9d39d92b5fe6bfd0a3e73442de5acfdee807eba4"
+    },
+    {
+      "path": "webpages/modules/advanced/system/backupRestore/controllers.js",
+      "sha256": "8d6cb0124765df2019bd0bf893349dbf6a0ae205328210c43527f394cc134ab5"
+    },
+    {
+      "path": "webpages/js/su/frame.js",
+      "sha256": "be5f3c05a9319006dff9e342706b6dc604ff115e937acfb805ea13006e6a8b62"
+    }
+  ],
+  "privacy": {
+    "backup_downloaded": false,
+    "configuration_bytes_retained": false,
+    "raw_web_assets_retained": false,
+    "credential_values_emitted": false,
+    "session_token_emitted": false
+  },
+  "router_authenticated": false,
+  "mutation_invoked": false
+}

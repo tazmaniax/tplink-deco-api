@@ -1,0 +1,6025 @@
+{
+  "duplicate_mapping_count": 5,
+  "mapping_row_count": 605,
+  "operation_count": 600,
+  "operations": [
+    {
+      "aliases": [],
+      "code": 0,
+      "constant_symbols": [
+        "0"
+      ],
+      "hex_code": "0x0000",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_UNKNOWN"
+    },
+    {
+      "aliases": [],
+      "code": 1,
+      "constant_symbols": [
+        "1"
+      ],
+      "hex_code": "0x0001",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TOKEN_ALLOC"
+    },
+    {
+      "aliases": [],
+      "code": 2,
+      "constant_symbols": [
+        "2"
+      ],
+      "hex_code": "0x0002",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TOKEN_VERIFY"
+    },
+    {
+      "aliases": [],
+      "code": 3,
+      "constant_symbols": [
+        "3"
+      ],
+      "hex_code": "0x0003",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TOKEN_FREE"
+    },
+    {
+      "aliases": [],
+      "code": 16385,
+      "constant_symbols": [
+        "f61198e"
+      ],
+      "hex_code": "0x4001",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_COMP_NEGOTIATE"
+    },
+    {
+      "aliases": [],
+      "code": 16386,
+      "constant_symbols": [
+        "f61210f"
+      ],
+      "hex_code": "0x4002",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_COMP_NEGOTIATE_BT"
+    },
+    {
+      "aliases": [],
+      "code": 16387,
+      "constant_symbols": [
+        "f61222g"
+      ],
+      "hex_code": "0x4003",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NICKNAME_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16388,
+      "constant_symbols": [
+        "f61234h"
+      ],
+      "hex_code": "0x4004",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV4_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16389,
+      "constant_symbols": [
+        "f61246i"
+      ],
+      "hex_code": "0x4005",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV4_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16390,
+      "constant_symbols": [
+        "f61258j"
+      ],
+      "hex_code": "0x4006",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16391,
+      "constant_symbols": [
+        "f61270k"
+      ],
+      "hex_code": "0x4007",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16392,
+      "constant_symbols": [
+        "f61282l"
+      ],
+      "hex_code": "0x4008",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRELESS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16393,
+      "constant_symbols": [
+        "f61294m"
+      ],
+      "hex_code": "0x4009",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRELESS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16394,
+      "constant_symbols": [
+        "f61306n"
+      ],
+      "hex_code": "0x400A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LOCATION_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16395,
+      "constant_symbols": [
+        "f61318o"
+      ],
+      "hex_code": "0x400B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_M5_SLAVE_TRY"
+    },
+    {
+      "aliases": [],
+      "code": 16396,
+      "constant_symbols": [
+        "f61330p"
+      ],
+      "hex_code": "0x400C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_INTERNET_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16397,
+      "constant_symbols": [
+        "f61342q"
+      ],
+      "hex_code": "0x400D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BRIDGE_STATUS_GET"
+    },
+    {
+      "aliases": [
+        "TMP_APPV2_OP_TIME_SYNC"
+      ],
+      "code": 16398,
+      "constant_symbols": [
+        "f61354r"
+      ],
+      "hex_code": "0x400E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SYSTEM_TIME"
+    },
+    {
+      "aliases": [],
+      "code": 16399,
+      "constant_symbols": [
+        "f61366s"
+      ],
+      "hex_code": "0x400F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16400,
+      "constant_symbols": [
+        "f61378t"
+      ],
+      "hex_code": "0x4010",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16401,
+      "constant_symbols": [
+        "f61390u"
+      ],
+      "hex_code": "0x4011",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_START"
+    },
+    {
+      "aliases": [],
+      "code": 16402,
+      "constant_symbols": [
+        "f61402v"
+      ],
+      "hex_code": "0x4012",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16403,
+      "constant_symbols": [
+        "f61414w"
+      ],
+      "hex_code": "0x4013",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LIST_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16404,
+      "constant_symbols": [
+        "f61426x"
+      ],
+      "hex_code": "0x4014",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LIST_SPEED_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16405,
+      "constant_symbols": [
+        "f61438y"
+      ],
+      "hex_code": "0x4015",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_SPEED_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16406,
+      "constant_symbols": [
+        "f61450z"
+      ],
+      "hex_code": "0x4016",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LIST_REBOOT"
+    },
+    {
+      "aliases": [],
+      "code": 16407,
+      "constant_symbols": [
+        "A"
+      ],
+      "hex_code": "0x4017",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LIST_BLOCK"
+    },
+    {
+      "aliases": [],
+      "code": 16408,
+      "constant_symbols": [
+        "B"
+      ],
+      "hex_code": "0x4018",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BLOCKED_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16409,
+      "constant_symbols": [
+        "C"
+      ],
+      "hex_code": "0x4019",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BLOCKED_LIST_UNBLOCK"
+    },
+    {
+      "aliases": [],
+      "code": 16410,
+      "constant_symbols": [
+        "D"
+      ],
+      "hex_code": "0x401A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTO_LED_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16411,
+      "constant_symbols": [
+        "E"
+      ],
+      "hex_code": "0x401B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTO_LED_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16412,
+      "constant_symbols": [
+        "F"
+      ],
+      "hex_code": "0x401C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_LATEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16413,
+      "constant_symbols": [
+        "G"
+      ],
+      "hex_code": "0x401D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_UPDATE"
+    },
+    {
+      "aliases": [],
+      "code": 16414,
+      "constant_symbols": [
+        "H"
+      ],
+      "hex_code": "0x401E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_PROG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16415,
+      "constant_symbols": [
+        "I"
+      ],
+      "hex_code": "0x401F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_M5_MASTER_TRY"
+    },
+    {
+      "aliases": [],
+      "code": 16416,
+      "constant_symbols": [
+        "J"
+      ],
+      "hex_code": "0x4020",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_M5_MASTER_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16417,
+      "constant_symbols": [
+        "K"
+      ],
+      "hex_code": "0x4021",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_M5_SLAVE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16418,
+      "constant_symbols": [
+        "L"
+      ],
+      "hex_code": "0x4022",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16419,
+      "constant_symbols": [
+        "M"
+      ],
+      "hex_code": "0x4023",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_UNBIND"
+    },
+    {
+      "aliases": [],
+      "code": 16420,
+      "constant_symbols": [
+        "N"
+      ],
+      "hex_code": "0x4024",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16421,
+      "constant_symbols": [
+        "O"
+      ],
+      "hex_code": "0x4025",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_HISTORY_CLEAR"
+    },
+    {
+      "aliases": [],
+      "code": 16422,
+      "constant_symbols": [
+        "P"
+      ],
+      "hex_code": "0x4026",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_LATEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16423,
+      "constant_symbols": [
+        "Q"
+      ],
+      "hex_code": "0x4027",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_STOP"
+    },
+    {
+      "aliases": [],
+      "code": 16424,
+      "constant_symbols": [
+        "R"
+      ],
+      "hex_code": "0x4028",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MESSAGE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16425,
+      "constant_symbols": [
+        "S"
+      ],
+      "hex_code": "0x4029",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OWNER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16426,
+      "constant_symbols": [
+        "T"
+      ],
+      "hex_code": "0x402A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OWNER_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16427,
+      "constant_symbols": [
+        "U"
+      ],
+      "hex_code": "0x402B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OWNER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16428,
+      "constant_symbols": [
+        "V"
+      ],
+      "hex_code": "0x402C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OWNER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16429,
+      "constant_symbols": [
+        "W"
+      ],
+      "hex_code": "0x402D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OWNER_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16430,
+      "constant_symbols": [
+        "X"
+      ],
+      "hex_code": "0x402E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INTERNET_BLOCK"
+    },
+    {
+      "aliases": [],
+      "code": 16431,
+      "constant_symbols": [
+        "Y"
+      ],
+      "hex_code": "0x402F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16432,
+      "constant_symbols": [
+        "Z"
+      ],
+      "hex_code": "0x4030",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_WEBSITE_BLOCK"
+    },
+    {
+      "aliases": [],
+      "code": 16433,
+      "constant_symbols": [
+        "f61151a0"
+      ],
+      "hex_code": "0x4031",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16434,
+      "constant_symbols": [
+        "f61163b0"
+      ],
+      "hex_code": "0x4032",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FILTER_CATEGORIES_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16435,
+      "constant_symbols": [
+        "f61175c0"
+      ],
+      "hex_code": "0x4033",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_CLIENT_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16436,
+      "constant_symbols": [
+        "f61187d0"
+      ],
+      "hex_code": "0x4034",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_CLIENT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16437,
+      "constant_symbols": [
+        "f61199e0"
+      ],
+      "hex_code": "0x4035",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEFAULT_FILTER_LEVEL_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16438,
+      "constant_symbols": [
+        "f61211f0"
+      ],
+      "hex_code": "0x4036",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QOS_MODE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16439,
+      "constant_symbols": [
+        "f61223g0"
+      ],
+      "hex_code": "0x4037",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QOS_MODE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16440,
+      "constant_symbols": [
+        "f61235h0"
+      ],
+      "hex_code": "0x4038",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCOUNT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16441,
+      "constant_symbols": [
+        "f61259j0"
+      ],
+      "hex_code": "0x4039",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PROFILE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16442,
+      "constant_symbols": [
+        "f61271k0"
+      ],
+      "hex_code": "0x403A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEFAULT_WEBSITE_APP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16443,
+      "constant_symbols": [
+        "f61283l0"
+      ],
+      "hex_code": "0x403B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16444,
+      "constant_symbols": [
+        "f61295m0"
+      ],
+      "hex_code": "0x403C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16445,
+      "constant_symbols": [
+        "f61307n0"
+      ],
+      "hex_code": "0x403D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16446,
+      "constant_symbols": [
+        "f61319o0"
+      ],
+      "hex_code": "0x403E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_HISTORY_CLEAR"
+    },
+    {
+      "aliases": [],
+      "code": 16447,
+      "constant_symbols": [
+        "f61331p0"
+      ],
+      "hex_code": "0x403F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_HISTORY_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16448,
+      "constant_symbols": [
+        "f61391u0"
+      ],
+      "hex_code": "0x4040",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16449,
+      "constant_symbols": [
+        "f61403v0"
+      ],
+      "hex_code": "0x4041",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16450,
+      "constant_symbols": [
+        "f61415w0"
+      ],
+      "hex_code": "0x4042",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16451,
+      "constant_symbols": [
+        "f61427x0"
+      ],
+      "hex_code": "0x4043",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16452,
+      "constant_symbols": [
+        "f61439y0"
+      ],
+      "hex_code": "0x4044",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_SCAN"
+    },
+    {
+      "aliases": [],
+      "code": 16453,
+      "constant_symbols": [
+        "f61451z0"
+      ],
+      "hex_code": "0x4045",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_PRODUCT_PROFILE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16455,
+      "constant_symbols": [
+        "A0"
+      ],
+      "hex_code": "0x4047",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_NEST_ACCOUNT_DELETE"
+    },
+    {
+      "aliases": [],
+      "code": 16456,
+      "constant_symbols": [
+        "B0"
+      ],
+      "hex_code": "0x4048",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_BEGIN_SCANNING"
+    },
+    {
+      "aliases": [],
+      "code": 16457,
+      "constant_symbols": [
+        "C0"
+      ],
+      "hex_code": "0x4049",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16458,
+      "constant_symbols": [
+        "D0"
+      ],
+      "hex_code": "0x404A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_IDENTIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16459,
+      "constant_symbols": [
+        "E0"
+      ],
+      "hex_code": "0x404B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE"
+    },
+    {
+      "aliases": [],
+      "code": 16460,
+      "constant_symbols": [
+        "F0"
+      ],
+      "hex_code": "0x404C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_END_SCANNING"
+    },
+    {
+      "aliases": [],
+      "code": 16462,
+      "constant_symbols": [
+        "f61256i9"
+      ],
+      "hex_code": "0x404E",
+      "mapping_occurrences": 2,
+      "name": "TMP_APPV2_OP_WAN_ISP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16463,
+      "constant_symbols": [
+        "f61268j9"
+      ],
+      "hex_code": "0x404F",
+      "mapping_occurrences": 2,
+      "name": "TMP_APPV2_OP_WAN_ISP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16464,
+      "constant_symbols": [
+        "G0"
+      ],
+      "hex_code": "0x4050",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_SPACE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16465,
+      "constant_symbols": [
+        "H0"
+      ],
+      "hex_code": "0x4051",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_SPACE_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16466,
+      "constant_symbols": [
+        "I0"
+      ],
+      "hex_code": "0x4052",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_SPACE_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16467,
+      "constant_symbols": [
+        "J0"
+      ],
+      "hex_code": "0x4053",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_SPACE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16468,
+      "constant_symbols": [
+        "K0"
+      ],
+      "hex_code": "0x4054",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_SPACE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16471,
+      "constant_symbols": [
+        "f61352q9"
+      ],
+      "hex_code": "0x4057",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_PROFILE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16472,
+      "constant_symbols": [
+        "f61364r9"
+      ],
+      "hex_code": "0x4058",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_PROFILE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16473,
+      "constant_symbols": [
+        "f61376s9"
+      ],
+      "hex_code": "0x4059",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_PROFILE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16474,
+      "constant_symbols": [
+        "f61388t9"
+      ],
+      "hex_code": "0x405A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_PROFILE_DELETE"
+    },
+    {
+      "aliases": [],
+      "code": 16475,
+      "constant_symbols": [
+        "f61400u9"
+      ],
+      "hex_code": "0x405B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16476,
+      "constant_symbols": [
+        "f61412v9"
+      ],
+      "hex_code": "0x405C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16477,
+      "constant_symbols": [
+        "f61424w9"
+      ],
+      "hex_code": "0x405D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_PROFILE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16478,
+      "constant_symbols": [
+        "f61436x9"
+      ],
+      "hex_code": "0x405E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_PROFILE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16479,
+      "constant_symbols": [
+        "f61448y9"
+      ],
+      "hex_code": "0x405F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_PROFILE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16480,
+      "constant_symbols": [
+        "L0"
+      ],
+      "hex_code": "0x4060",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_OWNER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16489,
+      "constant_symbols": [
+        "f61460z9"
+      ],
+      "hex_code": "0x4069",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_NAT_PROFILE_DELETE"
+    },
+    {
+      "aliases": [],
+      "code": 16491,
+      "constant_symbols": [
+        "A9"
+      ],
+      "hex_code": "0x406B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16492,
+      "constant_symbols": [
+        "B9"
+      ],
+      "hex_code": "0x406C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16493,
+      "constant_symbols": [
+        "C9"
+      ],
+      "hex_code": "0x406D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_PROFILE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16494,
+      "constant_symbols": [
+        "D9"
+      ],
+      "hex_code": "0x406E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_PROFILE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16495,
+      "constant_symbols": [
+        "E9"
+      ],
+      "hex_code": "0x406F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_PROFILE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16496,
+      "constant_symbols": [
+        "M0"
+      ],
+      "hex_code": "0x4070",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16497,
+      "constant_symbols": [
+        "N0"
+      ],
+      "hex_code": "0x4071",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16498,
+      "constant_symbols": [
+        "F9"
+      ],
+      "hex_code": "0x4072",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOIP_WAN_PROFILE_DELETE"
+    },
+    {
+      "aliases": [],
+      "code": 16499,
+      "constant_symbols": [
+        "O0"
+      ],
+      "hex_code": "0x4073",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_SCENE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16500,
+      "constant_symbols": [
+        "P0"
+      ],
+      "hex_code": "0x4074",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_SCENE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16501,
+      "constant_symbols": [
+        "Q0"
+      ],
+      "hex_code": "0x4075",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_SCENE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16502,
+      "constant_symbols": [
+        "R0"
+      ],
+      "hex_code": "0x4076",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_ACTION_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16503,
+      "constant_symbols": [
+        "S0"
+      ],
+      "hex_code": "0x4077",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_ACTION_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16504,
+      "constant_symbols": [
+        "T0"
+      ],
+      "hex_code": "0x4078",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_ACTION_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16505,
+      "constant_symbols": [
+        "U0"
+      ],
+      "hex_code": "0x4079",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16506,
+      "constant_symbols": [
+        "V0"
+      ],
+      "hex_code": "0x407A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ONE_CLICK_HISTORY_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16507,
+      "constant_symbols": [
+        "f61328o9"
+      ],
+      "hex_code": "0x407B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16508,
+      "constant_symbols": [
+        "f61340p9"
+      ],
+      "hex_code": "0x407C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16512,
+      "constant_symbols": [
+        "W0"
+      ],
+      "hex_code": "0x4080",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TASK_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16514,
+      "constant_symbols": [
+        "X0"
+      ],
+      "hex_code": "0x4082",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TASK_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16515,
+      "constant_symbols": [
+        "Y0"
+      ],
+      "hex_code": "0x4083",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TASK_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16516,
+      "constant_symbols": [
+        "Z0"
+      ],
+      "hex_code": "0x4084",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TASK_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16518,
+      "constant_symbols": [
+        "f61152a1"
+      ],
+      "hex_code": "0x4086",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TRIGGER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16519,
+      "constant_symbols": [
+        "f61164b1"
+      ],
+      "hex_code": "0x4087",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TRIGGER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16520,
+      "constant_symbols": [
+        "f61176c1"
+      ],
+      "hex_code": "0x4088",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TRIGGER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16521,
+      "constant_symbols": [
+        "f61188d1"
+      ],
+      "hex_code": "0x4089",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_ACTION_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16522,
+      "constant_symbols": [
+        "f61200e1"
+      ],
+      "hex_code": "0x408A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_ACTION_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16523,
+      "constant_symbols": [
+        "f61212f1"
+      ],
+      "hex_code": "0x408B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_ACTION_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16524,
+      "constant_symbols": [
+        "f61224g1"
+      ],
+      "hex_code": "0x408C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16525,
+      "constant_symbols": [
+        "f61236h1"
+      ],
+      "hex_code": "0x408D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_HISTORY_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16526,
+      "constant_symbols": [
+        "f61248i1"
+      ],
+      "hex_code": "0x408E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTOMATION_TASK_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16528,
+      "constant_symbols": [
+        "f61260j1"
+      ],
+      "hex_code": "0x4090",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16529,
+      "constant_symbols": [
+        "f61272k1"
+      ],
+      "hex_code": "0x4091",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_TOPOLOGY_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16530,
+      "constant_symbols": [
+        "f61284l1"
+      ],
+      "hex_code": "0x4092",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMART_DHCP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16531,
+      "constant_symbols": [
+        "f61296m1"
+      ],
+      "hex_code": "0x4093",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMART_DHCP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16532,
+      "constant_symbols": [
+        "f61308n1"
+      ],
+      "hex_code": "0x4094",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_SIGNAL_LEVEL_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16535,
+      "constant_symbols": [
+        "G9"
+      ],
+      "hex_code": "0x4097",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SYNC_CONFIG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16536,
+      "constant_symbols": [
+        "H9"
+      ],
+      "hex_code": "0x4098",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CHECK_WIFI_STATUS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16537,
+      "constant_symbols": [
+        "f61316n9"
+      ],
+      "hex_code": "0x4099",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CELLULAR_WAN_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16538,
+      "constant_symbols": [
+        "Aa"
+      ],
+      "hex_code": "0x409A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ALERT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16544,
+      "constant_symbols": [
+        "f61320o1"
+      ],
+      "hex_code": "0x40A0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPERATION_MODE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16545,
+      "constant_symbols": [
+        "f61332p1"
+      ],
+      "hex_code": "0x40A1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPERATION_MODE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16546,
+      "constant_symbols": [
+        "f61344q1"
+      ],
+      "hex_code": "0x40A2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPERATION_MODE_BACKUP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16547,
+      "constant_symbols": [
+        "f61356r1"
+      ],
+      "hex_code": "0x40A3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OFFLINE_DETECTION_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16548,
+      "constant_symbols": [
+        "f61368s1"
+      ],
+      "hex_code": "0x40A4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OFFLINE_DETECTION_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16549,
+      "constant_symbols": [
+        "Y9"
+      ],
+      "hex_code": "0x40A5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TSS_SYNC_NETWORK_CONFIG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16550,
+      "constant_symbols": [
+        "Z9"
+      ],
+      "hex_code": "0x40A6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BATCHES_NICKNAME_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16551,
+      "constant_symbols": [
+        "f61161aa"
+      ],
+      "hex_code": "0x40A7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_TSS_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16552,
+      "constant_symbols": [
+        "f61173ba"
+      ],
+      "hex_code": "0x40A8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TSS_LOCAL_DISCOVER_DEVICES_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16553,
+      "constant_symbols": [
+        "f61185ca"
+      ],
+      "hex_code": "0x40A9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TSS_LOCAL_DISCOVER_DEVICES_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16554,
+      "constant_symbols": [
+        "f61197da"
+      ],
+      "hex_code": "0x40AA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_REPLACE_FAP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16555,
+      "constant_symbols": [
+        "Ja"
+      ],
+      "hex_code": "0x40AB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRED_QUICK_MESH_CONFIG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16556,
+      "constant_symbols": [
+        "Ka"
+      ],
+      "hex_code": "0x40AC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRED_QUICK_MESH_CONFIG_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16557,
+      "constant_symbols": [
+        "La"
+      ],
+      "hex_code": "0x40AD",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRED_QUICK_MESH_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16560,
+      "constant_symbols": [
+        "f61380t1"
+      ],
+      "hex_code": "0x40B0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PORT_FORWARDING_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16561,
+      "constant_symbols": [
+        "f61392u1"
+      ],
+      "hex_code": "0x40B1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PORT_FORWARDING_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16562,
+      "constant_symbols": [
+        "f61404v1"
+      ],
+      "hex_code": "0x40B2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PORT_FORWARDING_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16563,
+      "constant_symbols": [
+        "f61416w1"
+      ],
+      "hex_code": "0x40B3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PORT_FORWARDING_DELETE"
+    },
+    {
+      "aliases": [],
+      "code": 16576,
+      "constant_symbols": [
+        "f61428x1"
+      ],
+      "hex_code": "0x40C0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_RESERVATION_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16577,
+      "constant_symbols": [
+        "f61440y1"
+      ],
+      "hex_code": "0x40C1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_RESERVATION_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16578,
+      "constant_symbols": [
+        "f61452z1"
+      ],
+      "hex_code": "0x40C2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_RESERVATION_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16579,
+      "constant_symbols": [
+        "A1"
+      ],
+      "hex_code": "0x40C3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_RESERVATION_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16592,
+      "constant_symbols": [
+        "B1"
+      ],
+      "hex_code": "0x40D0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DDNS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16593,
+      "constant_symbols": [
+        "C1"
+      ],
+      "hex_code": "0x40D1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DDNS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16608,
+      "constant_symbols": [
+        "D1"
+      ],
+      "hex_code": "0x40E0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MONTHLY_REPORT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16609,
+      "constant_symbols": [
+        "I9"
+      ],
+      "hex_code": "0x40E1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16610,
+      "constant_symbols": [
+        "J9"
+      ],
+      "hex_code": "0x40E2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16611,
+      "constant_symbols": [
+        "K9"
+      ],
+      "hex_code": "0x40E3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16612,
+      "constant_symbols": [
+        "L9"
+      ],
+      "hex_code": "0x40E4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16613,
+      "constant_symbols": [
+        "M9"
+      ],
+      "hex_code": "0x40E5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16614,
+      "constant_symbols": [
+        "N9"
+      ],
+      "hex_code": "0x40E6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_INSIGHT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16615,
+      "constant_symbols": [
+        "O9"
+      ],
+      "hex_code": "0x40E7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_WHITE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16616,
+      "constant_symbols": [
+        "P9"
+      ],
+      "hex_code": "0x40E8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_WHITE_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16617,
+      "constant_symbols": [
+        "Q9"
+      ],
+      "hex_code": "0x40E9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_APP_BLOCK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16618,
+      "constant_symbols": [
+        "R9"
+      ],
+      "hex_code": "0x40EA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_APP_LIMIT_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16619,
+      "constant_symbols": [
+        "S9"
+      ],
+      "hex_code": "0x40EB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_APP_LIMIT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16620,
+      "constant_symbols": [
+        "T9"
+      ],
+      "hex_code": "0x40EC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_APP_LIMIT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16621,
+      "constant_symbols": [
+        "U9"
+      ],
+      "hex_code": "0x40ED",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_ACTIVITY_HISTORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16622,
+      "constant_symbols": [
+        "V9"
+      ],
+      "hex_code": "0x40EE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_ACTIVITY_HISTORY_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16623,
+      "constant_symbols": [
+        "W9"
+      ],
+      "hex_code": "0x40EF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_OWNER_BONUS_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16626,
+      "constant_symbols": [
+        "f61209ea"
+      ],
+      "hex_code": "0x40F2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TRAFFIC_USAGE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16627,
+      "constant_symbols": [
+        "f61221fa"
+      ],
+      "hex_code": "0x40F3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TRAFFIC_USAGE_SETTING_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16628,
+      "constant_symbols": [
+        "f61233ga"
+      ],
+      "hex_code": "0x40F4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TRAFFIC_USAGE_SETTING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16629,
+      "constant_symbols": [
+        "f61245ha"
+      ],
+      "hex_code": "0x40F5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_APP_TRAFFIC_USAGE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16630,
+      "constant_symbols": [
+        "X9"
+      ],
+      "hex_code": "0x40F6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_IGNORE_OWNER_REQUEST"
+    },
+    {
+      "aliases": [],
+      "code": 16631,
+      "constant_symbols": [
+        "f61257ia"
+      ],
+      "hex_code": "0x40F7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_APP_CATEGORY_TRAFFIC_USAGE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16640,
+      "constant_symbols": [
+        "E1"
+      ],
+      "hex_code": "0x4100",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ZIGBEE_COORDINATOR_ELECT"
+    },
+    {
+      "aliases": [],
+      "code": 16641,
+      "constant_symbols": [
+        "W2"
+      ],
+      "hex_code": "0x4101",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AGGREGATION_CONNECTION_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16642,
+      "constant_symbols": [
+        "X2"
+      ],
+      "hex_code": "0x4102",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AGGREGATION_CONNECTION_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16656,
+      "constant_symbols": [
+        "Ba"
+      ],
+      "hex_code": "0x4110",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_SETTING_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16657,
+      "constant_symbols": [
+        "Ca"
+      ],
+      "hex_code": "0x4111",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_SETTING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16658,
+      "constant_symbols": [
+        "Da"
+      ],
+      "hex_code": "0x4112",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_CLIENT_ALLOWLIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16659,
+      "constant_symbols": [
+        "Ea"
+      ],
+      "hex_code": "0x4113",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_CLIENT_ALLOWLIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16660,
+      "constant_symbols": [
+        "Fa"
+      ],
+      "hex_code": "0x4114",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_WEBSITE_ALLOWLIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16661,
+      "constant_symbols": [
+        "Ga"
+      ],
+      "hex_code": "0x4115",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_WEBSITE_ALLOWLIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16662,
+      "constant_symbols": [
+        "Ha"
+      ],
+      "hex_code": "0x4116",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_INSIGHT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16663,
+      "constant_symbols": [
+        "Ia"
+      ],
+      "hex_code": "0x4117",
+      "mapping_occurrences": 1,
+      "name": "TMP_OP_AD_FILTERING_ACTIVITY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16897,
+      "constant_symbols": [
+        "f61343q0"
+      ],
+      "hex_code": "0x4201",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_CATEGORY_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16898,
+      "constant_symbols": [
+        "f61355r0"
+      ],
+      "hex_code": "0x4202",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_RULE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16900,
+      "constant_symbols": [
+        "f61367s0"
+      ],
+      "hex_code": "0x4204",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ENV_VAR_SYNC"
+    },
+    {
+      "aliases": [],
+      "code": 16901,
+      "constant_symbols": [
+        "f61379t0"
+      ],
+      "hex_code": "0x4205",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_DOWNLOAD"
+    },
+    {
+      "aliases": [],
+      "code": 16902,
+      "constant_symbols": [
+        "M1"
+      ],
+      "hex_code": "0x4206",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_HEART_BEAT"
+    },
+    {
+      "aliases": [],
+      "code": 16903,
+      "constant_symbols": [
+        "N1"
+      ],
+      "hex_code": "0x4207",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EPONYMOUS_NETWORK_DETECTION"
+    },
+    {
+      "aliases": [],
+      "code": 16904,
+      "constant_symbols": [
+        "F1"
+      ],
+      "hex_code": "0x4208",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_11R_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16905,
+      "constant_symbols": [
+        "G1"
+      ],
+      "hex_code": "0x4209",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_11R_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16906,
+      "constant_symbols": [
+        "O1"
+      ],
+      "hex_code": "0x420A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_DISCOVERED_DEVICELIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16907,
+      "constant_symbols": [
+        "P1"
+      ],
+      "hex_code": "0x420B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_BATCHES_DEVICE_ALIAS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16908,
+      "constant_symbols": [
+        "L1"
+      ],
+      "hex_code": "0x420C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WAN_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16909,
+      "constant_symbols": [
+        "J1"
+      ],
+      "hex_code": "0x420D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VLAN_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16910,
+      "constant_symbols": [
+        "K1"
+      ],
+      "hex_code": "0x420E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VLAN_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16911,
+      "constant_symbols": [
+        "I1"
+      ],
+      "hex_code": "0x420F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_GATEWAY_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16913,
+      "constant_symbols": [
+        "Q1"
+      ],
+      "hex_code": "0x4211",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LAN_IP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16914,
+      "constant_symbols": [
+        "R1"
+      ],
+      "hex_code": "0x4212",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LAN_IP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16915,
+      "constant_symbols": [
+        "S1"
+      ],
+      "hex_code": "0x4213",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DHCP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16916,
+      "constant_symbols": [
+        "T1"
+      ],
+      "hex_code": "0x4214",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DHCP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16917,
+      "constant_symbols": [
+        "U1"
+      ],
+      "hex_code": "0x4215",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WPS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16918,
+      "constant_symbols": [
+        "V1"
+      ],
+      "hex_code": "0x4216",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WPS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16919,
+      "constant_symbols": [
+        "W1"
+      ],
+      "hex_code": "0x4217",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_NETWORK_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16920,
+      "constant_symbols": [
+        "X1"
+      ],
+      "hex_code": "0x4218",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_ACCOUNT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16921,
+      "constant_symbols": [
+        "Y1"
+      ],
+      "hex_code": "0x4219",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BANDWIDTH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16922,
+      "constant_symbols": [
+        "Z1"
+      ],
+      "hex_code": "0x421A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BANDWIDTH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16923,
+      "constant_symbols": [
+        "f61153a2"
+      ],
+      "hex_code": "0x421B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BEAMFORMING_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16924,
+      "constant_symbols": [
+        "f61165b2"
+      ],
+      "hex_code": "0x421C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BEAMFORMING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16925,
+      "constant_symbols": [
+        "f61177c2"
+      ],
+      "hex_code": "0x421D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SIP_ALG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16926,
+      "constant_symbols": [
+        "f61189d2"
+      ],
+      "hex_code": "0x421E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SIP_ALG_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16928,
+      "constant_symbols": [
+        "f61201e2"
+      ],
+      "hex_code": "0x4220",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16929,
+      "constant_symbols": [
+        "f61213f2"
+      ],
+      "hex_code": "0x4221",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MONTHLY_REPORT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16930,
+      "constant_symbols": [
+        "f61225g2"
+      ],
+      "hex_code": "0x4222",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16931,
+      "constant_symbols": [
+        "f61237h2"
+      ],
+      "hex_code": "0x4223",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16932,
+      "constant_symbols": [
+        "f61249i2"
+      ],
+      "hex_code": "0x4224",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16933,
+      "constant_symbols": [
+        "f61261j2"
+      ],
+      "hex_code": "0x4225",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPTV_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16934,
+      "constant_symbols": [
+        "f61273k2"
+      ],
+      "hex_code": "0x4226",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MAC_CLONE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16935,
+      "constant_symbols": [
+        "f61285l2"
+      ],
+      "hex_code": "0x4227",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MAC_CLONE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16936,
+      "constant_symbols": [
+        "f61309n2"
+      ],
+      "hex_code": "0x4228",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPEEDTEST_SERVER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16937,
+      "constant_symbols": [
+        "f61321o2"
+      ],
+      "hex_code": "0x4229",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MANAGER_PERMISSION_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16938,
+      "constant_symbols": [
+        "f61333p2"
+      ],
+      "hex_code": "0x422A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MANAGER_PERMISSION_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16939,
+      "constant_symbols": [
+        "f61381t2"
+      ],
+      "hex_code": "0x422B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SCAN_SSID_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16940,
+      "constant_symbols": [
+        "f61393u2"
+      ],
+      "hex_code": "0x422C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOST_NETWORK_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16941,
+      "constant_symbols": [
+        "f61405v2"
+      ],
+      "hex_code": "0x422D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOST_NETWORK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16942,
+      "constant_symbols": [
+        "f61417w2"
+      ],
+      "hex_code": "0x422E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FEEDBACK_LOG_BUILD"
+    },
+    {
+      "aliases": [],
+      "code": 16943,
+      "constant_symbols": [
+        "f61429x2"
+      ],
+      "hex_code": "0x422F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LIST_SPEED_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16944,
+      "constant_symbols": [
+        "f61441y2"
+      ],
+      "hex_code": "0x4230",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_FIREWALL_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16945,
+      "constant_symbols": [
+        "f61453z2"
+      ],
+      "hex_code": "0x4231",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_FIREWALL_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16946,
+      "constant_symbols": [
+        "A2"
+      ],
+      "hex_code": "0x4232",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_FIREWALL_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16947,
+      "constant_symbols": [
+        "B2"
+      ],
+      "hex_code": "0x4233",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_FIREWALL_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16948,
+      "constant_symbols": [
+        "C2"
+      ],
+      "hex_code": "0x4234",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IPV6_CLIENT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16949,
+      "constant_symbols": [
+        "D2"
+      ],
+      "hex_code": "0x4235",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_SYNC_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16950,
+      "constant_symbols": [
+        "E2"
+      ],
+      "hex_code": "0x4236",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PARENT_CTRL_WEBSITE_UNBLOCK"
+    },
+    {
+      "aliases": [],
+      "code": 16951,
+      "constant_symbols": [
+        "F2"
+      ],
+      "hex_code": "0x4237",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_DATABASE_UPDATE"
+    },
+    {
+      "aliases": [],
+      "code": 16952,
+      "constant_symbols": [
+        "G2"
+      ],
+      "hex_code": "0x4238",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_MESH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16953,
+      "constant_symbols": [
+        "H2"
+      ],
+      "hex_code": "0x4239",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_GA_INFO_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16954,
+      "constant_symbols": [
+        "I2"
+      ],
+      "hex_code": "0x423A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_WHITELIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16955,
+      "constant_symbols": [
+        "J2"
+      ],
+      "hex_code": "0x423B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_WHITELIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16956,
+      "constant_symbols": [
+        "K2"
+      ],
+      "hex_code": "0x423C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SECURITY_WHITELIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16957,
+      "constant_symbols": [
+        "L2"
+      ],
+      "hex_code": "0x423D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_LEASE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16958,
+      "constant_symbols": [
+        "K5"
+      ],
+      "hex_code": "0x423E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HYBRID_MESH_COMPONENT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16962,
+      "constant_symbols": [
+        "B6"
+      ],
+      "hex_code": "0x4242",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FIXED_WAN_PORT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16963,
+      "constant_symbols": [
+        "C6"
+      ],
+      "hex_code": "0x4243",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FIXED_WAN_PORT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16964,
+      "constant_symbols": [
+        "f61315n8"
+      ],
+      "hex_code": "0x4244",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_BRIDGE_PORT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16965,
+      "constant_symbols": [
+        "f61327o8"
+      ],
+      "hex_code": "0x4245",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_BRIDGE_PORT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16966,
+      "constant_symbols": [
+        "f61345q2"
+      ],
+      "hex_code": "0x4246",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MANAGER_PERMISSION_V2_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16967,
+      "constant_symbols": [
+        "f61357r2"
+      ],
+      "hex_code": "0x4247",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MANAGER_PERMISSION_V2_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16968,
+      "constant_symbols": [
+        "f61369s2"
+      ],
+      "hex_code": "0x4248",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MANAGER_PERMISSION_V2_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16970,
+      "constant_symbols": [
+        "M2"
+      ],
+      "hex_code": "0x424A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_UPNP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16971,
+      "constant_symbols": [
+        "N2"
+      ],
+      "hex_code": "0x424B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_UPNP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16972,
+      "constant_symbols": [
+        "O2"
+      ],
+      "hex_code": "0x424C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PLC_PAIR_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16973,
+      "constant_symbols": [
+        "P2"
+      ],
+      "hex_code": "0x424D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PLC_PAIR_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16974,
+      "constant_symbols": [
+        "Q2"
+      ],
+      "hex_code": "0x424E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_HOMECARE_SERVICE_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16975,
+      "constant_symbols": [
+        "R2"
+      ],
+      "hex_code": "0x424F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_OPTIMIZATION_SCAN"
+    },
+    {
+      "aliases": [],
+      "code": 16976,
+      "constant_symbols": [
+        "S2"
+      ],
+      "hex_code": "0x4250",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_OPTIMIZATION_OPTIMIZE"
+    },
+    {
+      "aliases": [],
+      "code": 16977,
+      "constant_symbols": [
+        "Y2"
+      ],
+      "hex_code": "0x4251",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRELESS_BANDWIDTH_ENHANCE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16978,
+      "constant_symbols": [
+        "Z2"
+      ],
+      "hex_code": "0x4252",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIRELESS_BANDWIDTH_ENHANCE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16979,
+      "constant_symbols": [
+        "f61154a3"
+      ],
+      "hex_code": "0x4253",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LIST_TRANSFER_OWNERSHIP"
+    },
+    {
+      "aliases": [],
+      "code": 16980,
+      "constant_symbols": [
+        "f61166b3"
+      ],
+      "hex_code": "0x4254",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CPE_INTERNET_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16981,
+      "constant_symbols": [
+        "f61178c3"
+      ],
+      "hex_code": "0x4255",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CPE_INTERNET_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16982,
+      "constant_symbols": [
+        "f61202e3"
+      ],
+      "hex_code": "0x4256",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ISP_PROFILE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16983,
+      "constant_symbols": [
+        "f61214f3"
+      ],
+      "hex_code": "0x4257",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ISP_PROFILE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 16984,
+      "constant_symbols": [
+        "f61226g3"
+      ],
+      "hex_code": "0x4258",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ISP_PROFILE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 16985,
+      "constant_symbols": [
+        "f61238h3"
+      ],
+      "hex_code": "0x4259",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ISP_PROFILE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 16986,
+      "constant_symbols": [
+        "f61250i3"
+      ],
+      "hex_code": "0x425A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BAND_SEARCH_START"
+    },
+    {
+      "aliases": [],
+      "code": 16987,
+      "constant_symbols": [
+        "f61262j3"
+      ],
+      "hex_code": "0x425B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BAND_SEARCH_STOP"
+    },
+    {
+      "aliases": [],
+      "code": 16988,
+      "constant_symbols": [
+        "f61274k3"
+      ],
+      "hex_code": "0x425C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BAND_SEARCH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16989,
+      "constant_symbols": [
+        "f61286l3"
+      ],
+      "hex_code": "0x425D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BAND_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16990,
+      "constant_symbols": [
+        "f61298m3"
+      ],
+      "hex_code": "0x425E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_SEARCH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16991,
+      "constant_symbols": [
+        "f61310n3"
+      ],
+      "hex_code": "0x425F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_SEARCH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16992,
+      "constant_symbols": [
+        "f61322o3"
+      ],
+      "hex_code": "0x4260",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_SEARCH_START_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16993,
+      "constant_symbols": [
+        "f61334p3"
+      ],
+      "hex_code": "0x4261",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_ANTIVIRUS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16994,
+      "constant_symbols": [
+        "f61346q3"
+      ],
+      "hex_code": "0x4262",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_ANTIVIRUS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16995,
+      "constant_symbols": [
+        "f61358r3"
+      ],
+      "hex_code": "0x4263",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_SCAN_START_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16996,
+      "constant_symbols": [
+        "f61370s3"
+      ],
+      "hex_code": "0x4264",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_SCAN_STOP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 16997,
+      "constant_symbols": [
+        "f61382t3"
+      ],
+      "hex_code": "0x4265",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_SCAN_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 16998,
+      "constant_symbols": [
+        "f61394u3"
+      ],
+      "hex_code": "0x4266",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_NETWORK_OPTIMIZE"
+    },
+    {
+      "aliases": [],
+      "code": 16999,
+      "constant_symbols": [
+        "f61406v3"
+      ],
+      "hex_code": "0x4267",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_ANTIVIRUS_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17000,
+      "constant_symbols": [
+        "f61418w3"
+      ],
+      "hex_code": "0x4268",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_ANTIVIRUS_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17001,
+      "constant_symbols": [
+        "V2"
+      ],
+      "hex_code": "0x4269",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_OPTIMIZATION_SCHEDULE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17002,
+      "constant_symbols": [
+        "U2"
+      ],
+      "hex_code": "0x426A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_OPTIMIZATION_SCHEDULE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17009,
+      "constant_symbols": [
+        "f61442y3"
+      ],
+      "hex_code": "0x4271",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_OWNER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17010,
+      "constant_symbols": [
+        "f61454z3"
+      ],
+      "hex_code": "0x4272",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_OWNER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17011,
+      "constant_symbols": [
+        "A3"
+      ],
+      "hex_code": "0x4273",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_OWNER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17012,
+      "constant_symbols": [
+        "B3"
+      ],
+      "hex_code": "0x4274",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_OWNER_BONUS_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17013,
+      "constant_symbols": [
+        "C3"
+      ],
+      "hex_code": "0x4275",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_PRO_OWNER_TODAY_INSIGHT_TIME_USAGE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17014,
+      "constant_symbols": [
+        "D3"
+      ],
+      "hex_code": "0x4276",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_OWNER_TODAY_YESTERDAY_INSIGHT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17015,
+      "constant_symbols": [
+        "E3"
+      ],
+      "hex_code": "0x4277",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_IGNORE_OWNER_REQUEST"
+    },
+    {
+      "aliases": [],
+      "code": 17016,
+      "constant_symbols": [
+        "F3"
+      ],
+      "hex_code": "0x4278",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_FAMILY_TIME_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17017,
+      "constant_symbols": [
+        "G3"
+      ],
+      "hex_code": "0x4279",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_FAMILY_TIME_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17018,
+      "constant_symbols": [
+        "H3"
+      ],
+      "hex_code": "0x427A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_FAMILY_WHITE_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17019,
+      "constant_symbols": [
+        "I3"
+      ],
+      "hex_code": "0x427B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FAMILY_CARE_FAMILY_WHITE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17020,
+      "constant_symbols": [
+        "f61203e4"
+      ],
+      "hex_code": "0x427C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SYSTEM_TIME_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17021,
+      "constant_symbols": [
+        "f61215f4"
+      ],
+      "hex_code": "0x427D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SYSTEM_TIME_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17022,
+      "constant_symbols": [
+        "f61179c4"
+      ],
+      "hex_code": "0x427E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_AUTO_UPDATE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17023,
+      "constant_symbols": [
+        "f61191d4"
+      ],
+      "hex_code": "0x427F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FW_AUTO_UPDATE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17024,
+      "constant_symbols": [
+        "J3"
+      ],
+      "hex_code": "0x4280",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_SERVICE_STATE_CHECK"
+    },
+    {
+      "aliases": [],
+      "code": 17025,
+      "constant_symbols": [
+        "f61227g4"
+      ],
+      "hex_code": "0x4281",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_METADATA_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17026,
+      "constant_symbols": [
+        "f61239h4"
+      ],
+      "hex_code": "0x4282",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LWA_AUTH_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17027,
+      "constant_symbols": [
+        "f61251i4"
+      ],
+      "hex_code": "0x4283",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LWA_LOGOUT"
+    },
+    {
+      "aliases": [],
+      "code": 17028,
+      "constant_symbols": [
+        "f61263j4"
+      ],
+      "hex_code": "0x4284",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_SOUND_EFFECT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17029,
+      "constant_symbols": [
+        "f61275k4"
+      ],
+      "hex_code": "0x4285",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_SOUND_EFFECT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17030,
+      "constant_symbols": [
+        "f61287l4"
+      ],
+      "hex_code": "0x4286",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_BLUETOOTH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17031,
+      "constant_symbols": [
+        "f61299m4"
+      ],
+      "hex_code": "0x4287",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_BLUETOOTH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17032,
+      "constant_symbols": [
+        "f61311n4"
+      ],
+      "hex_code": "0x4288",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_STATUS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17033,
+      "constant_symbols": [
+        "f61323o4"
+      ],
+      "hex_code": "0x4289",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRODUCT_VOICE_LANG_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17034,
+      "constant_symbols": [
+        "f61335p4"
+      ],
+      "hex_code": "0x428A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SPOTIFY_LANG_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17035,
+      "constant_symbols": [
+        "H7"
+      ],
+      "hex_code": "0x428B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_APP_BLOCK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17036,
+      "constant_symbols": [
+        "f61347q4"
+      ],
+      "hex_code": "0x428C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_APP_BLOCK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17037,
+      "constant_symbols": [
+        "I7"
+      ],
+      "hex_code": "0x428D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_APP_LIMIT_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17039,
+      "constant_symbols": [
+        "K3"
+      ],
+      "hex_code": "0x428F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLOUD_SERVICE_STATE_CHECK"
+    },
+    {
+      "aliases": [],
+      "code": 17040,
+      "constant_symbols": [
+        "f61190d3"
+      ],
+      "hex_code": "0x4290",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CPE_INTERNET_BRIEF_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17041,
+      "constant_symbols": [
+        "M3"
+      ],
+      "hex_code": "0x4291",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ISP_PROFILE_UPDATE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17042,
+      "constant_symbols": [
+        "D6"
+      ],
+      "hex_code": "0x4292",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DSL_STATUS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17043,
+      "constant_symbols": [
+        "f61297m2"
+      ],
+      "hex_code": "0x4293",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MAC_CLONE_CLIENT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17044,
+      "constant_symbols": [
+        "P6"
+      ],
+      "hex_code": "0x4294",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ROUTE_STATIC_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17045,
+      "constant_symbols": [
+        "T2"
+      ],
+      "hex_code": "0x4295",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NETWORK_OPTIMIZATION_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17046,
+      "constant_symbols": [
+        "R6"
+      ],
+      "hex_code": "0x4296",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ROUTE_STATIC_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17047,
+      "constant_symbols": [
+        "S6"
+      ],
+      "hex_code": "0x4297",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ROUTE_STATIC_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17048,
+      "constant_symbols": [
+        "T6"
+      ],
+      "hex_code": "0x4298",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ROUTE_SYSTEM_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17049,
+      "constant_symbols": [
+        "Q6"
+      ],
+      "hex_code": "0x4299",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ROUTE_STATIC_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17050,
+      "constant_symbols": [
+        "F7"
+      ],
+      "hex_code": "0x429A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SIP_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17051,
+      "constant_symbols": [
+        "G7"
+      ],
+      "hex_code": "0x429B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SIP_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17053,
+      "constant_symbols": [
+        "J7"
+      ],
+      "hex_code": "0x429D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_APP_LIMIT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17055,
+      "constant_symbols": [
+        "K7"
+      ],
+      "hex_code": "0x429F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_APP_LIMIT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17056,
+      "constant_symbols": [
+        "f61407v4"
+      ],
+      "hex_code": "0x42A0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DSL_SETTING_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17057,
+      "constant_symbols": [
+        "f61419w4"
+      ],
+      "hex_code": "0x42A1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DSL_SETTING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17058,
+      "constant_symbols": [
+        "M4"
+      ],
+      "hex_code": "0x42A2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EMERGENCY_NUMBER_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17059,
+      "constant_symbols": [
+        "N4"
+      ],
+      "hex_code": "0x42A3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EMERGENCY_NUMBER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17060,
+      "constant_symbols": [
+        "O4"
+      ],
+      "hex_code": "0x42A4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EMERGENCY_NUMBER_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17062,
+      "constant_symbols": [
+        "Q4"
+      ],
+      "hex_code": "0x42A6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TELEPHONE_CONTACT_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17063,
+      "constant_symbols": [
+        "R4"
+      ],
+      "hex_code": "0x42A7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TELEPHONE_CONTACT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17064,
+      "constant_symbols": [
+        "S4"
+      ],
+      "hex_code": "0x42A8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TELEPHONE_CONTACT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17065,
+      "constant_symbols": [
+        "A4"
+      ],
+      "hex_code": "0x42A9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17066,
+      "constant_symbols": [
+        "B4"
+      ],
+      "hex_code": "0x42AA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17067,
+      "constant_symbols": [
+        "C4"
+      ],
+      "hex_code": "0x42AB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17068,
+      "constant_symbols": [
+        "D4"
+      ],
+      "hex_code": "0x42AC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17069,
+      "constant_symbols": [
+        "E4"
+      ],
+      "hex_code": "0x42AD",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17070,
+      "constant_symbols": [
+        "F4"
+      ],
+      "hex_code": "0x42AE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_NUMBER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17071,
+      "constant_symbols": [
+        "X4"
+      ],
+      "hex_code": "0x42AF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17072,
+      "constant_symbols": [
+        "Y4"
+      ],
+      "hex_code": "0x42B0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_DEVICE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17073,
+      "constant_symbols": [
+        "Z4"
+      ],
+      "hex_code": "0x42B1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PHONE_DEVICE_RING"
+    },
+    {
+      "aliases": [],
+      "code": 17074,
+      "constant_symbols": [
+        "f61348q5"
+      ],
+      "hex_code": "0x42B2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17075,
+      "constant_symbols": [
+        "f61360r5"
+      ],
+      "hex_code": "0x42B3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17076,
+      "constant_symbols": [
+        "f61372s5"
+      ],
+      "hex_code": "0x42B4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17077,
+      "constant_symbols": [
+        "f61384t5"
+      ],
+      "hex_code": "0x42B5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_LIST_CLEAR"
+    },
+    {
+      "aliases": [],
+      "code": 17078,
+      "constant_symbols": [
+        "f61396u5"
+      ],
+      "hex_code": "0x42B6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17079,
+      "constant_symbols": [
+        "f61408v5"
+      ],
+      "hex_code": "0x42B7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17080,
+      "constant_symbols": [
+        "f61420w5"
+      ],
+      "hex_code": "0x42B8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_DOWNLOAD"
+    },
+    {
+      "aliases": [],
+      "code": 17081,
+      "constant_symbols": [
+        "G4"
+      ],
+      "hex_code": "0x42B9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17082,
+      "constant_symbols": [
+        "H4"
+      ],
+      "hex_code": "0x42BA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_DEVICE_EJECT"
+    },
+    {
+      "aliases": [],
+      "code": 17083,
+      "constant_symbols": [
+        "I4"
+      ],
+      "hex_code": "0x42BB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_SERVER_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17084,
+      "constant_symbols": [
+        "J4"
+      ],
+      "hex_code": "0x42BC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_SERVER_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17085,
+      "constant_symbols": [
+        "T4"
+      ],
+      "hex_code": "0x42BD",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_LOG_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17086,
+      "constant_symbols": [
+        "U4"
+      ],
+      "hex_code": "0x42BE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_LOG_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17087,
+      "constant_symbols": [
+        "V4"
+      ],
+      "hex_code": "0x42BF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_LOG_LIST_CLEAR"
+    },
+    {
+      "aliases": [],
+      "code": 17088,
+      "constant_symbols": [
+        "N3"
+      ],
+      "hex_code": "0x42C0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CELLULAR_DATA_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17089,
+      "constant_symbols": [
+        "O3"
+      ],
+      "hex_code": "0x42C1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CELLULAR_DATA_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17090,
+      "constant_symbols": [
+        "P3"
+      ],
+      "hex_code": "0x42C2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PIN_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17091,
+      "constant_symbols": [
+        "Q3"
+      ],
+      "hex_code": "0x42C3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PIN_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17092,
+      "constant_symbols": [
+        "R3"
+      ],
+      "hex_code": "0x42C4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PIN_VERIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17093,
+      "constant_symbols": [
+        "S3"
+      ],
+      "hex_code": "0x42C5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PUK_VERIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17094,
+      "constant_symbols": [
+        "T3"
+      ],
+      "hex_code": "0x42C6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PIN_CHANGE"
+    },
+    {
+      "aliases": [],
+      "code": 17096,
+      "constant_symbols": [
+        "f61383t4"
+      ],
+      "hex_code": "0x42C8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EXT_ANTENNA_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17097,
+      "constant_symbols": [
+        "f61395u4"
+      ],
+      "hex_code": "0x42C9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EXT_ANTENNA_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17098,
+      "constant_symbols": [
+        "U3"
+      ],
+      "hex_code": "0x42CA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_OVERVIEW_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17099,
+      "constant_symbols": [
+        "V3"
+      ],
+      "hex_code": "0x42CB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17100,
+      "constant_symbols": [
+        "W3"
+      ],
+      "hex_code": "0x42CC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_SEND"
+    },
+    {
+      "aliases": [],
+      "code": 17101,
+      "constant_symbols": [
+        "X3"
+      ],
+      "hex_code": "0x42CD",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17102,
+      "constant_symbols": [
+        "Y3"
+      ],
+      "hex_code": "0x42CE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_MARK"
+    },
+    {
+      "aliases": [],
+      "code": 17103,
+      "constant_symbols": [
+        "Z3"
+      ],
+      "hex_code": "0x42CF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_SEND_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17105,
+      "constant_symbols": [
+        "f61155a4"
+      ],
+      "hex_code": "0x42D1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DSL_WAN_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17106,
+      "constant_symbols": [
+        "f61167b4"
+      ],
+      "hex_code": "0x42D2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DSL_WAN_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17107,
+      "constant_symbols": [
+        "f61156a5"
+      ],
+      "hex_code": "0x42D3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_DEVICE_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17108,
+      "constant_symbols": [
+        "f61168b5"
+      ],
+      "hex_code": "0x42D4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17109,
+      "constant_symbols": [
+        "f61180c5"
+      ],
+      "hex_code": "0x42D5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_DEVICE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17110,
+      "constant_symbols": [
+        "f61192d5"
+      ],
+      "hex_code": "0x42D6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_DEVICE_RING"
+    },
+    {
+      "aliases": [],
+      "code": 17111,
+      "constant_symbols": [
+        "f61204e5"
+      ],
+      "hex_code": "0x42D7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_PAIR_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17112,
+      "constant_symbols": [
+        "f61216f5"
+      ],
+      "hex_code": "0x42D8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_PAIR_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17113,
+      "constant_symbols": [
+        "W4"
+      ],
+      "hex_code": "0x42D9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_LOG_MARK_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17114,
+      "constant_symbols": [
+        "f61300m5"
+      ],
+      "hex_code": "0x42DA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_FORWARD_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17115,
+      "constant_symbols": [
+        "f61312n5"
+      ],
+      "hex_code": "0x42DB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_FORWARD_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17118,
+      "constant_symbols": [
+        "K4"
+      ],
+      "hex_code": "0x42DE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DO_NOT_DISTURB_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17119,
+      "constant_symbols": [
+        "L4"
+      ],
+      "hex_code": "0x42DF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DO_NOT_DISTURB_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17120,
+      "constant_symbols": [
+        "f61359r4"
+      ],
+      "hex_code": "0x42E0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_REBOOT_SCHEDULE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17121,
+      "constant_symbols": [
+        "f61371s4"
+      ],
+      "hex_code": "0x42E1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_REBOOT_SCHEDULE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17122,
+      "constant_symbols": [
+        "f61264j5"
+      ],
+      "hex_code": "0x42E2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_BLOCKING_NUMBER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17123,
+      "constant_symbols": [
+        "f61276k5"
+      ],
+      "hex_code": "0x42E3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_BLOCKING_NUMBER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17124,
+      "constant_symbols": [
+        "f61288l5"
+      ],
+      "hex_code": "0x42E4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_BLOCKING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17125,
+      "constant_symbols": [
+        "f61432x5"
+      ],
+      "hex_code": "0x42E5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VOICE_MAIL_UNREAD_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17126,
+      "constant_symbols": [
+        "f61444y5"
+      ],
+      "hex_code": "0x42E6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_LOG_UNREAD_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17127,
+      "constant_symbols": [
+        "f61228g5"
+      ],
+      "hex_code": "0x42E7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DECT_DEVICE_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17128,
+      "constant_symbols": [
+        "f61240h5"
+      ],
+      "hex_code": "0x42E8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_BLOCKING_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17129,
+      "constant_symbols": [
+        "f61252i5"
+      ],
+      "hex_code": "0x42E9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CALL_BLOCKING_NUMBER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17130,
+      "constant_symbols": [
+        "f61456z5"
+      ],
+      "hex_code": "0x42EA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LTE_BACKUP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17131,
+      "constant_symbols": [
+        "A5"
+      ],
+      "hex_code": "0x42EB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_LTE_BACKUP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17132,
+      "constant_symbols": [
+        "I5"
+      ],
+      "hex_code": "0x42EC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HYBRID_MESH_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17133,
+      "constant_symbols": [
+        "J5"
+      ],
+      "hex_code": "0x42ED",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HYBRID_MESH_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17134,
+      "constant_symbols": [
+        "L5"
+      ],
+      "hex_code": "0x42EE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_OFFLINE_DETECTION_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17135,
+      "constant_symbols": [
+        "M5"
+      ],
+      "hex_code": "0x42EF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_OFFLINE_DETECTION_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17136,
+      "constant_symbols": [
+        "f61431x4"
+      ],
+      "hex_code": "0x42F0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BANDWIDTH_SWITCH_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17137,
+      "constant_symbols": [
+        "f61443y4"
+      ],
+      "hex_code": "0x42F1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BANDWIDTH_SWITCH_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17138,
+      "constant_symbols": [
+        "f61455z4"
+      ],
+      "hex_code": "0x42F2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BANDWIDTH_SWITCH_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17139,
+      "constant_symbols": [
+        "G5"
+      ],
+      "hex_code": "0x42F3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TPG_SECURITY_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17140,
+      "constant_symbols": [
+        "H5"
+      ],
+      "hex_code": "0x42F4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TPG_SECURITY_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17141,
+      "constant_symbols": [
+        "f61159a8"
+      ],
+      "hex_code": "0x42F5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IOT_ACCOUNT_SYNC"
+    },
+    {
+      "aliases": [],
+      "code": 17143,
+      "constant_symbols": [
+        "L8"
+      ],
+      "hex_code": "0x42F7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_LED_CATEGORY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17153,
+      "constant_symbols": [
+        "H1"
+      ],
+      "hex_code": "0x4301",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_FWLIST_LATEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17154,
+      "constant_symbols": [
+        "f61457z6"
+      ],
+      "hex_code": "0x4302",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_ISOLATION_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17155,
+      "constant_symbols": [
+        "A6"
+      ],
+      "hex_code": "0x4303",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CLIENT_ISOLATION_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17156,
+      "constant_symbols": [
+        "f61435x8"
+      ],
+      "hex_code": "0x4304",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CELL_LOCK_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17157,
+      "constant_symbols": [
+        "f61447y8"
+      ],
+      "hex_code": "0x4305",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CELL_LOCK_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17159,
+      "constant_symbols": [
+        "E8"
+      ],
+      "hex_code": "0x4307",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_ALL_NUMBER_NEWEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17160,
+      "constant_symbols": [
+        "F8"
+      ],
+      "hex_code": "0x4308",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_NUMBER_MESSAGE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17161,
+      "constant_symbols": [
+        "G8"
+      ],
+      "hex_code": "0x4309",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_NUM_MARK"
+    },
+    {
+      "aliases": [],
+      "code": 17168,
+      "constant_symbols": [
+        "B5"
+      ],
+      "hex_code": "0x4310",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEDICATED_BACKHAUL_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17169,
+      "constant_symbols": [
+        "C5"
+      ],
+      "hex_code": "0x4311",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEDICATED_BACKHAUL_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17170,
+      "constant_symbols": [
+        "H8"
+      ],
+      "hex_code": "0x4312",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_LIST_NUMBER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17171,
+      "constant_symbols": [
+        "I8"
+      ],
+      "hex_code": "0x4313",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMS_LIST_NUMBER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17175,
+      "constant_symbols": [
+        "D8"
+      ],
+      "hex_code": "0x4317",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_RESOURCE_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17176,
+      "constant_symbols": [
+        "J8"
+      ],
+      "hex_code": "0x4318",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BACKHAUL_OPTIMIZATION_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17177,
+      "constant_symbols": [
+        "K8"
+      ],
+      "hex_code": "0x4319",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_BACKHAUL_OPTIMIZATION_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17178,
+      "constant_symbols": [
+        "F5"
+      ],
+      "hex_code": "0x431A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_RESOURCE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17184,
+      "constant_symbols": [
+        "D5"
+      ],
+      "hex_code": "0x4320",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_RADIO_FREQUENCY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17185,
+      "constant_symbols": [
+        "D7"
+      ],
+      "hex_code": "0x4321",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NEGOTIATION_SPEED_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17186,
+      "constant_symbols": [
+        "E7"
+      ],
+      "hex_code": "0x4322",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_NEGOTIATION_SPEED_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17187,
+      "constant_symbols": [
+        "f61220f9"
+      ],
+      "hex_code": "0x4323",
+      "mapping_occurrences": 2,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_ALLOWED_WEBSITES_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17188,
+      "constant_symbols": [
+        "f61232g9"
+      ],
+      "hex_code": "0x4324",
+      "mapping_occurrences": 2,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_ALLOWED_WEBSITES_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17189,
+      "constant_symbols": [
+        "f61244h9"
+      ],
+      "hex_code": "0x4325",
+      "mapping_occurrences": 2,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_ALLOWED_WEBSITES_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17191,
+      "constant_symbols": [
+        "f61304m9"
+      ],
+      "hex_code": "0x4327",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_ETH_PORT_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17192,
+      "constant_symbols": [
+        "f61280k9"
+      ],
+      "hex_code": "0x4328",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DMZ_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17193,
+      "constant_symbols": [
+        "f61292l9"
+      ],
+      "hex_code": "0x4329",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DMZ_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17195,
+      "constant_symbols": [
+        "f61422w7"
+      ],
+      "hex_code": "0x432B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TIME_MACHINE_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17196,
+      "constant_symbols": [
+        "f61434x7"
+      ],
+      "hex_code": "0x432C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TIME_MACHINE_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17200,
+      "constant_symbols": [
+        "E5"
+      ],
+      "hex_code": "0x4330",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AVIRA_FEATURE_LIMIT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17201,
+      "constant_symbols": [
+        "f61160a9"
+      ],
+      "hex_code": "0x4331",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_CONTROLLER_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17202,
+      "constant_symbols": [
+        "f61172b9"
+      ],
+      "hex_code": "0x4332",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_AGENT_WPS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17203,
+      "constant_symbols": [
+        "f61184c9"
+      ],
+      "hex_code": "0x4333",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_AGENT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17204,
+      "constant_symbols": [
+        "f61196d9"
+      ],
+      "hex_code": "0x4334",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_AGENT_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17205,
+      "constant_symbols": [
+        "f61208e9"
+      ],
+      "hex_code": "0x4335",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_AGENT_BIND_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17216,
+      "constant_symbols": [
+        "P5"
+      ],
+      "hex_code": "0x4340",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CPE_INTERNET_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17217,
+      "constant_symbols": [
+        "Q5"
+      ],
+      "hex_code": "0x4341",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CPE_INTERNET_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17218,
+      "constant_symbols": [
+        "R5"
+      ],
+      "hex_code": "0x4342",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_ISP_PROFILE_LIST_GET"
+    },
+    {
+      "aliases": [
+        "(TMP_APPV2_OP_HY_ISP_PROFILE_ADD"
+      ],
+      "code": 17219,
+      "constant_symbols": [
+        "S5"
+      ],
+      "hex_code": "0x4343",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_ISP_PROFILE_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17220,
+      "constant_symbols": [
+        "T5"
+      ],
+      "hex_code": "0x4344",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_ISP_PROFILE_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17221,
+      "constant_symbols": [
+        "U5"
+      ],
+      "hex_code": "0x4345",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_ISP_PROFILE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17222,
+      "constant_symbols": [
+        "V5"
+      ],
+      "hex_code": "0x4346",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_BAND_SEARCH_START"
+    },
+    {
+      "aliases": [],
+      "code": 17223,
+      "constant_symbols": [
+        "W5"
+      ],
+      "hex_code": "0x4347",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_BAND_SEARCH_STOP"
+    },
+    {
+      "aliases": [],
+      "code": 17224,
+      "constant_symbols": [
+        "X5"
+      ],
+      "hex_code": "0x4348",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_BAND_SEARCH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17225,
+      "constant_symbols": [
+        "Y5"
+      ],
+      "hex_code": "0x4349",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_BAND_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17226,
+      "constant_symbols": [
+        "Z5"
+      ],
+      "hex_code": "0x434A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_NETWORK_SEARCH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17227,
+      "constant_symbols": [
+        "f61157a6"
+      ],
+      "hex_code": "0x434B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_NETWORK_SEARCH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17228,
+      "constant_symbols": [
+        "f61169b6"
+      ],
+      "hex_code": "0x434C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_NETWORK_SEARCH_START"
+    },
+    {
+      "aliases": [],
+      "code": 17229,
+      "constant_symbols": [
+        "f61181c6"
+      ],
+      "hex_code": "0x434D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CPE_INTERNET_BRIEF_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17230,
+      "constant_symbols": [
+        "f61193d6"
+      ],
+      "hex_code": "0x434E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_ISP_PROFILE_UPDATE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17232,
+      "constant_symbols": [
+        "N5"
+      ],
+      "hex_code": "0x4350",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CELLULAR_DATA_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17233,
+      "constant_symbols": [
+        "O5"
+      ],
+      "hex_code": "0x4351",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CELLULAR_DATA_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17234,
+      "constant_symbols": [
+        "f61205e6"
+      ],
+      "hex_code": "0x4352",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_PIN_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17235,
+      "constant_symbols": [
+        "f61217f6"
+      ],
+      "hex_code": "0x4353",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_PIN_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17236,
+      "constant_symbols": [
+        "f61229g6"
+      ],
+      "hex_code": "0x4354",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_PIN_VERIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17237,
+      "constant_symbols": [
+        "f61241h6"
+      ],
+      "hex_code": "0x4355",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_PUK_VERIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17238,
+      "constant_symbols": [
+        "f61253i6"
+      ],
+      "hex_code": "0x4356",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_PIN_CHANGE"
+    },
+    {
+      "aliases": [],
+      "code": 17239,
+      "constant_symbols": [
+        "f61265j6"
+      ],
+      "hex_code": "0x4357",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_RADIO_FREQUENCY_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17240,
+      "constant_symbols": [
+        "f61301m6"
+      ],
+      "hex_code": "0x4358",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_OVERVIEW_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17241,
+      "constant_symbols": [
+        "f61313n6"
+      ],
+      "hex_code": "0x4359",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17242,
+      "constant_symbols": [
+        "f61325o6"
+      ],
+      "hex_code": "0x435A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_SEND"
+    },
+    {
+      "aliases": [],
+      "code": 17243,
+      "constant_symbols": [
+        "f61337p6"
+      ],
+      "hex_code": "0x435B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17244,
+      "constant_symbols": [
+        "f61349q6"
+      ],
+      "hex_code": "0x435C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_MARK"
+    },
+    {
+      "aliases": [],
+      "code": 17245,
+      "constant_symbols": [
+        "f61361r6"
+      ],
+      "hex_code": "0x435D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_SEND_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17248,
+      "constant_symbols": [
+        "U6"
+      ],
+      "hex_code": "0x4360",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17249,
+      "constant_symbols": [
+        "V6"
+      ],
+      "hex_code": "0x4361",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17250,
+      "constant_symbols": [
+        "W6"
+      ],
+      "hex_code": "0x4362",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17251,
+      "constant_symbols": [
+        "X6"
+      ],
+      "hex_code": "0x4363",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17252,
+      "constant_symbols": [
+        "Y6"
+      ],
+      "hex_code": "0x4364",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17253,
+      "constant_symbols": [
+        "Z6"
+      ],
+      "hex_code": "0x4365",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_CLIENT_DISCONNECT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17254,
+      "constant_symbols": [
+        "f61158a7"
+      ],
+      "hex_code": "0x4366",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_ACCOUNT_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17255,
+      "constant_symbols": [
+        "f61170b7"
+      ],
+      "hex_code": "0x4367",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_ACCOUNT_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17256,
+      "constant_symbols": [
+        "f61182c7"
+      ],
+      "hex_code": "0x4368",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_SERVER_ACCOUNT_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17257,
+      "constant_symbols": [
+        "f61194d7"
+      ],
+      "hex_code": "0x4369",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPENVPN_CERT_EXPORT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17258,
+      "constant_symbols": [
+        "f61206e7"
+      ],
+      "hex_code": "0x436A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPENVPN_CERT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17259,
+      "constant_symbols": [
+        "f61218f7"
+      ],
+      "hex_code": "0x436B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIREGUARDVPN_KEY_RENEW"
+    },
+    {
+      "aliases": [],
+      "code": 17261,
+      "constant_symbols": [
+        "f61242h7"
+      ],
+      "hex_code": "0x436D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIREGUARDVPN_CONFIG_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17262,
+      "constant_symbols": [
+        "f61254i7"
+      ],
+      "hex_code": "0x436E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIREGUARDVPN_ACCOUNT_DEFAULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17264,
+      "constant_symbols": [
+        "E6"
+      ],
+      "hex_code": "0x4370",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17265,
+      "constant_symbols": [
+        "F6"
+      ],
+      "hex_code": "0x4371",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17266,
+      "constant_symbols": [
+        "G6"
+      ],
+      "hex_code": "0x4372",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_SERVER_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17267,
+      "constant_symbols": [
+        "H6"
+      ],
+      "hex_code": "0x4373",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_SERVER_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17268,
+      "constant_symbols": [
+        "I6"
+      ],
+      "hex_code": "0x4374",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_SERVER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17269,
+      "constant_symbols": [
+        "J6"
+      ],
+      "hex_code": "0x4375",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_VPN_CLIENT_SERVER_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17270,
+      "constant_symbols": [
+        "K6"
+      ],
+      "hex_code": "0x4376",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AFC_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17271,
+      "constant_symbols": [
+        "L6"
+      ],
+      "hex_code": "0x4377",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AFC_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17272,
+      "constant_symbols": [
+        "f61219f8"
+      ],
+      "hex_code": "0x4378",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_QOS_INFO_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17273,
+      "constant_symbols": [
+        "f61231g8"
+      ],
+      "hex_code": "0x4379",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_QOS_INFO_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17274,
+      "constant_symbols": [
+        "f61243h8"
+      ],
+      "hex_code": "0x437A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DPI_QOS_MODE_ITEM_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17275,
+      "constant_symbols": [
+        "f61255i8"
+      ],
+      "hex_code": "0x437B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_WHITE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17276,
+      "constant_symbols": [
+        "f61267j8"
+      ],
+      "hex_code": "0x437C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_WHITE_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17277,
+      "constant_symbols": [
+        "f61279k8"
+      ],
+      "hex_code": "0x437D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ANTIVIRUS_WHITE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17278,
+      "constant_symbols": [
+        "f61291l8"
+      ],
+      "hex_code": "0x437E",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_DATA_ANALYSIS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17279,
+      "constant_symbols": [
+        "f61303m8"
+      ],
+      "hex_code": "0x437F",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_DATA_ANALYSIS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17280,
+      "constant_symbols": [
+        "f61446y7"
+      ],
+      "hex_code": "0x4380",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_DEVICE_LIST_SCAN"
+    },
+    {
+      "aliases": [],
+      "code": 17281,
+      "constant_symbols": [
+        "f61458z7"
+      ],
+      "hex_code": "0x4381",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_DEVICE_LIST_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17282,
+      "constant_symbols": [
+        "A7"
+      ],
+      "hex_code": "0x4382",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_DEVICE_LIST_EJECT"
+    },
+    {
+      "aliases": [],
+      "code": 17283,
+      "constant_symbols": [
+        "B7"
+      ],
+      "hex_code": "0x4383",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17284,
+      "constant_symbols": [
+        "C7"
+      ],
+      "hex_code": "0x4384",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_USB_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17285,
+      "constant_symbols": [
+        "f61171b8"
+      ],
+      "hex_code": "0x4385",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRIVACY_POLICY_STATE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17286,
+      "constant_symbols": [
+        "f61183c8"
+      ],
+      "hex_code": "0x4386",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PRIVACY_POLICY_STATE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17287,
+      "constant_symbols": [
+        "M6"
+      ],
+      "hex_code": "0x4387",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AFC_DEVICE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17288,
+      "constant_symbols": [
+        "X8"
+      ],
+      "hex_code": "0x4388",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_QS_EASY_MESH_DEVICE_ALIAS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17289,
+      "constant_symbols": [
+        "Y8"
+      ],
+      "hex_code": "0x4389",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EASYMESH_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17290,
+      "constant_symbols": [
+        "Z8"
+      ],
+      "hex_code": "0x438A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EASYMESH_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17291,
+      "constant_symbols": [
+        "U8"
+      ],
+      "hex_code": "0x438B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EASY_MESH_WPS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17292,
+      "constant_symbols": [
+        "V8"
+      ],
+      "hex_code": "0x438C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EASY_MESH_WPS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17293,
+      "constant_symbols": [
+        "W8"
+      ],
+      "hex_code": "0x438D",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_EASY_MESH_WPS_STOP"
+    },
+    {
+      "aliases": [],
+      "code": 17296,
+      "constant_symbols": [
+        "N6"
+      ],
+      "hex_code": "0x4390",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CHANNEL_LIMITS_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17297,
+      "constant_symbols": [
+        "O6"
+      ],
+      "hex_code": "0x4391",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CHANNEL_LIMITS_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17298,
+      "constant_symbols": [
+        "f61195d8"
+      ],
+      "hex_code": "0x4392",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PREAMABLE_PUNCTURING_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17299,
+      "constant_symbols": [
+        "f61207e8"
+      ],
+      "hex_code": "0x4393",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_PREAMABLE_PUNCTURING_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17300,
+      "constant_symbols": [
+        "f61277k6"
+      ],
+      "hex_code": "0x4394",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CELL_LOCK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17301,
+      "constant_symbols": [
+        "f61289l6"
+      ],
+      "hex_code": "0x4395",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_CELL_LOCK_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17302,
+      "constant_symbols": [
+        "f61373s6"
+      ],
+      "hex_code": "0x4396",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_ALL_NUMBER_NEWEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17303,
+      "constant_symbols": [
+        "f61385t6"
+      ],
+      "hex_code": "0x4397",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_NUMBER_NEWEST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17304,
+      "constant_symbols": [
+        "f61397u6"
+      ],
+      "hex_code": "0x4398",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_NUMBER_MARK"
+    },
+    {
+      "aliases": [],
+      "code": 17305,
+      "constant_symbols": [
+        "f61409v6"
+      ],
+      "hex_code": "0x4399",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_LIST_NUMBER_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17306,
+      "constant_symbols": [
+        "f61421w6"
+      ],
+      "hex_code": "0x439A",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_SMS_LIST_NUMBER_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17307,
+      "constant_symbols": [
+        "f61433x6"
+      ],
+      "hex_code": "0x439B",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_EXT_ANTENNA_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17308,
+      "constant_symbols": [
+        "f61445y6"
+      ],
+      "hex_code": "0x439C",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HY_EXT_ANTENNA_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17312,
+      "constant_symbols": [
+        "f61314n7"
+      ],
+      "hex_code": "0x43A0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMART_ANTENNA_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17313,
+      "constant_symbols": [
+        "f61326o7"
+      ],
+      "hex_code": "0x43A1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_SMART_ANTENNA_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17318,
+      "constant_symbols": [
+        "f61362r7"
+      ],
+      "hex_code": "0x43A6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_COMBO_PORT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17319,
+      "constant_symbols": [
+        "f61374s7"
+      ],
+      "hex_code": "0x43A7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_COMBO_PORT_SWITCH"
+    },
+    {
+      "aliases": [],
+      "code": 17322,
+      "constant_symbols": [
+        "f61386t7"
+      ],
+      "hex_code": "0x43AA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MATTER_IOT_STATE_NOTIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17323,
+      "constant_symbols": [
+        "f61398u7"
+      ],
+      "hex_code": "0x43AB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MATTER_IOT_STATE_CHECK"
+    },
+    {
+      "aliases": [],
+      "code": 17324,
+      "constant_symbols": [
+        "f61410v7"
+      ],
+      "hex_code": "0x43AC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MATTER_IOT_PAIRING_CODE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17328,
+      "constant_symbols": [
+        "f61338p7"
+      ],
+      "hex_code": "0x43B0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MLO_NETWORK_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17329,
+      "constant_symbols": [
+        "f61350q7"
+      ],
+      "hex_code": "0x43B1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_MLO_NETWORK_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17333,
+      "constant_symbols": [
+        "O7"
+      ],
+      "hex_code": "0x43B5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OFDMA_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17334,
+      "constant_symbols": [
+        "P7"
+      ],
+      "hex_code": "0x43B6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OFDMA_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17337,
+      "constant_symbols": [
+        "Y7"
+      ],
+      "hex_code": "0x43B9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CAPTIVE_PORTAL_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17338,
+      "constant_symbols": [
+        "Z7"
+      ],
+      "hex_code": "0x43BA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CAPTIVE_PORTAL_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17339,
+      "constant_symbols": [
+        "X7"
+      ],
+      "hex_code": "0x43BB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_TSS_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17342,
+      "constant_symbols": [
+        "L7"
+      ],
+      "hex_code": "0x43BE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CAMERA_SECURITY_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17343,
+      "constant_symbols": [
+        "M7"
+      ],
+      "hex_code": "0x43BF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CAMERA_SECURITY_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17344,
+      "constant_symbols": [
+        "f61266j7"
+      ],
+      "hex_code": "0x43C0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17345,
+      "constant_symbols": [
+        "f61278k7"
+      ],
+      "hex_code": "0x43C1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17346,
+      "constant_symbols": [
+        "f61290l7"
+      ],
+      "hex_code": "0x43C2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIFI_SCHEDULE_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17347,
+      "constant_symbols": [
+        "f61302m7"
+      ],
+      "hex_code": "0x43C3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WIFI_SCHEDULE_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17348,
+      "constant_symbols": [
+        "N7"
+      ],
+      "hex_code": "0x43C4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CAMERA_SECURITY_BLOCKED_PERIOD_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17350,
+      "constant_symbols": [
+        "L3"
+      ],
+      "hex_code": "0x43C6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOMECARE_SERVICE_STATE_CHECK"
+    },
+    {
+      "aliases": [],
+      "code": 17351,
+      "constant_symbols": [
+        "f61339p8"
+      ],
+      "hex_code": "0x43C7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_SAVING_POWER_PERIOD_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17352,
+      "constant_symbols": [
+        "f61351q8"
+      ],
+      "hex_code": "0x43C8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_SKIP_SCHEDULE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17354,
+      "constant_symbols": [
+        "f61363r8"
+      ],
+      "hex_code": "0x43CA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_ADVANCED_SETTINGS_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17355,
+      "constant_symbols": [
+        "f61375s8"
+      ],
+      "hex_code": "0x43CB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_ADVANCED_SETTINGS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17356,
+      "constant_symbols": [
+        "f61387t8"
+      ],
+      "hex_code": "0x43CC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_ADVANCED_DEVICE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17357,
+      "constant_symbols": [
+        "f61399u8"
+      ],
+      "hex_code": "0x43CD",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_DEVICE_REALTIME_POWER_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17358,
+      "constant_symbols": [
+        "f61411v8"
+      ],
+      "hex_code": "0x43CE",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_GAMING_APP_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17359,
+      "constant_symbols": [
+        "f61423w8"
+      ],
+      "hex_code": "0x43CF",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ECO_MODE_PREDICT_TRAFFIC_PERIOD_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17360,
+      "constant_symbols": [
+        "A8"
+      ],
+      "hex_code": "0x43D0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DOH_DOT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17361,
+      "constant_symbols": [
+        "B8"
+      ],
+      "hex_code": "0x43D1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DOH_DOT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17362,
+      "constant_symbols": [
+        "f61459z8"
+      ],
+      "hex_code": "0x43D2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_OPERATION_MODE_SWITCH_NOT_ALERT_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17363,
+      "constant_symbols": [
+        "C8"
+      ],
+      "hex_code": "0x43D3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DOH_DOT_SERVER_TEST"
+    },
+    {
+      "aliases": [],
+      "code": 17376,
+      "constant_symbols": [
+        "M8"
+      ],
+      "hex_code": "0x43E0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_INTERNET_BACKUP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17378,
+      "constant_symbols": [
+        "O8"
+      ],
+      "hex_code": "0x43E2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOTSPOT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17381,
+      "constant_symbols": [
+        "R8"
+      ],
+      "hex_code": "0x43E5",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_HOTSPOT_INTERNET_TEST_RESULT_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17386,
+      "constant_symbols": [
+        "f61269ja"
+      ],
+      "hex_code": "0x43EA",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CONFIG_BACKUP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17387,
+      "constant_symbols": [
+        "f61281ka"
+      ],
+      "hex_code": "0x43EB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CONFIG_BACKUP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17388,
+      "constant_symbols": [
+        "f61293la"
+      ],
+      "hex_code": "0x43EC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTO_BACKUP_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17389,
+      "constant_symbols": [
+        "f61305ma"
+      ],
+      "hex_code": "0x43ED",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_AUTO_BACKUP_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17392,
+      "constant_symbols": [
+        "f61317na"
+      ],
+      "hex_code": "0x43F0",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_MAC_BINDING_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17393,
+      "constant_symbols": [
+        "f61329oa"
+      ],
+      "hex_code": "0x43F1",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_MAC_BINDING_STATUS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17394,
+      "constant_symbols": [
+        "f61341pa"
+      ],
+      "hex_code": "0x43F2",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_MAC_BINDING_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17395,
+      "constant_symbols": [
+        "f61353qa"
+      ],
+      "hex_code": "0x43F3",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_MAC_BINDING_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17396,
+      "constant_symbols": [
+        "f61365ra"
+      ],
+      "hex_code": "0x43F4",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_IP_MAC_BINDING_LIST_MODIFY"
+    },
+    {
+      "aliases": [],
+      "code": 17398,
+      "constant_symbols": [
+        "f61377sa"
+      ],
+      "hex_code": "0x43F6",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WOL_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17399,
+      "constant_symbols": [
+        "f61389ta"
+      ],
+      "hex_code": "0x43F7",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WOL_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17400,
+      "constant_symbols": [
+        "f61401ua"
+      ],
+      "hex_code": "0x43F8",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WOL_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17401,
+      "constant_symbols": [
+        "f61413va"
+      ],
+      "hex_code": "0x43F9",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_WOL_WAKE"
+    },
+    {
+      "aliases": [],
+      "code": 17403,
+      "constant_symbols": [
+        "f61425wa"
+      ],
+      "hex_code": "0x43FB",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CONGESTION_RELIEF_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17404,
+      "constant_symbols": [
+        "f61437xa"
+      ],
+      "hex_code": "0x43FC",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_CONGESTION_RELIEF_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17409,
+      "constant_symbols": [
+        "Q7"
+      ],
+      "hex_code": "0x4401",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_MODE_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17410,
+      "constant_symbols": [
+        "R7"
+      ],
+      "hex_code": "0x4402",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_MODE_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17411,
+      "constant_symbols": [
+        "S7"
+      ],
+      "hex_code": "0x4403",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_WHITE_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17412,
+      "constant_symbols": [
+        "T7"
+      ],
+      "hex_code": "0x4404",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_WHITE_LIST_ADD"
+    },
+    {
+      "aliases": [],
+      "code": 17413,
+      "constant_symbols": [
+        "U7"
+      ],
+      "hex_code": "0x4405",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_WHITE_LIST_REMOVE"
+    },
+    {
+      "aliases": [],
+      "code": 17414,
+      "constant_symbols": [
+        "V7"
+      ],
+      "hex_code": "0x4406",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_APPLY_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17415,
+      "constant_symbols": [
+        "W7"
+      ],
+      "hex_code": "0x4407",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ACCESS_CONTROL_APPLY_LIST_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17428,
+      "constant_symbols": [
+        "f61449ya"
+      ],
+      "hex_code": "0x4414",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ADAPTIVE_WiFi_STATUS_SET"
+    },
+    {
+      "aliases": [],
+      "code": 17429,
+      "constant_symbols": [
+        "f61461za"
+      ],
+      "hex_code": "0x4415",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_ADAPTIVE_WiFi_CLIENT_LIST_GET"
+    },
+    {
+      "aliases": [],
+      "code": 17681,
+      "constant_symbols": [
+        "f61247i0"
+      ],
+      "hex_code": "0x4511",
+      "mapping_occurrences": 1,
+      "name": "TMP_APPV2_OP_DEVICE_UPDATE_NOC"
+    }
+  ],
+  "schema_version": 1,
+  "source": {
+    "application": "TP-Link Deco Android 3.10.215 build 1484",
+    "base_apk_sha256": "0932f72a8974c90bdb524db6832b67eb109219e95de549f7cc740d4f1b8a139d",
+    "decompiler": "JADX 1.5.6",
+    "package_name": "com.tplink.tpm5",
+    "registry_class": "com.tplink.libtpnetwork.mesh.global.p",
+    "signature_verified": true,
+    "signing_certificate_sha1": "c2864363ef24dec324fb6c557c40b8c4aee672e0",
+    "signing_certificate_sha256": "58a50741c13a7d715c8042956c21fdfe3b8cb6429b970bd96cf0f87c7b115750",
+    "version_code": 1484,
+    "version_name": "3.10.215",
+    "xapk_sha256": "198115ba07e8893c44e9f7f1cce1494b988d23e1e2e31533a6f85c637841edf8"
+  }
+}

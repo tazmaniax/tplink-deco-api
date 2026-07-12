@@ -19,12 +19,13 @@ Related: [login.md](./login.md) (`logout` ends the session),
 |----------|------|-----------|-----|---------|
 | `/admin/system` | `envar` | read, write | web | Environment variables (UI language). **plain** |
 | `/admin/system` | `sysmode` | read | web | System mode. **plain** |
-| `/admin/system` | `logout` | write | web | Drop the current session. |
+| `/admin/system` | `logout` | write, logout | web | Drop the current session. |
 | `/admin/component_control` | `switch_list` | read | web | Feature/component on-off list. |
 | `/admin/web` | `extra_component_info` | get | web | Extra component/capability info. |
 | `/locale` | `lang` | read, write | web | UI locale (`en_US`, …). |
 | `/locale` | `country` | read/write | web | Device country. |
 | `/locale` | `country_list` | read | web | Supported country list. |
+| `/locale` | `list` | read | web | Language choices used by the P9 time-settings page. |
 
 ---
 
@@ -59,8 +60,9 @@ model-dependent.
 
 ## `/admin/system?form=logout`
 
-**write** — invalidates the session. The SDK also discards its `stok`
-client-side. See [login.md](./login.md#session-lifecycle).
+**write / logout** — invalidates the session. The P9 browser sends the explicit
+`logout` operation. The SDK also discards its `stok` client-side. See
+[login.md](./login.md#session-lifecycle).
 
 ## `/admin/component_control?form=switch_list`
 
@@ -94,6 +96,12 @@ and `enable_fast_xmit`. These gate the network-side `erp_setting` /
 `UNITED_KINGDOM`, `RUSSIA`, `KOREA_REPUBLIC`, `POLAND`, `TAIWAN`, `VIETNAM`,
 `ROMANIA`, `UNITED_STATES`, `BRAZIL`, `JAPAN`, `CANADA`, `SAUDI_ARABIA`,
 `INDONESIA`.
+
+## `/locale?form=list`
+
+**read** — language choices loaded by the P9 time-settings page. The observed
+P9 accepted the exact asset-derived call with a null result; this confirms the
+route without establishing a list schema for that region/build.
 
 ---
 

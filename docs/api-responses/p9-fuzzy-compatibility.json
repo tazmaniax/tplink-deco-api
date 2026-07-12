@@ -1,0 +1,6301 @@
+{
+  "catalog_version": 3,
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "fuzzy_observations": [
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8743246659869328,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.lan_block.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2196391260949895,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.lan_block.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9365770419826731,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.lan_block.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0359309579944238,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.lan_block.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8945736238965765,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.lan_block.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9131915420293808,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.vlan.get_vlan",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8993114579934627,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.vlan.get_vlan",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8064379579154775,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.vlan.get_vlan",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1532467498909682,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.get_vlan",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.vlan.get_vlan",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1404497920302674,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.mac_clone_list.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.692522625089623,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.mac_clone_list.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.6922307510394603,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.mac_clone_list.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.7005304179619998,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.mac_clone_list.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 2.069821499986574,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.mac_clone_list.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.5432271249592304,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.igmp_setting.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 18.542441624915227,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.igmp_setting.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 16.478599624941126,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.igmp_setting.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.9255572081310675,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.igmp_setting.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.9542959170648828,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.wifi_network.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4827458339277655,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.wifi_network.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.6188655419973657,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.wifi_network.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.454987540957518,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.wifi_network.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4106524999951944,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.erp_setting.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4944300830829889,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.erp_setting.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0490351669723168,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.erp_setting.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8898143341066316,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.erp_setting.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.945401957957074,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.fast_xmit_setting.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8913318749982864,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.fast_xmit_setting.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8840360420290381,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.fast_xmit_setting.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9619765840470791,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.fast_xmit_setting.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8656483329832554,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.upnp.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 10.946018666028976,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.upnp.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.9191097510047257,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.upnp.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2401219999883324,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.upnp.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.042809332953766,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_static.getlist",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 12.201840166002512,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_static.getlist",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8956657510716468,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_static.getlist",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.945341374957934,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_static.getlist",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 10.84089179104194,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_system.getlist",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9396199160255492,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_system.getlist",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8857569579267874,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_system.getlist",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0401457489933819,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.routes_system.getlist",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8905419170623645,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.get",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.dsl_status.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8697554590180516,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.getlist",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.dsl_status.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9383987080072984,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.list",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.dsl_status.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.164092208025977,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.dsl_status.read",
+      "variant": "params:omitted"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0964634160045534,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.network.dsl_status.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.198006832972169,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bridge.get_bridge_status",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1821375839645043,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bridge.get_bridge_status",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1232972509460524,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bridge.get_bridge_status",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.705083042033948,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.get_bridge_status",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bridge.get_bridge_status",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.8062083330005407,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.get_bridge_status",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bridge.get_bridge_status",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.63254954200238,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.check.check",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.531912959064357,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.check.check",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 18.007817707955837,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.check.check",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9008998330682516,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.check.check",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9426532499492168,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.check",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.check.check",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 12.135124458000064,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_enhance.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.7446029159473255,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_enhance.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.5677750840550289,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_enhance.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 51.81048733415082,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_enhance.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9825765000423416,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_switch.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7664789579575881,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_switch.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7255929579259828,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_switch.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7469679589848965,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.bandwidth_switch.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0138288328889757,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.get",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.power.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.7882995420368388,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.getlist",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.power.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8074060000944883,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.list",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.power.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.462383042089641,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.power.read",
+      "variant": "params:omitted"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3589732489781454,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.power.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7072101668454707,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.smart_antenna.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9141629989026114,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.smart_antenna.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8769145830301568,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.smart_antenna.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9876004579709843,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.smart_antenna.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9844388340134174,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.wifi_schedule.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 10.607470249990001,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.wifi_schedule.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8866367089794949,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.wifi_schedule.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9144963329890743,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.wifi_schedule.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2587177919922397,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.ofdma.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6861604580190033,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.ofdma.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8289636670378968,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.ofdma.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6818000819766894,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.ofdma.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7161809999961406,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.backhaul_optimization.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8850242500193417,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.backhaul_optimization.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6436582920141518,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.backhaul_optimization.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6571721670916304,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.backhaul_optimization.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.942583624040708,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.get_support.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9269100839737803,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.get_support.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0156925410265103,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.get_support.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8271429169690236,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.wireless.get_support.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1039944989606738,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.speedinfo.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.810337083064951,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.speedinfo.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.073834958835505,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.speedinfo.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.7743071670411155,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.speedinfo.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 20.709870917140506,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.system.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9549951249500737,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.system.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8973573340335861,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.system.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9128896670881659,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.system.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7034765830030665,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.system.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8863602080382407,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.gateway.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8477059989236295,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.gateway.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0672266249312088,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.gateway.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2146566670853645,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.gateway.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.175551624968648,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.gateway.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.6855436259647831,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.mini_device_list.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0984852499095723,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.mini_device_list.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.6258937499951571,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.mini_device_list.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.449996415991336,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.mini_device_list.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9710372919216752,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.mini_device_list.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3703277080785483,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.envar.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.5132467489456758,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.envar.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.40801412507426,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.envar.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2559924570377916,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.envar.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.167942374944687,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.envar.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2631255829473957,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.get_server.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 10.708706624107435,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.get_server.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0953160000499338,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.get_server.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3914830839494243,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.get_server.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0932461239863187,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.get_server.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.223214291036129,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.led.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0701920839492232,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.led.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2764444169588387,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.led.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9149945840472355,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.led.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1148795419139788,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.led.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0435345829464495,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.sysmode.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6830652069766074,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.sysmode.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.699673791998066,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.sysmode.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7360405829967931,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.sysmode.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7721376250265166,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.sysmode.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6930372080532834,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.signal_level_list.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6932371659204364,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.signal_level_list.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6783698329236358,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.signal_level_list.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7153789169387892,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.signal_level_list.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6605043329764158,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.signal_level_list.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.8456354581285268,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.detect_mode.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 18.03317683399655,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.detect_mode.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3473529160255566,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.detect_mode.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7558999169850722,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.detect_mode.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8392120829084888,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.detect_mode.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8337401680182666,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.fixed_wan_port.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8311502920696512,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.fixed_wan_port.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7586324589792639,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.fixed_wan_port.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6805804169271141,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.fixed_wan_port.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.715919499984011,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.fixed_wan_port.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.6772020838689059,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.systime.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8886352501576766,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.systime.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.5395898330025375,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.systime.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8998885829932988,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.systime.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.8519894999917597,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.systime.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4599571659928188,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.eco_mode.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2819757079705596,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.eco_mode.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.342426290968433,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.eco_mode.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9815143329324201,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.eco_mode.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1095274159451947,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.read",
+      "parameter_schema": [
+        "device_mac:string"
+      ],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.device.eco_mode.read",
+      "variant": "params:device_mac_default"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9780541248619556,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.component_control.switch_list.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 10.326345333014615,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.component_control.switch_list.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9545514578931034,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.component_control.switch_list.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0083847509231418,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.component_control.switch_list.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.1730874589411542,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.lang.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7264264170080423,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.lang.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0115287920925766,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.lang.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0050210839835927,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.lang.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8004914171760902,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6945490000071004,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0833514590049163,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8692423329921439,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8314835829660296,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country_list.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7298128739930689,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country_list.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6865158749278635,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country_list.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "transport_error",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7123256659833714,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "locale.country_list.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7844547079876065,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7964849991258234,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9787527921143919,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7475123750045896,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7893027090467513,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.traffic_stat.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.0742562910309061,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.traffic_stat.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7499313340522349,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.traffic_stat.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 18.38764945801813,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.black_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.black_list.getlist",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.539827623986639,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.black_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.black_list.getlist",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.6396752920700237,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.black_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.black_list.getlist",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3251807080814615,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client_isolation.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1267726251389831,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client_isolation.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2356483759358525,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client_isolation.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4667195001384243,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.client_isolation.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.7485159168718383,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.access_refuse.get",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.9997205421095714,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.access_refuse.get",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.6445723758079112,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.access_refuse.get",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4602821660228074,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.access_refuse.get",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2424179589143023,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.apply_list.get",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4870805419050157,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.apply_list.get",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4938165000639856,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.apply_list.get",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.4028790830634534,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.apply_list.get",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3049107920378447,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.white_list.get",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.152605542098172,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.white_list.get",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1766956669744104,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.white_list.get",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3506557500222698,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.white_list.get",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1446819169213995,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.lease.get",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 11.144932917086408,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.lease.get",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.1775271659716964,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.lease.get",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.2084791670786217,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.client.lease.get",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7381597500061616,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.check",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6062232500407845,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.check",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6580822500400245,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.check",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7297122080344707,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.check",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6125580420484766,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.check",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.check",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7476700000697747,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.status",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.status",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.694313709042035,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.firmware_status",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.firmware_status",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "transport_error"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.76218674890697,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.cloud.firmware.sync_check_firmware",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.sync_check_firmware",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "supported",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8117764580529183,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.get_sync",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud.firmware.get_sync",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.707613751059398,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.cloud.homecare_service.get",
+      "variant": "operation_alias:read"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 1.3663633748656139,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.cloud.homecare_service.get",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.839706499944441,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.cloud.homecare_service.get",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "rejected"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": true,
+      "elapsed_seconds": 0.7610477079870179,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "source_name": "admin.cloud.homecare_service.get",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9722162079997361,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_internet.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.761661708005704,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_internet.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9516314169159159,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_internet.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0333010839531198,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_internet.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 16.33781216701027,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_device.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0361270010471344,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_device.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.1092798749450594,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_device.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0926336670527235,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_device.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.4408103340538219,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_connection.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7466372910421342,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_connection.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7707737908931449,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_connection.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8838202500483021,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_connection.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.6486174580641091,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_cloud_connection.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.5764549589948729,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_cloud_connection.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.764954375103116,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_cloud_connection.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.050641749985516,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_cloud_connection.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.473683875054121,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_support.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.8257360000861809,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_support.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.3622037911554798,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_support.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 1.0603035000385717,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.check_support.read",
+      "variant": "params:empty"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.7770980839850381,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.get",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.get_dev_info.read",
+      "variant": "operation_alias:get"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9147102090064436,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.getlist",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.get_dev_info.read",
+      "variant": "operation_alias:getlist"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9590755839599296,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.list",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.get_dev_info.read",
+      "variant": "operation_alias:list"
+    },
+    {
+      "attempt_statuses": [
+        "rejected",
+        "supported"
+      ],
+      "confirmed_data": false,
+      "confirmed_supported": false,
+      "consistent": false,
+      "elapsed_seconds": 0.9123642490012571,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.read",
+      "parameter_schema": [],
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "source_name": "admin.cloud_account.get_dev_info.read",
+      "variant": "params:empty"
+    }
+  ],
+  "hardware_versions": [
+    "1.0",
+    "2.0"
+  ],
+  "manifest_version": 2,
+  "model": "P9",
+  "observations": [
+    {
+      "elapsed_seconds": 0.46863850008230656,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.wan_mode.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.wan.mode:string",
+        "$.wan:object",
+        "$:object"
+      ],
+      "schema_sha256": "cfbd6b44ae99a6e3c2296cfb1948291506c4e7c7c65efe5eb69fe67f93bd914f",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5383191250730306,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.lan_ipv4.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.lan.ip:string",
+        "$.lan.mac:string",
+        "$.lan.mask:string",
+        "$.lan:object",
+        "$:object"
+      ],
+      "schema_sha256": "41e63f2531b6f42af5eb1be9ec37bf47f5ff1196fdcd37d53077eef9ddc7b009",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5996819579740986,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.lan_ip.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.dns_server_ip:array",
+        "$.dns_server_ip[]:string",
+        "$.lan_ip.ip:string",
+        "$.lan_ip.mask:string",
+        "$.lan_ip:object",
+        "$.mac_addr:string",
+        "$.wan_ip:array",
+        "$.wan_ip[]:string",
+        "$:object"
+      ],
+      "schema_sha256": "195a9142f33e21587b98a8d1161312f43f4cebfbfeb548b344fa3286d0201fcf",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4644491249928251,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5276497500017285,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.internet.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.ipv4.auto_detect_type:string",
+        "$.ipv4.connect_type:string",
+        "$.ipv4.dial_status:string",
+        "$.ipv4.error_code:integer",
+        "$.ipv4.inet_status:string",
+        "$.ipv4:object",
+        "$.ipv6.auto_detect_type:string",
+        "$.ipv6.connect_type:string",
+        "$.ipv6.dial_status:string",
+        "$.ipv6.error_code:integer",
+        "$.ipv6.inet_status:string",
+        "$.ipv6:object",
+        "$.link_status:string",
+        "$:object"
+      ],
+      "schema_sha256": "ee7d6c8d4c2b13acb38620e3ccc24db28c4b91f852ce93e2f9e04e8245520bd4",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5201984589220956,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.vlan.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.vlan.enable:boolean",
+        "$.vlan:object",
+        "$:object"
+      ],
+      "schema_sha256": "6ce887bb41e790e215a75ca1a32ce57c961661da1df89f6513717b3a003a60c4",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 10.53958570805844,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.get_vlan",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.7689594170078635,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.mac_clone.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.710151958046481,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 3.4545485840644687,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.performance.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.cpu_usage:number",
+        "$.mem_usage:number",
+        "$:object"
+      ],
+      "schema_sha256": "3af54c42b9a2dbbc013f337d3357993e5f095052dc2905c0aeb4a2d57e3be736",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.41878316702786833,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.4433265409898013,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.606691375025548,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.518725625006482,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.535285416059196,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.47888929198961705,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.7342093330807984,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.46459524997044355,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.3106051250360906,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.route.route.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.34978974994737655,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.dhcp.dhcp_info.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.34620212495792657,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.dhcp.dhcp_ap.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.4489311669021845,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.operation_mode.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.mode:string",
+        "$:object"
+      ],
+      "schema_sha256": "4b86d1f55453c7be8d72326a62312a5aaa4c833982123e38e411f5df3eec6109",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5248313749907538,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.bridge.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.location:string",
+        "$.status:string",
+        "$.support_plc:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "c2f17b245fbd9e8aaafafcdb333521c01a316552f40c6115d1f33ee89131ee65",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4548068750882521,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.get_bridge_status",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.48458845796994865,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.48702362494077533,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.ieee80211r.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5280425839591771,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.beamforming.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.498303750064224,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5000920830061659,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5234350829850882,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 17.21062504197471,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.360484250006266,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.15659324999433,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.3601372500415891,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.0838807909749448,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 1.1359369999263436,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.network_optimize.acs_optimize.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.6892214589752257,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.network_optimize.acs_filter_macs.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 7.130392917082645,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.device_list.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.device_list:array",
+        "$.device_list[].bssid_2g:string",
+        "$.device_list[].bssid_5g:string",
+        "$.device_list[].bssid_sta_2g:string",
+        "$.device_list[].bssid_sta_5g:string",
+        "$.device_list[].connection_type:array",
+        "$.device_list[].connection_type[]:string",
+        "$.device_list[].custom_nickname:string",
+        "$.device_list[].device_id:string",
+        "$.device_list[].device_model:string",
+        "$.device_list[].device_type:string",
+        "$.device_list[].group_status:string",
+        "$.device_list[].hardware_ver:string",
+        "$.device_list[].hw_id:string",
+        "$.device_list[].inet_error_msg:string",
+        "$.device_list[].inet_status:string",
+        "$.device_list[].ip:string",
+        "$.device_list[].mac:string",
+        "$.device_list[].nickname:string",
+        "$.device_list[].oem_id:string",
+        "$.device_list[].parent_device_id:string",
+        "$.device_list[].previous:string",
+        "$.device_list[].product_level:integer",
+        "$.device_list[].role:string",
+        "$.device_list[].set_gateway_support:boolean",
+        "$.device_list[].signal_level.band2_4:string",
+        "$.device_list[].signal_level.band5:string",
+        "$.device_list[].signal_level:object",
+        "$.device_list[].software_ver:string",
+        "$.device_list[].speed_get_support:boolean",
+        "$.device_list[].support_plc:boolean",
+        "$.device_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "eb172b00187fb8ad3186b913d19b2809f6660c3698b24ea78b55d0753aab8508",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.6207271249732003,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.mode.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.sysmode:string",
+        "$.workmode:string",
+        "$:object"
+      ],
+      "schema_sha256": "cbbd454d6ecfdc73f5e0b05f6ae31a7b17e338ec3ed421373436cef6ddafbdf9",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 10.345515165943652,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.speedtest.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.down_speed:integer",
+        "$.ever_tested:boolean",
+        "$.last_speed_test_time:integer",
+        "$.status:string",
+        "$.up_speed:integer",
+        "$:object"
+      ],
+      "schema_sha256": "038a8bac2b1fa22186425e704b98101e85680d3c3a756a80dc722e00366dbfb3",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4969365840079263,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5638036669697613,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.timesetting.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.continent:string",
+        "$.date:string",
+        "$.dst_status:string",
+        "$.time:string",
+        "$.timezone:string",
+        "$.tz_region:string",
+        "$:object"
+      ],
+      "schema_sha256": "a29d738cc07069beb88e9ba0d7feb0008ae8629c57db9473b88594ad76d17658",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4577841249993071,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5113113339757547,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.3696752500254661,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "transport_error"
+    },
+    {
+      "elapsed_seconds": 0.44266333302948624,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.46217304200399667,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.6328919159714133,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.47881391702685505,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5461733340052888,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.48775224993005395,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5117394590051845,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5066376670729369,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5354365829844028,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5212943339720368,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.system.envar.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3444073339924216,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.system.sysmode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.440328040975146,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3713722920510918,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.web.extra_component_info.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.4185049169464037,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.43063395807985216,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4603682500310242,
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5036394170019776,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.eco_mode.eco_mode.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.39633862499613315,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.eco_mode.get_period.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3251806669868529,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_setting.request.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 35.381859541055746,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.client_list.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.client_list:array",
+        "$.client_list[].access_host:string",
+        "$.client_list[].client_mesh:boolean",
+        "$.client_list[].client_type:string",
+        "$.client_list[].connection_type:string",
+        "$.client_list[].down_speed:integer",
+        "$.client_list[].enable_priority:boolean",
+        "$.client_list[].interface:string",
+        "$.client_list[].ip:string",
+        "$.client_list[].mac:string",
+        "$.client_list[].name:string",
+        "$.client_list[].online:boolean",
+        "$.client_list[].owner_id:string",
+        "$.client_list[].remain_time:integer",
+        "$.client_list[].space_id:string",
+        "$.client_list[].up_speed:integer",
+        "$.client_list[].wire_type:string",
+        "$.client_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "a39579d3fa22a5e218d0a85a31ebfbc40c61311aab719249d16e612249566105",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4412479579914361,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5261915830196813,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 5.754625209025107,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.list",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.client_list_speed:array",
+        "$.client_list_speed[].down_speed:integer",
+        "$.client_list_speed[].mac:string",
+        "$.client_list_speed[].up_speed:integer",
+        "$.client_list_speed[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "cb3fa0aaebee126b3bf08dfe62d81504fed2c6e67cd1f283b4530a84e8f9f5a4",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 9.8959150420269,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.black_list.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.46704404207412153,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.black_list.list",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.client_list:array",
+        "$.client_list[].client_type:string",
+        "$.client_list[].mac:string",
+        "$.client_list[].name:string",
+        "$.client_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "a09b047d78b8b56f1e0d5a8ead408f96d08aa6c9d913f40aa7a6fed0a1e06209",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.44442258297931403,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.addr_reservation.getlist",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.reservation_list:array",
+        "$.reservation_list[].ip:string",
+        "$.reservation_list[].mac:string",
+        "$.reservation_list[]:object",
+        "$.reservation_list_max_count:integer",
+        "$:object"
+      ],
+      "schema_sha256": "9e06f77d30daf24057d22cc48fb8802f5348004967d9a5c873f72d161da54511",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4150792909786105,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.40592016594018787,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.44419775006826967,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.4665260409237817,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.4233897910453379,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.29640037496574223,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nrd.black_list.list",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.38457929203286767,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tm_qos.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2948358330177143,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.bandwidth.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.29215062491130084,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner.list",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3277239999733865,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3060247499961406,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_insights.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.34259841695893556,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_insights.history",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28823312500026077,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_filter.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.33475716691464186,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner_avatar.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.34427016705740243,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.white_list.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3829485420137644,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.app_block_list.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.29024279199074954,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.info.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.285083792055957,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.category.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3495777089847252,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.rule.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3017728329868987,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.history.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.5325318749528378,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.camera_security.camera_security.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.282349249930121,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.camera_security.camera_security_blocked_period.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.5114008330274373,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.nickname.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$.nickname:string",
+        "$:object"
+      ],
+      "schema_sha256": "f01ba796be189c5a4ab702901953c2714dbf205e4175a1f2f85ffb5e0fb5d952",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.3740191248944029,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.check",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.385235209017992,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.status",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.3907720409333706,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.firmware_status",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.511086041922681,
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.cloud.firmware.sync_check_firmware",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "transport_error"
+    },
+    {
+      "elapsed_seconds": 0.3676270419964567,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.get_sync",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.5676608339417726,
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "rejected"
+    },
+    {
+      "elapsed_seconds": 0.6832726669963449,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.4063575000036508,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5570739170070738,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.5924107079626992,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.6148980420548469,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 16.613991916994564,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.read",
+      "response_kind": "object",
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.6869513749843463,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotdevice.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.7306553330272436,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotdevice.getlist_by_mod",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.6633504589553922,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotowner.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.6788631250383332,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotowner.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.6851660409010947,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.get_init_info",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.7105637079803273,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.get_avail_node_id",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.7660302920266986,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.check_node_status",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.8073542499914765,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotautomation.get_tasklist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.33166462497320026,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotoneclick.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.37757991603575647,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotoneclick.get_history",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3102124170400202,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.wps.status.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2822569999843836,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpnconn.conn.list",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2986123750451952,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.setting.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3254179590148851,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.vs.getlist",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3800763749750331,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.pt.load",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3061046249931678,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.dmz.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2831470830133185,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.alg.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2777725839987397,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.sip_alg.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3025284999748692,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ipv6_firewall.firewall.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2950954999541864,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ipv6_firewall.client.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.28004504193086177,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iptv.iptv.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3752887499285862,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.device.list",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.30059358396101743,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.device.list_all",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2714239580091089,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.status.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3527545420220122,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.info.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.32967295800335705,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.content.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3725838749669492,
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.log_export.types.read",
+      "response_kind": "list",
+      "schema_paths": [
+        "$:array",
+        "$[].name:string",
+        "$[].value:integer",
+        "$[]:object"
+      ],
+      "schema_sha256": "d608a1682bb8bb612e63ed6c090afbb773d09d43a90becbadcd46df6873046d0",
+      "status": "supported"
+    },
+    {
+      "elapsed_seconds": 0.293705458054319,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_device.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.3306075830478221,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_client.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.29940608399920166,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_system.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.27745366701856256,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_usb.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2803054159739986,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_control.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.32352779200300574,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.combo_port.list.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.2927940000081435,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.mobile.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.30533449992071837,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.bluetooth.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.40140141698066145,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.profile.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 10.049098000046797,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.read",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.37889137491583824,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.32872308301739395,
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.get_internal",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    },
+    {
+      "elapsed_seconds": 0.21854104194790125,
+      "error_code": null,
+      "http_status": 404,
+      "name": "blocking.check.get",
+      "response_kind": "object",
+      "schema_paths": [],
+      "schema_sha256": "",
+      "status": "not_found"
+    }
+  ],
+  "observed_at": "2026-07-10T19:57:39.974698+00:00",
+  "system_mode": "Router"
+}

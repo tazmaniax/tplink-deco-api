@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .._json import JsonObject, get_bool, get_int, get_object, get_str
+from .._json import JsonObject, get_bool, get_int, get_object, get_str, get_str_tuple
 from ._utils import decode_b64, normalize_mac
 from .signal_level import SignalLevel
 
@@ -37,13 +37,18 @@ class Device:
     support_plc: bool
     oversized_firmware: bool
     nand_flash: bool
+    device_id: str = ""
+    parent_device_id: str = ""
+    connection_type: tuple[str, ...] = ()
+    previous: str = ""
+    speed_get_support: bool = False
 
     @classmethod
     def from_api(cls, data: JsonObject) -> Device:
         """Build ``Device`` from a router payload."""
         return cls(
             mac=normalize_mac(get_str(data, "mac")),
-            device_ip=get_str(data, "device_ip"),
+            device_ip=get_str(data, "device_ip") or get_str(data, "ip"),
             device_model=get_str(data, "device_model"),
             device_type=get_str(data, "device_type"),
             role=get_str(data, "role"),
@@ -66,4 +71,9 @@ class Device:
             support_plc=get_bool(data, "support_plc"),
             oversized_firmware=get_bool(data, "oversized_firmware"),
             nand_flash=get_bool(data, "nand_flash"),
+            device_id=get_str(data, "device_id"),
+            parent_device_id=get_str(data, "parent_device_id"),
+            connection_type=get_str_tuple(data, "connection_type"),
+            previous=get_str(data, "previous"),
+            speed_get_support=get_bool(data, "speed_get_support"),
         )

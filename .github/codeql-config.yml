@@ -1,0 +1,8 @@
+name: Deco CodeQL configuration
+
+# CodeQL cannot model the protocol-mandated MD5 digest as non-security use.
+# Ruff S324 remains a repository-wide compensating control and requires
+# usedforsecurity=False for protocol compatibility cases.
+query-filters:
+  - exclude:
+      id: py/weak-sensitive-data-hashing

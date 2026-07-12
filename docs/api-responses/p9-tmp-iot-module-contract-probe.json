@@ -1,0 +1,1146 @@
+{
+  "active_scan_invoked": false,
+  "attempt_budget": 60,
+  "attempted_count": 31,
+  "confirmed_contract_count": 17,
+  "confirmed_contracts": [
+    {
+      "code": 16429,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16429,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16429,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.categories_list[]:string",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16431,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16431,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16431,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16433,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16433,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16433,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16442,
+      "hex_code": "0x403A",
+      "name": "TMP_APPV2_OP_DEFAULT_WEBSITE_APP_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.has_app_filter:boolean",
+        "$.result.need_up_to_date:boolean",
+        "$.result.version:integer",
+        "$.result.website_app_list:array",
+        "$.result.website_app_list[].name:string",
+        "$.result.website_app_list[]:object",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.OwnerDefaultWebsiteParams",
+      "variant": "apk_cached_version"
+    },
+    {
+      "code": 16457,
+      "hex_code": "0x4049",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_GET",
+      "parameter_keys": [
+        "iot_client_list"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.iot_client_list:array",
+        "$.result.scan_wait_time:integer",
+        "$.result.scanning:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.ObtainIotDeviceParams",
+      "variant": "apk_empty_iot_client_list"
+    },
+    {
+      "code": 16897,
+      "hex_code": "0x4201",
+      "name": "TMP_APPV2_OP_SECURITY_CATEGORY_LIST_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.need_up_to_date:boolean",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.CategoryOrRuleListParams",
+      "variant": "apk_category_version"
+    },
+    {
+      "code": 16898,
+      "hex_code": "0x4202",
+      "name": "TMP_APPV2_OP_SECURITY_RULE_LIST_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.need_up_to_date:boolean",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.CategoryOrRuleListParams",
+      "variant": "apk_rule_version"
+    },
+    {
+      "code": 16431,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "end_time",
+        "owner_id",
+        "start_time"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_epoch_range"
+    },
+    {
+      "code": 16431,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id",
+        "page",
+        "page_size"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_pagination"
+    },
+    {
+      "code": 16433,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "end_time",
+        "owner_id",
+        "start_time"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_epoch_range"
+    },
+    {
+      "code": 16433,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id",
+        "page",
+        "page_size"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_pagination"
+    }
+  ],
+  "inferred_iot_module_contract": {
+    "application": "TP-Link Deco Android 3.10.215 build 1484",
+    "code": 16459,
+    "evidence": "opcode_semantics_plus_signed_app_serialized_enum_without_call_site",
+    "hex_code": "0x404B",
+    "included": true,
+    "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+    "parameter_keys": [
+      "module"
+    ],
+    "response_values_retained": false,
+    "variant_count": 11,
+    "xapk_sha256": "198115ba07e8893c44e9f7f1cce1494b988d23e1e2e31533a6f85c637841edf8"
+  },
+  "mutation_invoked": false,
+  "observations": [
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.bed_time.enable_weekend_bed_time:boolean",
+        "$.result.bed_time.enable_workday_bed_time:boolean",
+        "$.result.bed_time.weekend_bed_time_begin:string",
+        "$.result.bed_time.weekend_bed_time_end:string",
+        "$.result.bed_time.workday_bed_time_begin:string",
+        "$.result.bed_time.workday_bed_time_end:string",
+        "$.result.bed_time:object",
+        "$.result.filter_level:string",
+        "$.result.filter_level_detail.categories_list:array",
+        "$.result.filter_level_detail.categories_list[]:string",
+        "$.result.filter_level_detail.website_list:array",
+        "$.result.filter_level_detail:object",
+        "$.result.insights:integer",
+        "$.result.internet_blocked:boolean",
+        "$.result.name:string",
+        "$.result.owner_id:string",
+        "$.result.time_limits.enable_weekend_time_limit:boolean",
+        "$.result.time_limits.enable_workday_time_limit:boolean",
+        "$.result.time_limits.weekend_daily_time:integer",
+        "$.result.time_limits.workday_daily_time:integer",
+        "$.result.time_limits:object",
+        "$.result.weekend:integer",
+        "$.result.workday:integer",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16431,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16431,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16431,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16433,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_1"
+    },
+    {
+      "code": 16433,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_2"
+    },
+    {
+      "code": 16433,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_id_3"
+    },
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "owner_list.owner_id",
+      "variant": "id_1"
+    },
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "owner_list.owner_id",
+      "variant": "id_2"
+    },
+    {
+      "code": 16429,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x402D",
+      "name": "TMP_APPV2_OP_OWNER_GET",
+      "parameter_keys": [
+        "id"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "owner_list.owner_id",
+      "variant": "id_3"
+    },
+    {
+      "code": 16442,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x403A",
+      "name": "TMP_APPV2_OP_DEFAULT_WEBSITE_APP_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.has_app_filter:boolean",
+        "$.result.need_up_to_date:boolean",
+        "$.result.version:integer",
+        "$.result.website_app_list:array",
+        "$.result.website_app_list[].name:string",
+        "$.result.website_app_list[]:object",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.OwnerDefaultWebsiteParams",
+      "variant": "apk_cached_version"
+    },
+    {
+      "code": 16457,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4049",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_GET",
+      "parameter_keys": [
+        "iot_client_list"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.iot_client_list:array",
+        "$.result.scan_wait_time:integer",
+        "$.result.scanning:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.ObtainIotDeviceParams",
+      "variant": "apk_empty_iot_client_list"
+    },
+    {
+      "code": 16897,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4201",
+      "name": "TMP_APPV2_OP_SECURITY_CATEGORY_LIST_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.need_up_to_date:boolean",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.CategoryOrRuleListParams",
+      "variant": "apk_category_version"
+    },
+    {
+      "code": 16898,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4202",
+      "name": "TMP_APPV2_OP_SECURITY_RULE_LIST_GET",
+      "parameter_keys": [
+        "version"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.need_up_to_date:boolean",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "deco_android_1.10.5.CategoryOrRuleListParams",
+      "variant": "apk_rule_version"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_zigbee"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_tpra"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_ble"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_nest"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_hue"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_cloud"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_network"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_network_device"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_notification"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_tapo"
+    },
+    {
+      "code": 16459,
+      "error_type": "",
+      "firmware_error_code": 1,
+      "hex_code": "0x404B",
+      "name": "TMP_APPV2_OP_IOT_CLIENT_LIST_GET_BY_MODULE",
+      "parameter_keys": [
+        "module"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.msg:string",
+        "$:object"
+      ],
+      "status": "payload_rejected",
+      "value_source": "deco_android_3.10.215.EnumIotModuleType",
+      "variant": "inferred_module_matter"
+    },
+    {
+      "code": 16431,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "end_time",
+        "owner_id",
+        "start_time"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_epoch_range"
+    },
+    {
+      "code": 16431,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x402F",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_INSIGHTS_GET",
+      "parameter_keys": [
+        "owner_id",
+        "page",
+        "page_size"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.insights:array",
+        "$.result.insights[].spend_online:integer",
+        "$.result.insights[].website_list:array",
+        "$.result.insights[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_pagination"
+    },
+    {
+      "code": 16433,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "end_time",
+        "owner_id",
+        "start_time"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_epoch_range"
+    },
+    {
+      "code": 16433,
+      "error_type": "",
+      "firmware_error_code": 0,
+      "hex_code": "0x4031",
+      "name": "TMP_APPV2_OP_PARENT_CTRL_HISTORY_GET",
+      "parameter_keys": [
+        "owner_id",
+        "page",
+        "page_size"
+      ],
+      "schema_paths": [
+        "$.error_code:integer",
+        "$.result.history:array",
+        "$.result.history[].access_timestamp:string",
+        "$.result.history[].website:string",
+        "$.result.history[]:object",
+        "$.result.owner_id:string",
+        "$.result:object",
+        "$:object"
+      ],
+      "status": "returned_data",
+      "value_source": "owner_list.owner_id",
+      "variant": "owner_pagination"
+    }
+  ],
+  "probe_kind": "bounded_read_contract_discovery",
+  "raw_values_emitted": false,
+  "source_opcodes": [
+    16402,
+    16425,
+    16480
+  ],
+  "source_value_counts": {
+    "owner_ids": 3
+  },
+  "source_values_retained": false,
+  "static_contract_evidence": {
+    "apk_sha256": "bcf626841307b4eb5ab7e12c178fb078e5dd522e0c805a317bfe103a93566ea8",
+    "application": "TP-Link Deco Android 1.10.5 build 112",
+    "request_models": [
+      "OwnerDefaultWebsiteParams",
+      "ObtainIotDeviceParams",
+      "CategoryOrRuleListParams"
+    ],
+    "signing_certificate_sha1": "c2864363ef24dec324fb6c557c40b8c4aee672e0"
+  },
+  "transport": "tmp_appv2_over_ssh"
+}

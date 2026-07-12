@@ -71,6 +71,16 @@ def test_parse_response_ok() -> None:
     assert parse_response({"data": data_b64}, _SESS) == {"stok": "abc"}
 
 
+def test_parse_response_normalizes_p9_number_nan_outside_strings() -> None:
+    inner = '{"result":{"download_progress":Number.NaN,"literal":"Number.NaN"},"error_code":0}'
+    data_b64 = aes_encrypt(_SESS.aes_key, _SESS.aes_iv, inner)
+
+    assert parse_response({"data": data_b64}, _SESS) == {
+        "download_progress": None,
+        "literal": "Number.NaN",
+    }
+
+
 def test_parse_response_empty_data() -> None:
     with pytest.raises(ApiError):
         parse_response({"data": ""}, _SESS)

@@ -1,6 +1,7 @@
 # USB storage & Time Machine
 
-Endpoints: **`/admin/usbshare`** and **`/admin/time_machine`** (both app). All
+Endpoints: **`/admin/usbshare`**, **`/admin/time_machine`** (both app), and the
+web-only **`/admin/folder_sharing?form=tree`**. All
 forms use the [encrypted envelope](../protocol/transport-and-dispatch.md).
 
 `/admin/usbshare` manages USB disks and the Samba / FTP / DLNA sharing servers;
@@ -24,10 +25,15 @@ Samba credentials when the admin account changes), [README.md](./README.md).
 | `settings` | read, write | app | Time Machine enable + target volume / quota. |
 | `info` | read | app | Time Machine capability + per-disk usage. |
 | `content` | read | app | Time Machine backup listing across nodes. |
+| `tree` (`/admin/folder_sharing`) | read | web | Storage topology used by the network map. |
 
 `list_all` / `remove_list` / `read_list` / `write_list` are the multi-node
 variants of `list` / `remove` / `read` / `write`; they forward to the other
 mesh nodes and merge the results.
+
+The shared P9 web assets include the `tree` store, but the observed P9 returned
+HTTP 404. It is catalogued as a private read because enabled models may return
+device and filesystem paths.
 
 ---
 

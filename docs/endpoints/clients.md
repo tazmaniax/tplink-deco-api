@@ -112,6 +112,26 @@ reservation is validated against the LAN subnet and rejected with `IP_CONFLICT`
 / `IP_CONFLICT_WITH_LAN_IP` / `IP_CONFLICT_WITH_RSVR_IP`. See
 [dhcp.md](./dhcp.md) for the DHCP server itself.
 
+Observed P9 firmware returns `getlist` as an object containing
+`reservation_list` and `reservation_list_max_count`, rather than returning the
+list directly. Use the typed helper, or use `request()` rather than
+`request_list()` when making a generic call:
+
+```python
+table = deco.get_address_reservations()
+for reservation in table.reservations:
+    print(reservation.mac, reservation.ip)
+
+raw = deco.request(
+    "admin/client",
+    "addr_reservation",
+    {"operation": "getlist"},
+)
+reservations = raw["reservation_list"]
+```
+
+SDK models: `AddressReservation` and `AddressReservationTable`.
+
 ## Access control (app)
 
 App-only Wi-Fi access-control forms:

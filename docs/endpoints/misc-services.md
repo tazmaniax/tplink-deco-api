@@ -17,10 +17,16 @@ Endpoint: **`/admin/cwmp`** (app-only).
 
 | Form | Operations | By | Purpose |
 |------|-----------|-----|---------|
-| `cwmp` | get, set | app | ACS (auto-config server) connection. |
+| `cwmp` | get, set | app | Compact ACS connection settings. |
+| `cwmp_info` | read, write | web | Full TR-069, connection-request, and STUN settings. |
 
 **get** → `{ enable, server_url }`. **set** → `params` `{ enable, server_url }`.
 `enable` toggles the TR-069 client; `server_url` is the ACS URL.
+
+The P9 web `cwmp_info` model additionally exposes ACS and STUN usernames and
+passwords, connection-request path/port, inform interval, and keepalive bounds.
+Both operations are classified `secret`; the field contract is recorded from
+the web model but has not been queried or mutated.
 
 ## `/admin/combo_port` — combo WAN/LAN port
 

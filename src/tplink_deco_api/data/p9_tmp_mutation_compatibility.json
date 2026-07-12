@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "model": "P9",
+  "tested_mutation_count": 3,
+  "value_free": true,
+  "observations": [
+    {
+      "code": 16905,
+      "hex_code": "0x4209",
+      "name": "TMP_APPV2_OP_11R_SET",
+      "status": "verified_noop",
+      "firmware_error_code": 0,
+      "parameter_keys": [
+        "enable"
+      ],
+      "parameter_values_retained": false,
+      "current_value_source": "live_preflight_0x4208",
+      "preflight_code": 16904,
+      "verification_code": 16904,
+      "rollback_code": 16905,
+      "state_unchanged": true,
+      "rollback_attempted": false,
+      "rollback_verified": null,
+      "mutation_request_count": 1,
+      "different_value_write_invoked": false,
+      "observed_at": "2026-07-11",
+      "evidence_artifact": "docs/api-responses/p9-tmp-ieee80211r-noop.json"
+    },
+    {
+      "code": 16924,
+      "hex_code": "0x421C",
+      "name": "TMP_APPV2_OP_BEAMFORMING_SET",
+      "status": "verified_noop",
+      "firmware_error_code": 0,
+      "parameter_keys": [
+        "enable"
+      ],
+      "parameter_values_retained": false,
+      "current_value_source": "live_preflight_0x421B",
+      "preflight_code": 16923,
+      "verification_code": 16923,
+      "rollback_code": 16924,
+      "state_unchanged": true,
+      "rollback_attempted": false,
+      "rollback_verified": null,
+      "mutation_request_count": 1,
+      "different_value_write_invoked": false,
+      "observed_at": "2026-07-11",
+      "evidence_artifact": "docs/api-responses/p9-tmp-beamforming-noop.json"
+    },
+    {
+      "code": 16931,
+      "hex_code": "0x4223",
+      "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
+      "status": "verified_noop",
+      "firmware_error_code": 0,
+      "parameter_keys": [
+        "enable"
+      ],
+      "parameter_values_retained": false,
+      "current_value_source": "live_preflight_0x4222",
+      "preflight_code": 16930,
+      "verification_code": 16930,
+      "rollback_code": 16931,
+      "state_unchanged": true,
+      "rollback_attempted": false,
+      "rollback_verified": null,
+      "mutation_request_count": 1,
+      "different_value_write_invoked": false,
+      "observed_at": "2026-07-11",
+      "evidence_artifact": "docs/api-responses/p9-tmp-monthly-report-noop.json"
+    }
+  ]
+}

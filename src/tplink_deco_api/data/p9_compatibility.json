@@ -1,0 +1,2319 @@
+{
+  "asset_forms": [
+    "admin/client/client_list",
+    "admin/cloud/firmware",
+    "admin/cloud/firmware_status",
+    "admin/cloud_account/check_internet",
+    "admin/cloud_account/get_deviceInfo",
+    "admin/component_control/switch_list",
+    "admin/cwmp/cwmp_info",
+    "admin/device/device_list",
+    "admin/device/mode",
+    "admin/device/system",
+    "admin/device/timesetting",
+    "admin/firmware/config",
+    "admin/firmware/config_multipart",
+    "admin/firmware/upgrade",
+    "admin/folder_sharing/tree",
+    "admin/isp/isp_upgrade",
+    "admin/log_export/feedback_log",
+    "admin/log_export/save_log",
+    "admin/log_export/types",
+    "admin/network/dhcp_dial",
+    "admin/network/dsl_status",
+    "admin/network/erp_setting",
+    "admin/network/fast_xmit_setting",
+    "admin/network/flow_control",
+    "admin/network/flow_control_lan_wan",
+    "admin/network/igmp_setting",
+    "admin/network/internet",
+    "admin/network/ipv6",
+    "admin/network/lan_ip",
+    "admin/network/performance",
+    "admin/network/wan_ipv4",
+    "admin/network/wifi_network",
+    "admin/syslog/log",
+    "admin/syslog/mail",
+    "admin/system/envar",
+    "admin/system/logout",
+    "admin/system/sysmode",
+    "admin/web/extra_component_info",
+    "admin/wireless/power",
+    "admin/wireless/wlan",
+    "domain_login/dlogin",
+    "locale/lang",
+    "locale/list",
+    "login/auth",
+    "login/check_factory_default",
+    "login/default_info",
+    "login/keys",
+    "login/login"
+  ],
+  "catalog_version": 4,
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "full_manifest_observations": [
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.wan_mode.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.wan.mode:string",
+        "$.wan:object",
+        "$:object"
+      ],
+      "schema_sha256": "cfbd6b44ae99a6e3c2296cfb1948291506c4e7c7c65efe5eb69fe67f93bd914f"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.lan_ipv4.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.lan.ip:string",
+        "$.lan.mac:string",
+        "$.lan.mask:string",
+        "$.lan:object",
+        "$:object"
+      ],
+      "schema_sha256": "41e63f2531b6f42af5eb1be9ec37bf47f5ff1196fdcd37d53077eef9ddc7b009"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.lan_ip.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.dns_server_ip:array",
+        "$.dns_server_ip[]:string",
+        "$.lan_ip.ip:string",
+        "$.lan_ip.mask:string",
+        "$.lan_ip:object",
+        "$.mac_addr:string",
+        "$.wan_ip:array",
+        "$.wan_ip[]:string",
+        "$:object"
+      ],
+      "schema_sha256": "195a9142f33e21587b98a8d1161312f43f4cebfbfeb548b344fa3286d0201fcf"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.lan_block.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.internet.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.ipv4.auto_detect_type:string",
+        "$.ipv4.connect_type:string",
+        "$.ipv4.dial_status:string",
+        "$.ipv4.error_code:integer",
+        "$.ipv4.inet_status:string",
+        "$.ipv4:object",
+        "$.ipv6.auto_detect_type:string",
+        "$.ipv6.connect_type:string",
+        "$.ipv6.dial_status:string",
+        "$.ipv6.error_code:integer",
+        "$.ipv6.inet_status:string",
+        "$.ipv6:object",
+        "$.link_status:string",
+        "$:object"
+      ],
+      "schema_sha256": "ee7d6c8d4c2b13acb38620e3ccc24db28c4b91f852ce93e2f9e04e8245520bd4"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.vlan.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.vlan.enable:boolean",
+        "$.vlan:object",
+        "$:object"
+      ],
+      "schema_sha256": "6ce887bb41e790e215a75ca1a32ce57c961661da1df89f6513717b3a003a60c4"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.vlan.get_vlan",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.mac_clone.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.mac_clone_list.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.performance.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.cpu_usage:number",
+        "$.mem_usage:number",
+        "$:object"
+      ],
+      "schema_sha256": "3af54c42b9a2dbbc013f337d3357993e5f095052dc2905c0aeb4a2d57e3be736"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.igmp_setting.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.wifi_network.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.erp_setting.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.fast_xmit_setting.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.upnp.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_static.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.routes_system.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dsl_status.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.route.route.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.dhcp.dhcp_info.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.dhcp.dhcp_ap.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.operation_mode.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.mode:string",
+        "$:object"
+      ],
+      "schema_sha256": "4b86d1f55453c7be8d72326a62312a5aaa4c833982123e38e411f5df3eec6109"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.bridge.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.location:string",
+        "$.status:string",
+        "$.support_plc:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "c2f17b245fbd9e8aaafafcdb333521c01a316552f40c6115d1f33ee89131ee65"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bridge.get_bridge_status",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.check.check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.ieee80211r.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.beamforming.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.enable:boolean",
+        "$:object"
+      ],
+      "schema_sha256": "30dc48fe86ae626fa44140f0b3762c5e3232891bbb64f6a7dbe4a20133f30449"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_enhance.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.bandwidth_switch.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.power.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.smart_antenna.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.wifi_schedule.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.ofdma.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.backhaul_optimization.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.get_support.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.network_optimize.acs_optimize.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.network_optimize.acs_filter_macs.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.device_list.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.device_list:array",
+        "$.device_list[].bssid_2g:string",
+        "$.device_list[].bssid_5g:string",
+        "$.device_list[].bssid_sta_2g:string",
+        "$.device_list[].bssid_sta_5g:string",
+        "$.device_list[].connection_type:array",
+        "$.device_list[].connection_type[]:string",
+        "$.device_list[].custom_nickname:string",
+        "$.device_list[].device_id:string",
+        "$.device_list[].device_model:string",
+        "$.device_list[].device_type:string",
+        "$.device_list[].group_status:string",
+        "$.device_list[].hardware_ver:string",
+        "$.device_list[].hw_id:string",
+        "$.device_list[].inet_error_msg:string",
+        "$.device_list[].inet_status:string",
+        "$.device_list[].ip:string",
+        "$.device_list[].mac:string",
+        "$.device_list[].nickname:string",
+        "$.device_list[].oem_id:string",
+        "$.device_list[].parent_device_id:string",
+        "$.device_list[].previous:string",
+        "$.device_list[].product_level:integer",
+        "$.device_list[].role:string",
+        "$.device_list[].set_gateway_support:boolean",
+        "$.device_list[].signal_level.band2_4:string",
+        "$.device_list[].signal_level.band5:string",
+        "$.device_list[].signal_level:object",
+        "$.device_list[].software_ver:string",
+        "$.device_list[].speed_get_support:boolean",
+        "$.device_list[].support_plc:boolean",
+        "$.device_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "eb172b00187fb8ad3186b913d19b2809f6660c3698b24ea78b55d0753aab8508"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.mode.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.sysmode:string",
+        "$.workmode:string",
+        "$:object"
+      ],
+      "schema_sha256": "cbbd454d6ecfdc73f5e0b05f6ae31a7b17e338ec3ed421373436cef6ddafbdf9"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.speedtest.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.down_speed:integer",
+        "$.ever_tested:boolean",
+        "$.last_speed_test_time:integer",
+        "$.status:string",
+        "$.up_speed:integer",
+        "$:object"
+      ],
+      "schema_sha256": "038a8bac2b1fa22186425e704b98101e85680d3c3a756a80dc722e00366dbfb3"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.speedinfo.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.device.timesetting.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.continent:string",
+        "$.date:string",
+        "$.dst_status:string",
+        "$.time:string",
+        "$.timezone:string",
+        "$.tz_region:string",
+        "$:object"
+      ],
+      "schema_sha256": "a29d738cc07069beb88e9ba0d7feb0008ae8629c57db9473b88594ad76d17658"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.system.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.gateway.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "transport_error",
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.device.mini_device_list.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.envar.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.get_server.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.led.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.sysmode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.signal_level_list.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.detect_mode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.fixed_wan_port.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.systime.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.device.eco_mode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.system.envar.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.system.sysmode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.component_control.switch_list.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.web.extra_component_info.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.lang.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.country_list.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.eco_mode.eco_mode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.eco_mode.get_period.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_setting.request.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.client_list.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.client_list:array",
+        "$.client_list[].access_host:string",
+        "$.client_list[].client_mesh:boolean",
+        "$.client_list[].client_type:string",
+        "$.client_list[].connection_type:string",
+        "$.client_list[].down_speed:integer",
+        "$.client_list[].enable_priority:boolean",
+        "$.client_list[].interface:string",
+        "$.client_list[].ip:string",
+        "$.client_list[].mac:string",
+        "$.client_list[].name:string",
+        "$.client_list[].online:boolean",
+        "$.client_list[].owner_id:string",
+        "$.client_list[].remain_time:integer",
+        "$.client_list[].space_id:string",
+        "$.client_list[].up_speed:integer",
+        "$.client_list[].wire_type:string",
+        "$.client_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "a39579d3fa22a5e218d0a85a31ebfbc40c61311aab719249d16e612249566105"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.traffic_stat.list",
+      "returned_data": true,
+      "schema_paths": [
+        "$.client_list_speed:array",
+        "$.client_list_speed[].down_speed:integer",
+        "$.client_list_speed[].mac:string",
+        "$.client_list_speed[].up_speed:integer",
+        "$.client_list_speed[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "cb3fa0aaebee126b3bf08dfe62d81504fed2c6e67cd1f283b4530a84e8f9f5a4"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.black_list.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.black_list.list",
+      "returned_data": true,
+      "schema_paths": [
+        "$.client_list:array",
+        "$.client_list[].client_type:string",
+        "$.client_list[].mac:string",
+        "$.client_list[].name:string",
+        "$.client_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "a09b047d78b8b56f1e0d5a8ead408f96d08aa6c9d913f40aa7a6fed0a1e06209"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.client.addr_reservation.getlist",
+      "returned_data": true,
+      "schema_paths": [
+        "$.reservation_list:array",
+        "$.reservation_list[].ip:string",
+        "$.reservation_list[].mac:string",
+        "$.reservation_list[]:object",
+        "$.reservation_list_max_count:integer",
+        "$:object"
+      ],
+      "schema_sha256": "9e06f77d30daf24057d22cc48fb8802f5348004967d9a5c873f72d161da54511"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.client_isolation.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.access_refuse.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.apply_list.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.white_list.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.client.lease.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nrd.black_list.list",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tm_qos.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.bandwidth.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner.list",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_insights.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_insights.history",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_filter.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.patrol_owner_avatar.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.white_list.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.app_block_list.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.info.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.category.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.rule.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.security.history.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.camera_security.camera_security.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.camera_security.camera_security_blocked_period.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.nickname.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.nickname:string",
+        "$:object"
+      ],
+      "schema_sha256": "f01ba796be189c5a4ab702901953c2714dbf205e4175a1f2f85ffb5e0fb5d952"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.status",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.firmware_status",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "transport_error",
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.cloud.firmware.sync_check_firmware",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.firmware.get_sync",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.homecare_service.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_internet.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_device.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_connection.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_cloud_connection.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_support.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_dev_info.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotdevice.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotdevice.getlist_by_mod",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotowner.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotowner.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.get_init_info",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.get_avail_node_id",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_device.iotrole.check_node_status",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotautomation.get_tasklist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotoneclick.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iot_automation.iotoneclick.get_history",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.wps.status.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpnconn.conn.list",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.setting.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.vs.getlist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.pt.load",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.dmz.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.alg.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.nat.sip_alg.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ipv6_firewall.firewall.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ipv6_firewall.client.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.iptv.iptv.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.device.list",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.device.list_all",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.status.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.info.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.content.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.log_export.types.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$:array",
+        "$[].name:string",
+        "$[].value:integer",
+        "$[]:object"
+      ],
+      "schema_sha256": "d608a1682bb8bb612e63ed6c090afbb773d09d43a90becbadcd46df6873046d0"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_device.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_client.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_system.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_usb.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.telemetry_collect.telemetry_control.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.combo_port.list.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.mobile.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.bluetooth.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.component_list.profile.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ga_info.status.get_internal",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "blocking.check.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.firmware.upgrade.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.firmware_status.check",
+      "returned_data": true,
+      "schema_paths": [
+        "$.fw_list:array",
+        "$.fw_list[].bssid_2g:string",
+        "$.fw_list[].bssid_5g:string",
+        "$.fw_list[].bssid_sta_2g:string",
+        "$.fw_list[].bssid_sta_5g:string",
+        "$.fw_list[].connection_type:array",
+        "$.fw_list[].connection_type:object",
+        "$.fw_list[].connection_type[]:string",
+        "$.fw_list[].custom_nickname:string",
+        "$.fw_list[].device_id:string",
+        "$.fw_list[].device_model:string",
+        "$.fw_list[].device_type:string",
+        "$.fw_list[].download_url:string",
+        "$.fw_list[].file_size:integer",
+        "$.fw_list[].group_status:string",
+        "$.fw_list[].hardware_ver:string",
+        "$.fw_list[].hw_id:string",
+        "$.fw_list[].inet_error_msg:string",
+        "$.fw_list[].inet_status:string",
+        "$.fw_list[].ip:string",
+        "$.fw_list[].mac:string",
+        "$.fw_list[].master_device_id:string",
+        "$.fw_list[].need_force_upgrade:boolean",
+        "$.fw_list[].need_to_download:boolean",
+        "$.fw_list[].need_to_upgrade:boolean",
+        "$.fw_list[].new_version:string",
+        "$.fw_list[].nickname:string",
+        "$.fw_list[].oem_id:string",
+        "$.fw_list[].parent_device_id:string",
+        "$.fw_list[].previous:string",
+        "$.fw_list[].product_level:integer",
+        "$.fw_list[].release_date:string",
+        "$.fw_list[].role:string",
+        "$.fw_list[].set_gateway_support:boolean",
+        "$.fw_list[].signal_level.band2_4:string",
+        "$.fw_list[].signal_level.band5:string",
+        "$.fw_list[].signal_level:object",
+        "$.fw_list[].software_ver:string",
+        "$.fw_list[].speed_get_support:boolean",
+        "$.fw_list[].support_plc:boolean",
+        "$.fw_list[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "a26ec1315ce7b93d78fbb018a2cc60bbd12dd02176572d2cda82bd3c729271ff"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.firmware_status.check_upgrade",
+      "returned_data": true,
+      "schema_paths": [
+        "$.reboot_time:integer",
+        "$:object"
+      ],
+      "schema_sha256": "082576675dbc1348b70088644d30933aae08b1a1e160caec34ebe54e0d0294b4"
+    }
+  ],
+  "hardware_versions": [
+    "1.0",
+    "2.0"
+  ],
+  "live_asset_observations": [
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "locale.list.read",
+      "returned_data": false,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_deviceInfo.read",
+      "returned_data": false,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.flow_control.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.flow_control_lan_wan.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.firmware_status.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.download_progress:null",
+        "$.status:string",
+        "$:object"
+      ],
+      "schema_sha256": "4a7b759904358f667abaa2f95eea9c29fc9df17823703e533251bb9c44d22bab"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.folder_sharing.tree.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.isp.isp_upgrade.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "domain_login.dlogin.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    }
+  ],
+  "model": "P9",
+  "observed_at": "2026-07-11T08:40:28Z",
+  "schema_version": 1,
+  "sensitive_schema_observations": [
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.network.wan_ipv4.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.lan.ip_info.ip:string",
+        "$.lan.ip_info.mac:string",
+        "$.lan.ip_info.mask:string",
+        "$.lan.ip_info:object",
+        "$.lan:object",
+        "$.wan.dial_type:string",
+        "$.wan.enable_auto_dns:boolean",
+        "$.wan.info:object",
+        "$.wan.ip_info.dns1:string",
+        "$.wan.ip_info.dns2:string",
+        "$.wan.ip_info.gateway:string",
+        "$.wan.ip_info.ip:string",
+        "$.wan.ip_info.mac:string",
+        "$.wan.ip_info.mask:string",
+        "$.wan.ip_info:object",
+        "$.wan:object",
+        "$:object"
+      ],
+      "schema_sha256": "a0dc32a30047bec6bd16eafc2f91712a5db3bce1fc6f257fb3961a02244424a2"
+    },
+    {
+      "availability": "transport_error",
+      "error_code": null,
+      "http_status": 500,
+      "name": "admin.network.ipv6.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.network.dhcp_dial.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.wireless.wlan.read",
+      "returned_data": true,
+      "schema_paths": [
+        "$.band2_4.backhaul.channel:integer",
+        "$.band2_4.backhaul:object",
+        "$.band2_4.guest.enable:boolean",
+        "$.band2_4.guest.need_set_vlan:boolean",
+        "$.band2_4.guest.password:string",
+        "$.band2_4.guest.ssid:string",
+        "$.band2_4.guest.vlan_id:integer",
+        "$.band2_4.guest:object",
+        "$.band2_4.host.channel:integer",
+        "$.band2_4.host.channel_width:string",
+        "$.band2_4.host.enable:boolean",
+        "$.band2_4.host.enable_hide_ssid:boolean",
+        "$.band2_4.host.mode:string",
+        "$.band2_4.host.password:string",
+        "$.band2_4.host.ssid:string",
+        "$.band2_4.host:object",
+        "$.band2_4:object",
+        "$.band5_1.backhaul.channel:integer",
+        "$.band5_1.backhaul:object",
+        "$.band5_1.guest.enable:boolean",
+        "$.band5_1.guest.need_set_vlan:boolean",
+        "$.band5_1.guest.password:string",
+        "$.band5_1.guest.ssid:string",
+        "$.band5_1.guest.vlan_id:integer",
+        "$.band5_1.guest:object",
+        "$.band5_1.host.channel:integer",
+        "$.band5_1.host.channel_width:string",
+        "$.band5_1.host.enable:boolean",
+        "$.band5_1.host.enable_hide_ssid:boolean",
+        "$.band5_1.host.mode:string",
+        "$.band5_1.host.password:string",
+        "$.band5_1.host.ssid:string",
+        "$.band5_1.host:object",
+        "$.band5_1:object",
+        "$:object"
+      ],
+      "schema_sha256": "41558e899b0bf953db244a19002f4fd26301d0fa436714ab8bfb2883c3cf7cfb"
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.wireless.mlo_network.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getOwnerInList",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getFamilyTimeInfo",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getTodayInsightTimeUsagePro",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.getInsightData",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.scanGet",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.ispGet",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.service_state_check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.service_status_check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.cloud_service_state_check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.smart_network.tmp_avira.get_sec_whitelist",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.firmware.config.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.firmware.config.check",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.group.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.cloud.group.iot_read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.ddns.get",
+      "returned_data": true,
+      "schema_paths": [
+        "$.ap_changed:boolean",
+        "$.ddns_enable:boolean",
+        "$.ddns_info.ddns_status:boolean",
+        "$.ddns_info.domain_name:string",
+        "$.ddns_info:object",
+        "$:object"
+      ],
+      "schema_sha256": "3f1bfc2c48c84f3b714cc3077db96bfbf3fd58c0b7adbfa6ea0da90d5f2a9b5f"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud.manager.get",
+      "returned_data": true,
+      "schema_paths": [
+        "$.manager_role_list:array",
+        "$.manager_role_list[].enable:boolean",
+        "$.manager_role_list[].role:string",
+        "$.manager_role_list[]:object",
+        "$.permission_profile:array",
+        "$.permission_profile[].forbidden_component_list:array",
+        "$.permission_profile[].forbidden_component_list[]:string",
+        "$.permission_profile[].lock_component_list:array",
+        "$.permission_profile[].lock_component_list[].component:string",
+        "$.permission_profile[].lock_component_list[].lock:integer",
+        "$.permission_profile[].lock_component_list[]:object",
+        "$.permission_profile[].role:string",
+        "$.permission_profile[]:object",
+        "$:object"
+      ],
+      "schema_sha256": "f1e315e140aea59cf6eb8bb1aa3a102793af1743a617d9a3d1b843496c6630f2"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.read_keys",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.get_device_token",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.read.get_deviceInfo",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.check_login.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.load.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.cloud_account.get_token.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_client.config.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_client.config.load",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.server.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.cert.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.key.gets",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.vpn_server.key.getc",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.ddns.ddns.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.server.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.usbshare.server.read_list",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.time_machine.settings.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.appget",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.mcu_read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.account.mcu_check",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.recovery.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.local.load",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.local.view",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.remote.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "supported",
+      "error_code": null,
+      "http_status": null,
+      "name": "admin.administration.login.read",
+      "returned_data": false,
+      "schema_paths": [
+        "$:null"
+      ],
+      "schema_sha256": "e0fa035273b46eff178cd08ff34f6fffb9b90e73c71ad119b8ad016065ca244a"
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.log.log.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.log.log.load",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "rejected",
+      "error_code": 1,
+      "http_status": null,
+      "name": "admin.log_export.feedback_log.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.syslog.mail.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.cwmp.cwmp.get",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.cwmp.cwmp_info.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.wifidog.portal_content.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "admin.quick_setup.preconf.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    },
+    {
+      "availability": "not_found",
+      "error_code": null,
+      "http_status": 404,
+      "name": "blocking.vercode.read",
+      "returned_data": null,
+      "schema_paths": [],
+      "schema_sha256": ""
+    }
+  ],
+  "system_mode": "Router",
+  "transport_overrides": {
+    "admin.cloud.firmware.download": "encrypted"
+  }
+}

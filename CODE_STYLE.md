@@ -151,9 +151,8 @@ emergency `git commit --no-verify` and immediately re-run the lint commands.
 
 ## Conventional commits
 
-All commits follow [Conventional Commits](https://www.conventionalcommits.org/),
-in **English**, which `release-please` parses to bump `pyproject.toml` `version`
-and generate `CHANGELOG.md`:
+All commits follow [Conventional Commits](https://www.conventionalcommits.org/)
+in **English** so the history can generate consistent release notes:
 
 | Type | Meaning | Bump |
 |---|---|---|
@@ -183,11 +182,14 @@ and generate `CHANGELOG.md`:
 
 ## Releasing
 
-- `release-please` runs on `main` and opens a release-PR with the next
-  version + `CHANGELOG.md`. Merging that PR triggers the publish job
-  (sdist + wheel via `python -m build`, published to PyPI via the
-  `pypi` GitHub Environment + Trusted Publisher — no token in repo secrets).
-- Don't manually edit `pyproject.toml` `version` — release-please owns it.
+- Automated publication is intentionally disabled until the project and
+  repository rename is complete. A push to `main` must run verification only
+  and must not publish the legacy `tplink-deco-api` distribution.
+- When changing `pyproject.toml` `version`, regenerate and commit `uv.lock` in
+  the same change.
+- The replacement release workflow must run tests for a version tag, build and
+  publish the multi-platform image to GHCR, and create the GitHub Release only
+  after the image push succeeds.
 
 ## Testing
 

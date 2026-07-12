@@ -55,7 +55,9 @@ Served at `/admin/network` (web + app merged).
 | `igmp_setting` | read/write | web |
 | `wifi_network` | read/write | web |
 | `erp_setting` | read/write | web |
+| `flow_control` | read/write | web |
 | `fast_xmit_setting` | read/write | web |
+| `flow_control_lan_wan` | read/write | web |
 | `upnp` | read/write | app |
 | `routes_static` | getlist, add, modify, remove | app |
 | `routes_system` | getlist | app |
@@ -109,8 +111,8 @@ Served at `/admin/device` (web + app merged).
 | `mode` | read | web |
 | `speedtest` | read, write, stop | both |
 | `speedinfo` | read | app |
-| `timesetting` | read, write | both |
-| `system` | read, write | both |
+| `timesetting` | read, write, gmt | both |
+| `system` | read, write, reboot | both |
 | `reboot` | write | both |
 | `factory` | write | both |
 | `gateway` | read | both |
@@ -131,11 +133,12 @@ Served at `/admin/device` (web + app merged).
 |----------|------|-----------|------|
 | `/admin/system` | `envar` | read, write | plain |
 | `/admin/system` | `sysmode` | read | plain |
-| `/admin/system` | `logout` | write | enc |
+| `/admin/system` | `logout` | write, logout | enc |
 | `/admin/component_control` | `switch_list` | read | enc |
 | `/admin/web` | `extra_component_info` | get | enc |
 | `/locale` | `lang` | read, write | enc |
 | `/locale` | `country`, `country_list` | read | enc |
+| `/locale` | `list` | read | enc |
 
 ## Eco mode & time — [eco-mode-and-time.md](./eco-mode-and-time.md)
 
@@ -202,8 +205,9 @@ Served at `/admin/smart_network`.
 | Endpoint | Form | Operations | Auth |
 |----------|------|-----------|------|
 | `/admin/firmware` | `config` | read, check, backup, restore | enc |
-| `/admin/firmware` | `config_multipart` | (upload) | plain |
-| `/admin/firmware` | `upgrade` | write | enc |
+| `/admin/firmware` | `config_multipart` | upload, backup, restore | multipart |
+| `/admin/firmware` | `upgrade` | read, write | enc |
+| `/admin/isp` | `isp_upgrade` | read, upgrade | multipart |
 | `/mcu_upgrade` | `mcu_upgrade` | check | enc |
 | `/admin/cloud` | `firmware` | check, upgrade, download, status | mixed |
 | `/admin/sync` | firmware sync/download | see cloud-and-account.md | enc |
@@ -214,6 +218,7 @@ Served at `/admin/smart_network`.
 |----------|------|-----------|
 | `/admin/cloud` | `nickname` | read, write |
 | `/admin/cloud` | `firmware` | check, upgrade, download, status |
+| `/admin/cloud` | `firmware_status` | read, check, check_upgrade, upgrade, local_upgrade |
 | `/admin/cloud` | `group` | create, add, get, set, update, remove, report, message, push |
 | `/admin/cloud` | `system` | bind, unbind, remove_all, proxy, account, notify |
 | `/admin/cloud` | `ddns`, `manager`, `iot_read` | — |
@@ -222,6 +227,7 @@ Served at `/admin/smart_network`.
 | `/admin/cloud_account` | `check_internet`/`check_device`/`check_connection`/`check_login` | read |
 | `/admin/cloud_account` | `bind_owner`/`unbind_owner` | write |
 | `/admin/cloud_account` | `get_dev_info`/`set_dev_info` | read/write |
+| `/admin/cloud_account` | `get_deviceInfo` | read |
 | `/admin/cloud_account` | `cloud_pass_through` | write |
 | `/admin/cloud_account` | `upgrade`, `get_token`, `tmp_cmd` | — |
 
@@ -332,7 +338,9 @@ Served at `/admin/administration`.
 | `/admin/log_export` | `types` | read | enc |
 | `/admin/log_export` | `save` | write | enc |
 | `/admin/log_export` | `save_log` | (download) | plain |
-| `/admin/log_export` | `feedback_log` | build | enc |
+| `/admin/log_export` | `feedback_log` | read, build | enc |
+| `/admin/syslog` | `mail` | read, write | enc |
+| `/admin/syslog` | `log` | mail | enc |
 | `/admin/telemetry_collect` | `telemetry_device`/`_client`/`_system`/`_usb` | read | enc |
 | `/admin/telemetry_collect` | `telemetry_control` | write | enc |
 | `/admin/debug` | `qlog`/`simplecom`/`tty2tcp`/`tm` | start, stop | enc |
@@ -344,6 +352,8 @@ Served at `/admin/administration`.
 | Endpoint | Form | Operations |
 |----------|------|-----------|
 | `/admin/cwmp` | `cwmp` | get, set |
+| `/admin/cwmp` | `cwmp_info` | read, write |
+| `/admin/folder_sharing` | `tree` | read |
 | `/admin/combo_port` | `list` | read |
 | `/admin/combo_port` | `switch` | set |
 | `/admin/component_list` | `mobile` | read |

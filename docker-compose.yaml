@@ -1,0 +1,30 @@
+services:
+  deco-mcp:
+    build:
+      context: .
+    image: tplink-deco-mcp:local
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ${DECO_MCP_ENV_FILE:-.env}
+    ports:
+      - "${DECO_MCP_BIND_ADDRESS:-127.0.0.1}:${DECO_MCP_PORT:-8000}:${DECO_MCP_PORT:-8000}"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c 'import os, urllib.request;
+          urllib.request.urlopen("http://127.0.0.1:" +
+          os.getenv("DECO_MCP_PORT", "8000") + "/healthz", timeout=2)'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 20s

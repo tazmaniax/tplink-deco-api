@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-11T05:54:58Z",
+  "model": "P9",
+  "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
+  "operation": "admin.wireless.ieee80211r.write",
+  "authorization": "explicit_user_authorization",
+  "request_shape": {
+    "enable": "current_value_unchanged"
+  },
+  "mutation_invoked": true,
+  "mutation_count": 1,
+  "error_code": 0,
+  "verification_read": "admin.wireless.ieee80211r.read",
+  "before_after_setting_equality": true,
+  "response_values_emitted": false,
+  "credential_values_emitted": false,
+  "test_scope": "noop_only"
+}

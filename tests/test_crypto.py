@@ -35,12 +35,12 @@ def test_generate_aes_pair_random() -> None:
 
 
 def test_md5_session_hash() -> None:
-    expected = hashlib.md5(b"adminpassword").hexdigest()
+    expected = hashlib.md5(b"adminpassword", usedforsecurity=False).hexdigest()
     assert md5_session_hash("admin", "password") == expected
 
 
 def test_md5_session_hash_empty() -> None:
-    expected = hashlib.md5(b"admin").hexdigest()
+    expected = hashlib.md5(b"admin", usedforsecurity=False).hexdigest()
     assert md5_session_hash("admin", "") == expected
 
 

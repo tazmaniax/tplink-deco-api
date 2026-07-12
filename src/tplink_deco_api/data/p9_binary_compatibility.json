@@ -1,0 +1,30 @@
+{
+  "artifact": "docs/api-responses/p9-http-binary-digest-audit.json",
+  "binary_content_persisted": false,
+  "binary_content_returned": false,
+  "model": "P9",
+  "mutation_invoked": false,
+  "observations": [
+    {
+      "availability": "transport_error",
+      "name": "admin.firmware.config.backup",
+      "returned_data": null
+    },
+    {
+      "availability": "transport_error",
+      "name": "admin.firmware.config_multipart.backup",
+      "returned_data": null
+    },
+    {
+      "availability": "invalid_response",
+      "media_type": "text/plain",
+      "name": "admin.log_export.save_log.download",
+      "response_sha256": "6efee230151779c9fe1b84a654c354e8fd062f39952583f52596e4356f5d9884",
+      "response_size": 44,
+      "returned_data": false
+    }
+  ],
+  "observed_at": "2026-07-11",
+  "response_values_retained": false,
+  "schema_version": 1
+}

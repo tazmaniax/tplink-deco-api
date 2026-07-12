@@ -101,11 +101,18 @@ Both return the same `{ stok, usr_lvl }` shape as `login`.
 
 ## `/domain_login?form=dlogin`
 
-**Operations:** read / write · **Auth:** encrypted
+**Operations:** read / write · **Auth:** encrypted owner session
 
-Domain (hostname-based) login used when reaching the router by its local domain
-name rather than IP. Behaves like `login` but keyed to the domain-access path;
-`tips_cancel` dismisses the domain-login hint.
+Domain-access hint/conflict state used when reaching the router by its local
+hostname rather than IP. The P9 web model names this controller
+`ipConflictProxy`; `tips_cancel` dismisses its domain-login hint.
+
+The P9 web client declares `dlogin` through the normal encrypted `IPFProxy`, and
+the endpoint is absent from its plaintext allowlist. A live value-free read on
+firmware `1.3.0 Build 20250804` confirmed that the ordinary authenticated
+owner-session envelope returns `error_code=0` with a null result. The observation
+is recorded in
+[`p9-domain-login-compatibility.json`](../api-responses/p9-domain-login-compatibility.json).
 
 ---
 
@@ -116,6 +123,6 @@ name rather than IP. Behaves like `login` but keyed to the domain-access path;
 3. `login` (encrypted) → `stok`.
 4. Every later call: URL carries `;stok=<stok>`, body is enveloped, `seq`
    increments per request.
-5. `logout` — [`/admin/system?form=logout`](./system.md) drops the session;
-   the SDK simply discards the token client-side.
+5. `logout` — [`/admin/system?form=logout`](./system.md) drops the server
+   session, then the SDK discards its local token and cookie.
 </content>

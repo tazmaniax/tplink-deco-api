@@ -1,0 +1,32 @@
+{
+  "current_value_source": "live_preflight_0x4222",
+  "different_value_write_invoked": false,
+  "mutation_request_count": 1,
+  "operation_code": 16931,
+  "operation_hex_code": "0x4223",
+  "operation_name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
+  "parameter_keys": [
+    "enable"
+  ],
+  "parameter_values_retained": false,
+  "post_read_succeeded": true,
+  "preflight_code": 16930,
+  "preflight_hex_code": "0x4222",
+  "preflight_name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_GET",
+  "raw_values_emitted": false,
+  "response_values_retained": false,
+  "rollback_attempted": false,
+  "rollback_code": 16931,
+  "rollback_error_type": "",
+  "rollback_firmware_error_code": null,
+  "rollback_verified": null,
+  "same_value_payload": true,
+  "schema_version": 1,
+  "state_unchanged": true,
+  "status": "verified_noop",
+  "transport": "tmp_appv2_over_ssh",
+  "verification_code": 16930,
+  "verified_noop": true,
+  "write_error_type": "",
+  "write_firmware_error_code": 0
+}

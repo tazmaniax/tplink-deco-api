@@ -1,59 +1,282 @@
-# tplink-deco-api
+# TP-Link Deco MCP
 
-[![CI](https://github.com/roquerodrigo/tplink-deco-api/actions/workflows/ci.yml/badge.svg)](https://github.com/roquerodrigo/tplink-deco-api/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/tplink-deco-api)](https://pypi.org/project/tplink-deco-api/)
+[![CI](https://github.com/tazmaniax/tplink-deco-api/actions/workflows/ci.yml/badge.svg)](https://github.com/tazmaniax/tplink-deco-api/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/license/mit)
 
-Python SDK for controlling **TP-Link Deco** mesh Wi-Fi routers via the internal HTTP API.
+A model-aware [Model Context Protocol](https://modelcontextprotocol.io/) server
+for discovering, monitoring and safely controlling TP-Link Deco mesh networks
+through their local interfaces.
 
-## Installation
+The project presents agents with one semantic view of a Deco network. It detects
+the connected controller, selects the supported HTTP/LuCI or TMP/AppV2 operation,
+normalizes the response and reports the route and evidence used. Agents do not
+need to choose between Deco protocols or model-specific endpoints.
+
+The MCP server is now the primary product. The underlying typed Python SDK,
+reverse-engineered operation catalogues, compatibility evidence and bounded
+hardware probes remain available for developers and contributors.
+
+> [!IMPORTANT]
+> This is an unofficial community project. TP-Link does not publish or support
+> these local interfaces, and firmware behaviour varies by model and version.
+> The broad catalogue is not a claim that every operation is supported by every
+> Deco. The P9 has the deepest live evidence in this repository.
+
+## What it provides
+
+- A small, protocol-neutral default MCP surface: 13 resources and five tools.
+- Automatic controller identification and evidence-based capability routing.
+- Normalized network status, configuration, mesh, devices, traffic,
+  reservations, logs, capabilities and mutation inventory.
+- Local HTTP/LuCI support using TP-Link's RSA/AES owner session.
+- Optional SSH/TMP/AppV2 support with mandatory host-key pinning.
+- A catalogue of 376 HTTP operations and 600 TMP/AppV2 opcodes for diagnostics
+  and compatibility research.
+- Independent gates for sensitive reads, binary exports, mutations,
+  destructive actions, internal operations and unverified TMP reads.
+- One-shot mutation planning with controller binding, confirmation, immediate
+  verification and rollback requirements.
+- Read-only and value-free probe tools for extending model compatibility
+  without retaining credentials or private network data.
+- Stdio for local agent clients and authenticated Streamable HTTP for an
+  always-on service.
+
+## How agents see the network
+
+Resources are the canonical read-only state views:
+
+| Resource | Contents |
+|---|---|
+| `deco://mcp` | MCP configuration, connection state and enabled safety gates. |
+| `deco://status` | Overall internet, controller and mesh health. |
+| `deco://configuration` | Sanitized network and system configuration. |
+| `deco://mesh` | Controller identity and all Deco nodes. |
+| `deco://devices` | All known client devices with connectivity and access state. |
+| `deco://devices/active` | Devices currently online. |
+| `deco://devices/inactive` | Known devices currently offline. |
+| `deco://devices/blocked` | Devices present in the block list. |
+| `deco://traffic` | Per-device and aggregate traffic rates. |
+| `deco://address-reservations` | DHCP address reservations. |
+| `deco://logs` | Available log categories without log contents. |
+| `deco://capabilities` | Reads available for the connected controller. |
+| `deco://mutations` | Known mutation intents, evidence and eligibility. |
+
+Tools are reserved for parameterized reads or actions:
+
+| Tool | Behaviour |
+|---|---|
+| `deco_get_capability` | Resolve and read one semantic capability with provenance and bounded fallback. |
+| `deco_get_wlan_state` | Read WLAN state with passwords omitted unless explicitly requested and permitted. |
+| `deco_get_cloud_state` | Read opted-in DDNS and cloud-manager state. |
+| `deco_plan_mutation` | Preflight one semantic mutation and, when eligible, issue a short-lived one-shot plan. |
+| `deco_execute_mutation` | Consume an eligible plan with exact confirmation, verification and rollback controls. |
+
+Protocol catalogues, raw reads, discovery probes and compatibility matrices are
+available only through the opt-in diagnostic surface. They are deliberately
+absent from the default agent interface.
+
+See the [complete MCP reference](docs/mcp.md) for resource schemas, tool
+parameters, routing provenance and diagnostic surfaces.
+
+## Quick start with stdio
+
+Requirements:
+
+- Python 3.11 or newer
+- [`uv`](https://docs.astral.sh/uv/)
+- A Deco controller reachable on the local network
+- The Deco owner password
+
+Install the MCP dependencies:
 
 ```bash
-pip install tplink-deco-api
+uv sync --extra mcp
 ```
 
-## Usage
+Add `--extra tmp` only when the hidden TMP/AppV2 interface is required:
+
+```bash
+uv sync --extra mcp --extra tmp
+```
+
+Start the stdio server:
+
+```bash
+DECO_HOST=192.168.68.1 \
+DECO_USERNAME=admin \
+DECO_PASSWORD='your-owner-password' \
+uv run tplink-deco-mcp
+```
+
+Supply credentials through the MCP client's secret configuration or a secret
+manager rather than committing them or placing them in retained shell history.
+The [MCP guide](docs/mcp.md#codex-registration-with-1password) includes a Codex
+and 1Password CLI example.
+
+All sensitive and mutation gates are disabled by default. Ordinary non-secret
+resources authenticate lazily when first read.
+
+## Docker Compose
+
+The included Compose service exposes authenticated Streamable HTTP and can run
+on any suitable Docker host. It does not require host networking, elevated
+Linux capabilities or persistent application storage.
+
+From a source checkout:
+
+```bash
+cp .env.example .env
+chmod 600 .env
+# Replace every CHANGE_ME value and the example TEST-NET address in .env.
+
+docker compose build --pull
+docker compose up -d
+docker compose ps
+```
+
+The service uses a deployment-scoped bearer token, DNS-rebinding protection, a
+read-only root filesystem, no Linux capabilities and an unauthenticated process
+liveness endpoint at `/healthz`. The supplied endpoint is plain HTTP and should
+remain on a trusted, firewalled home network unless TLS is added in front of it.
+
+See the [deployment guide](docs/mcp.md#docker-compose-on-a-home-network-host)
+for the complete `.env`, network and TLS requirements.
+
+## Safety model
+
+The project treats endpoint discovery, read access and mutation authorization as
+separate concerns:
+
+- Catalogue presence means an operation was recovered from firmware or an app;
+  it does not prove support on the connected model.
+- Compatibility profiles record model and firmware evidence without embedding
+  private response values.
+- Sensitive reads, bulk secret reads and binary content each require their own
+  opt-in gate.
+- HTTP and TMP mutation paths require explicit gates and model evidence.
+- Destructive and firmware-internal operations have additional independent
+  gates.
+- Semantic mutations follow discover → plan → authorize → execute. Plans expire
+  after five minutes, bind to the resolved controller and are consumed once.
+- Fallback is allowed only for six positively evidenced read capabilities.
+  Mutations never fall back between protocols.
+
+The repository inventories 21 semantic mutation intents, including blocked and
+unverified candidates. Current P9 write evidence is limited to unchanged-value
+verification requests. Desired state changes remain execution-ineligible in the
+default semantic MCP workflow.
+
+## Model compatibility
+
+The MCP interface is designed for the Deco product range and resolves support
+against the controller that is actually connected. It does not expose P9-named
+default tools or require callers to supply a model name.
+
+The P9 is currently the reference implementation because it has been exercised
+against both local interfaces:
+
+- 59 data-returning HTTP reads have positive P9 evidence.
+- 55 data-returning TMP/AppV2 reads have positive P9 evidence.
+- All 246 conservatively classified TMP reads have a recorded P9 observation.
+- Controlled current-value no-op evidence exists for address reservation, time
+  settings, beamforming, 802.11r and monthly-report setters.
+
+Other models can use generic routes immediately where their firmware matches,
+but unobserved results are reported as unknown rather than silently treated as
+unsupported. Compatibility evidence can be extended with the bounded probes in
+`examples/`.
+
+See:
+
+- [Compatibility and evidence guide](docs/README.md)
+- [HTTP endpoint index](docs/endpoints/README.md)
+- [Transport and dispatch analysis](docs/protocol/transport-and-dispatch.md)
+- [Authentication protocol](docs/auth-protocol.md)
+- [Sanitized P9 response evidence](docs/api-responses/)
+
+## Python SDK
+
+The MCP server is built on the typed `tplink_deco_api` package. Existing Python
+imports remain valid:
 
 ```python
 from tplink_deco_api import DecoClient
 
 with DecoClient("192.168.68.1", "admin", "your-password") as deco:
+    for device in deco.get_device_list():
+        print(device.device_model, device.software_ver)
+
     for client in deco.get_client_list():
         print(client.name, client.ip, client.connection_type)
 ```
 
-## Available methods
+High-level methods return typed dataclasses. Catalogue-driven `call()` and
+`request_envelope()` APIs preserve model-specific response fields for
+compatibility work. The public generic TMP API is read-only.
 
-| Method | Returns |
-|--------|---------|
-| `login()` | `LoginResult` |
-| `get_device_list()` | `list[Device]` |
-| `get_device_mode()` | `DeviceMode` |
-| `get_wlan_config()` | `WlanConfig` |
-| `get_performance()` | `Performance` |
-| `get_client_list(deco_mac?)` | `list[ClientDevice]` |
+The original `tplink-deco-api` PyPI distribution represents the upstream SDK.
+Until this fork completes its project rename and release setup, use `uv sync`
+from this repository to run the expanded MCP implementation.
 
-## Models
+## Discovery and verification tools
 
-Every method returns typed dataclasses — no generic dictionaries.
+The `examples/` directory contains the hardware-dependent tools used to build
+the compatibility profiles. Important safeguards include:
 
-```python
-client.mac              # "AA:BB:CC:DD:EE:FF"
-client.name             # "MacBook Pro"
-client.ip               # "192.168.68.10"
-client.connection_type  # "band6"
-client.online           # True
+- passwords are prompted without echoing or supplied through the environment;
+- snapshot files are created with owner-only permissions;
+- compatibility manifests retain response schemas rather than values;
+- read probes use explicit allowlists and exclude mutations;
+- fuzzy discovery is bounded, rate-limited and limited to read-like variants;
+- mutation verification harnesses require an exact operation confirmation and
+  perform an immediate post-read comparison.
 
-device.device_model     # "BE65"
-device.software_ver     # "1.2.10 Build 20251229"
+Start with the sanitized read-only probe:
 
-wlan.band2_4.host.ssid      # "My Network"
-wlan.band2_4.guest.password # "guest-password"
-
-perf.cpu_usage  # 0.03
-perf.mem_usage  # 0.42
+```bash
+uv run examples/read_only_probe.py \
+  --host 192.168.68.1 \
+  --timeout 60 \
+  --full-manifest \
+  --output snapshot.json \
+  --manifest-output compatibility.json
 ```
 
-## Requirements
+Hardware probes are never part of the normal test suite and must not be run
+against a live network without understanding their data classification and, for
+any write harness, obtaining explicit authorization.
 
-- Python 3.11+
-- TP-Link Deco router reachable on the local network
+## Development
+
+Install all development dependencies:
+
+```bash
+uv sync --extra mcp --extra tmp
+```
+
+Run the same verification gates as CI:
+
+```bash
+uv run ruff format .
+uv run ruff check . --fix
+uv run mypy src
+uv run pytest
+```
+
+The test suite is network-free by default. Router integration tests require an
+explicit opt-in and configured credentials.
+
+## Project history
+
+This project began as a fork of
+[`roquerodrigo/tplink-deco-api`](https://github.com/roquerodrigo/tplink-deco-api).
+The upstream project established the Python SDK, authentication transport and
+firmware endpoint documentation on which this work builds. This fork expands
+that foundation into a model-aware MCP server, adds the TMP/AppV2 transport,
+records P9 compatibility evidence and introduces an agent-oriented safety and
+deployment model.
+
+## License
+
+Released under the MIT License.

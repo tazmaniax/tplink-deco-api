@@ -1,12 +1,12 @@
 [project]
 name = "tplink-deco-api"
-version = "1.2.1"
-description = "Python SDK for controlling TP-Link Deco routers via the internal HTTP API"
+version = "0.1.0"
+description = "Model-aware MCP server for discovering, monitoring, and safely controlling TP-Link Deco mesh networks"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Rodrigo Roque", email = "rodrigogoncalvesroque@gmail.com" }]
-keywords = ["tplink", "deco", "mesh", "wifi", "router", "api", "sdk"]
+authors = [{ name = "Chris Webb", email = "chris@spinthewebb.com" },{ name = "Rodrigo Roque", email = "rodrigogoncalvesroque@gmail.com" }]
+keywords = ["tplink", "deco", "mesh", "wifi", "router", "api", "sdk", "mcp"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -22,10 +22,17 @@ dependencies = [
     "cryptography>=46.0.7",
 ]
 
+[project.optional-dependencies]
+mcp = ["mcp>=1.27,<2"]
+tmp = ["paramiko>=3,<5"]
+
+[project.scripts]
+tplink-deco-mcp = "tplink_deco_api.mcp.server:main"
+
 [project.urls]
-Homepage = "https://github.com/roquerodrigo/tplink-deco-api"
-Repository = "https://github.com/roquerodrigo/tplink-deco-api"
-Issues = "https://github.com/roquerodrigo/tplink-deco-api/issues"
+Homepage = "https://github.com/tazmaniax/tplink-deco-api"
+Repository = "https://github.com/tazmaniax/tplink-deco-api"
+Issues = "https://github.com/tazmaniax/tplink-deco-api/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -44,6 +51,8 @@ addopts = [
 
 [dependency-groups]
 dev = [
+    "mcp>=1.27,<2",
+    "paramiko>=3,<5",
     "pytest>=9.0.3",
     "pytest-cov>=7.0",
     "pytest-asyncio>=1.3.0",
@@ -51,6 +60,7 @@ dev = [
 lint = [
     "ruff>=0.6",
     "mypy>=1.11",
+    "types-paramiko>=3",
 ]
 
 [tool.uv]
@@ -71,6 +81,7 @@ select = [
     "SIM",
     "RUF",
     "TC",
+    "S324",
 ]
 ignore = []
 
