@@ -92,7 +92,7 @@ def test_p9_mcp_live_audit_persists_only_schemas_and_digests(
 
     with (
         mock.patch.object(example, "create_server", return_value=server),
-        mock.patch.object(example, "DecoMcpService", return_value=service),
+        mock.patch.object(example, "DecoService", return_value=service),
     ):
         assert example.main() == 0
 

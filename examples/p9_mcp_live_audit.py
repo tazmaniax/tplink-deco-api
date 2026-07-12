@@ -12,8 +12,9 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tplink_deco_api.mcp import DecoMcpService, McpConfig
 from tplink_deco_api.mcp.server import create_server
+from tplink_deco_api.server import ServerConfig
+from tplink_deco_api.service import DecoService
 
 if TYPE_CHECKING:
     from tplink_deco_api._json import JsonObject, JsonValue
@@ -138,7 +139,7 @@ def main() -> int:
     if not args.binary_digests and not args.complete_tmp_batch:
         raise ValueError("Failed to run P9 MCP live audit: select at least one audit")
     password = _password()
-    config = McpConfig(
+    config = ServerConfig(
         host=args.host,
         username=args.username,
         password=_required(password, "owner password"),
@@ -172,7 +173,7 @@ def main() -> int:
         "response_values_retained": False,
         "mutation_invoked": False,
     }
-    service = DecoMcpService(config)
+    service = DecoService(config)
     try:
         if args.binary_digests:
             print("[1/2] Running three-endpoint digest-only HTTP discovery...", flush=True)

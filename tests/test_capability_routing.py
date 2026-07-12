@@ -17,12 +17,14 @@ from tplink_deco_api import (
     get_capability_route,
     get_mutation_capability_route,
 )
-from tplink_deco_api.mcp import DecoMcpService, McpConfig
+from tplink_deco_api.exceptions import ConfirmationError, UnknownPlanError
 from tplink_deco_api.mcp.server import create_server
+from tplink_deco_api.server import ServerConfig
+from tplink_deco_api.service import DecoService
 
 
-def _config() -> McpConfig:
-    return McpConfig(
+def _config() -> ServerConfig:
+    return ServerConfig(
         host="192.0.2.1",
         username="admin",
         password="secret",
@@ -81,7 +83,7 @@ def test_mutation_capability_registry_has_fixed_routes_without_fallback() -> Non
 
 
 def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -91,9 +93,9 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
 
     get_client.assert_not_called()
     get_tmp_client.assert_not_called()
-    assert result["agent_selects_protocol"] is False
+    assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
-    assert result["diagnostic_tools_exposed"] is False
+    assert result["diagnostics_exposed"] is False
     assert len(result["routes"]) == 6
     assert len(result["mutation_routes"]) == 4
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
@@ -101,7 +103,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
 
 
 def test_capability_mutation_plan_is_offline_and_protocol_fixed() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -124,7 +126,7 @@ def test_capability_mutation_plan_is_offline_and_protocol_fixed() -> None:
 
 
 def test_unified_noop_rejects_wrong_confirmation_before_transport() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -138,7 +140,7 @@ def test_unified_noop_rejects_wrong_confirmation_before_transport() -> None:
 
 
 def test_unified_http_noop_uses_fixed_route_without_fallback() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     result = {"status": "verified_noop", "verified_noop": True}
 
     with mock.patch.object(service, "verify_p9_http_noop", return_value=result) as verifier:
@@ -163,7 +165,7 @@ def test_unified_monthly_report_noop_uses_tmp_current_value() -> None:
         allow_tmp_reads=True,
         allow_tmp_noop_verification=True,
     )
-    service = DecoMcpService(config)
+    service = DecoService(config)
     service._device_cache = (_p9_device(),)
     client = mock.Mock()
     client.request_read_json.side_effect = [
@@ -187,7 +189,7 @@ def test_unified_monthly_report_noop_uses_tmp_current_value() -> None:
 
 
 def test_capability_read_prefers_http_and_returns_provenance() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.get_device_list.return_value = [_p9_device()]
     client.get_beamforming.return_value = {"enable": True}
@@ -224,7 +226,7 @@ def test_capability_read_falls_back_to_tmp_after_http_transport_failure() -> Non
         tp_link_id="owner@example.com",
         tmp_host_key_sha256="SHA256:test",
     )
-    service = DecoMcpService(config)
+    service = DecoService(config)
     http_client = mock.Mock()
     http_client.get_device_list.return_value = [_p9_device()]
     http_client.get_beamforming.side_effect = TransportError("temporary failure")
@@ -260,7 +262,7 @@ def test_capability_read_falls_back_to_tmp_after_http_transport_failure() -> Non
 
 
 def test_capability_read_does_not_fallback_when_tmp_gate_is_disabled() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     http_client = mock.Mock()
     http_client.get_device_list.return_value = [_p9_device()]
     http_client.get_beamforming.side_effect = TransportError("temporary failure")
@@ -276,7 +278,7 @@ def test_capability_read_does_not_fallback_when_tmp_gate_is_disabled() -> None:
 
 
 def test_secret_capability_requires_one_logical_gate_before_transport_selection() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -290,7 +292,7 @@ def test_secret_capability_requires_one_logical_gate_before_transport_selection(
 
 
 def test_connected_resources_distinguish_mesh_devices_and_reservations() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.get_device_list.return_value = [_p9_device()]
 
@@ -311,7 +313,7 @@ def test_connected_resources_distinguish_mesh_devices_and_reservations() -> None
 
 
 def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     service._device_cache = (_p9_device(),)
 
     capabilities = service.capabilities()
@@ -319,17 +321,23 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert capabilities["supported_count"] == 6
     assert capabilities["router_contacted"] is False
+    assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     assert mutations["candidate_count"] == 21
     beamforming = next(item for item in mutations["mutations"] if item["name"] == "beamforming")
     assert beamforming["validation_status"] == "noop_verified"
     assert beamforming["execution_scope"] == "noop_only"
     assert beamforming["execution_status"] == "gated"
+    assert beamforming["plan_operation"] == "plan_mutation"
+    assert beamforming["execute_operation"] == "execute_mutation"
+    assert service.semantic_mutation("beamforming") == beamforming
     reservation = next(
         item for item in mutations["mutations"] if item["name"] == "address_reservation_modify"
     )
     assert reservation["validation_status"] == "noop_verified"
     assert reservation["execution_scope"] == "none"
     assert reservation["execution_status"] == "blocked"
+    with pytest.raises(ValueError, match="unknown mutation"):
+        service.semantic_mutation("missing")
 
 
 def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence() -> None:
@@ -343,7 +351,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
             "software_ver": "9.9.9",
         }
     )
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     service._device_cache = (unknown,)
 
     mesh = service.device_inventory()
@@ -364,7 +372,7 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
         allow_mutations=True,
         allow_http_noop_verification=True,
     )
-    service = DecoMcpService(config)
+    service = DecoService(config)
     service._device_cache = (_p9_device(),)
 
     change_plan = service.plan_semantic_mutation(
@@ -397,7 +405,7 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
             "verify_setting_noop",
             return_value={"status": "verified_noop", "verified_noop": True},
         ) as verifier,
-        pytest.raises(PermissionError, match="exact plan confirmation"),
+        pytest.raises(ConfirmationError, match="exact plan confirmation"),
     ):
         service.execute_semantic_mutation(plan_id, "wrong")
 
@@ -415,7 +423,7 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
     verifier.assert_called_once_with("beamforming", confirmation)
     assert result["plan_consumed"] is True
     assert result["fallback_used"] is False
-    with pytest.raises(PermissionError, match="unknown plan ID"):
+    with pytest.raises(UnknownPlanError, match="unknown plan ID"):
         service.execute_semantic_mutation(plan_id, confirmation)
 
 

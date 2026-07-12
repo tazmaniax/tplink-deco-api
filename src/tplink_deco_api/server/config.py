@@ -1,4 +1,4 @@
-"""Environment-backed configuration for the Deco MCP server."""
+"""Environment-backed configuration for the Deco service and transports."""
 
 from __future__ import annotations
 
@@ -22,14 +22,29 @@ def _get_csv(name: str) -> tuple[str, ...]:
 
 
 def _get_port() -> int:
-    value = os.environ.get("DECO_MCP_PORT", "8000")
+    value = os.environ.get("DECO_SERVER_PORT", "8000")
     try:
         port = int(value)
     except ValueError as exc:
-        raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be an integer") from exc
+        raise ValueError("Failed to configure server: DECO_SERVER_PORT must be an integer") from exc
     if not 1 <= port <= 65535:
-        raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be between 1 and 65535")
+        raise ValueError("Failed to configure server: DECO_SERVER_PORT must be between 1 and 65535")
     return port
+
+
+def _get_max_in_flight() -> int:
+    value = os.environ.get("DECO_SERVER_MAX_IN_FLIGHT_REQUESTS", "32")
+    try:
+        maximum = int(value)
+    except ValueError as exc:
+        raise ValueError(
+            "Failed to configure server: DECO_SERVER_MAX_IN_FLIGHT_REQUESTS must be an integer"
+        ) from exc
+    if maximum <= 0:
+        raise ValueError(
+            "Failed to configure server: DECO_SERVER_MAX_IN_FLIGHT_REQUESTS must be positive"
+        )
+    return maximum
 
 
 def _get_transport() -> McpTransport:
@@ -42,8 +57,8 @@ def _get_transport() -> McpTransport:
 
 
 @dataclass(frozen=True)
-class McpConfig:
-    """Configure router access and independently gated MCP risk levels."""
+class ServerConfig:
+    """Configure router access, HTTP transports and independent risk gates."""
 
     host: str
     username: str
@@ -66,74 +81,92 @@ class McpConfig:
     transport: McpTransport = "stdio"
     server_host: str = "127.0.0.1"
     server_port: int = 8000
-    streamable_http_path: str = "/mcp"
-    public_url: str = ""
+    mcp_path: str = "/mcp"
+    mcp_public_url: str = ""
     bearer_token: str = ""
     allowed_hosts: tuple[str, ...] = ()
     allowed_origins: tuple[str, ...] = ()
+    rest_enabled: bool = False
+    rest_prefix: str = "/api/v1"
+    rest_expose_docs: bool = False
+    max_in_flight_requests: int = 32
 
     @classmethod
-    def from_env(cls) -> McpConfig:
+    def from_env(cls) -> ServerConfig:
         """Load configuration without persisting credentials or session state."""
         timeout_text = os.environ.get("DECO_TIMEOUT", "60")
         try:
             timeout = float(timeout_text)
         except ValueError as exc:
-            raise ValueError("Failed to configure MCP: DECO_TIMEOUT must be numeric") from exc
+            raise ValueError("Failed to configure server: DECO_TIMEOUT must be numeric") from exc
         if timeout <= 0:
-            raise ValueError("Failed to configure MCP: DECO_TIMEOUT must be positive")
+            raise ValueError("Failed to configure server: DECO_TIMEOUT must be positive")
         config = cls(
             host=os.environ.get("DECO_HOST", "192.168.68.1"),
             username=os.environ.get("DECO_USERNAME", "admin"),
             password=os.environ.get("DECO_PASSWORD", ""),
             timeout=timeout,
-            allow_sensitive_reads=_get_bool("DECO_MCP_ALLOW_SENSITIVE_READS"),
-            allow_bulk_secret_reads=_get_bool("DECO_MCP_ALLOW_BULK_SECRET_READS"),
-            allow_binary_content=_get_bool("DECO_MCP_ALLOW_BINARY_CONTENT"),
-            allow_mutations=_get_bool("DECO_MCP_ALLOW_MUTATIONS"),
-            allow_destructive=_get_bool("DECO_MCP_ALLOW_DESTRUCTIVE"),
-            allow_internal=_get_bool("DECO_MCP_ALLOW_INTERNAL"),
+            allow_sensitive_reads=_get_bool("DECO_ALLOW_SENSITIVE_READS"),
+            allow_bulk_secret_reads=_get_bool("DECO_ALLOW_BULK_SECRET_READS"),
+            allow_binary_content=_get_bool("DECO_ALLOW_BINARY_CONTENT"),
+            allow_mutations=_get_bool("DECO_ALLOW_MUTATIONS"),
+            allow_destructive=_get_bool("DECO_ALLOW_DESTRUCTIVE"),
+            allow_internal=_get_bool("DECO_ALLOW_INTERNAL"),
             tp_link_id=os.environ.get("DECO_TP_LINK_ID", ""),
             tmp_host_key_sha256=os.environ.get("DECO_TMP_HOST_KEY_SHA256", ""),
-            allow_tmp_reads=_get_bool("DECO_MCP_ALLOW_TMP_READS"),
-            allow_unverified_tmp_reads=_get_bool("DECO_MCP_ALLOW_UNVERIFIED_TMP_READS"),
-            allow_tmp_noop_verification=_get_bool("DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION"),
-            allow_http_noop_verification=_get_bool("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION"),
+            allow_tmp_reads=_get_bool("DECO_ALLOW_TMP_READS"),
+            allow_unverified_tmp_reads=_get_bool("DECO_ALLOW_UNVERIFIED_TMP_READS"),
+            allow_tmp_noop_verification=_get_bool("DECO_ALLOW_TMP_NOOP_VERIFICATION"),
+            allow_http_noop_verification=_get_bool("DECO_ALLOW_HTTP_NOOP_VERIFICATION"),
             expose_diagnostic_tools=_get_bool("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS"),
             expose_raw_mutation_tools=_get_bool("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS"),
             transport=_get_transport(),
-            server_host=os.environ.get("DECO_MCP_HOST", "127.0.0.1").strip(),
+            server_host=os.environ.get("DECO_SERVER_HOST", "127.0.0.1").strip(),
             server_port=_get_port(),
-            streamable_http_path=os.environ.get("DECO_MCP_STREAMABLE_HTTP_PATH", "/mcp").strip(),
-            public_url=os.environ.get("DECO_MCP_PUBLIC_URL", "").strip(),
-            bearer_token=os.environ.get("DECO_MCP_BEARER_TOKEN", "").strip(),
-            allowed_hosts=_get_csv("DECO_MCP_ALLOWED_HOSTS"),
-            allowed_origins=_get_csv("DECO_MCP_ALLOWED_ORIGINS"),
+            mcp_path=os.environ.get("DECO_MCP_PATH", "/mcp").strip(),
+            mcp_public_url=os.environ.get("DECO_MCP_PUBLIC_URL", "").strip(),
+            bearer_token=os.environ.get("DECO_SERVER_BEARER_TOKEN", "").strip(),
+            allowed_hosts=_get_csv("DECO_SERVER_ALLOWED_HOSTS"),
+            allowed_origins=_get_csv("DECO_SERVER_ALLOWED_ORIGINS"),
+            rest_enabled=_get_bool("DECO_REST_ENABLED"),
+            rest_prefix=os.environ.get("DECO_REST_PREFIX", "/api/v1").strip(),
+            rest_expose_docs=_get_bool("DECO_REST_EXPOSE_DOCS"),
+            max_in_flight_requests=_get_max_in_flight(),
         )
         config.validate_server()
         return config
 
     def validate_server(self) -> None:
-        """Reject unsafe or incomplete MCP transport configuration."""
+        """Reject unsafe or incomplete transport configuration."""
+        if not self.rest_prefix.startswith("/") or self.rest_prefix.endswith("/"):
+            raise ValueError(
+                "Failed to configure server: DECO_REST_PREFIX must start with / and not end with /"
+            )
+        if self.max_in_flight_requests <= 0:
+            raise ValueError(
+                "Failed to configure server: DECO_SERVER_MAX_IN_FLIGHT_REQUESTS must be positive"
+            )
         if self.transport == "stdio":
             return
         if not self.server_host:
-            raise ValueError("Failed to configure MCP: DECO_MCP_HOST is required")
+            raise ValueError("Failed to configure server: DECO_SERVER_HOST is required")
         if not 1 <= self.server_port <= 65535:
-            raise ValueError("Failed to configure MCP: DECO_MCP_PORT must be between 1 and 65535")
-        if not self.streamable_http_path.startswith("/"):
             raise ValueError(
-                "Failed to configure MCP: DECO_MCP_STREAMABLE_HTTP_PATH must start with /"
+                "Failed to configure server: DECO_SERVER_PORT must be between 1 and 65535"
             )
-        if not self.public_url.startswith(("http://", "https://")):
+        if not self.mcp_path.startswith("/"):
+            raise ValueError("Failed to configure server: DECO_MCP_PATH must start with /")
+        if not self.mcp_public_url.startswith(("http://", "https://")):
             raise ValueError("Failed to configure MCP: DECO_MCP_PUBLIC_URL must be an HTTP(S) URL")
         if len(self.bearer_token) < 32:
             raise ValueError(
-                "Failed to configure MCP: DECO_MCP_BEARER_TOKEN must contain at least 32 characters"
+                "Failed to configure server: DECO_SERVER_BEARER_TOKEN must contain "
+                "at least 32 characters"
             )
         if not self.allowed_hosts:
             raise ValueError(
-                "Failed to configure MCP: DECO_MCP_ALLOWED_HOSTS must contain at least one host"
+                "Failed to configure server: DECO_SERVER_ALLOWED_HOSTS must contain "
+                "at least one host"
             )
 
     def public_settings(self) -> dict[str, JsonValue]:
@@ -158,11 +191,15 @@ class McpConfig:
             "expose_diagnostic_tools": self.expose_diagnostic_tools,
             "expose_raw_mutation_tools": self.expose_raw_mutation_tools,
             "mcp_transport": self.transport,
-            "mcp_server_host": self.server_host,
-            "mcp_server_port": self.server_port,
-            "mcp_streamable_http_path": self.streamable_http_path,
-            "mcp_public_url": self.public_url,
-            "mcp_bearer_token_configured": bool(self.bearer_token),
-            "mcp_allowed_hosts": list(self.allowed_hosts),
-            "mcp_allowed_origins": list(self.allowed_origins),
+            "server_host": self.server_host,
+            "server_port": self.server_port,
+            "mcp_path": self.mcp_path,
+            "mcp_public_url": self.mcp_public_url,
+            "server_bearer_token_configured": bool(self.bearer_token),
+            "server_allowed_hosts": list(self.allowed_hosts),
+            "server_allowed_origins": list(self.allowed_origins),
+            "rest_enabled": self.rest_enabled,
+            "rest_prefix": self.rest_prefix,
+            "rest_docs_exposed": self.rest_expose_docs,
+            "max_in_flight_requests": self.max_in_flight_requests,
         }

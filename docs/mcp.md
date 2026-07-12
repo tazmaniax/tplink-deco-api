@@ -26,25 +26,29 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_PASSWORD` | — | Owner password; required only when a tool connects. |
 | `DECO_TIMEOUT` | `60` | Per-request timeout in seconds. |
 | `DECO_MCP_TRANSPORT` | `stdio` | `stdio` or `streamable-http`; HTTP fails closed unless its security settings are complete. |
-| `DECO_MCP_HOST` | `127.0.0.1` | Server bind address; Compose sets `0.0.0.0` inside the container. |
-| `DECO_MCP_PORT` | `8000` | Streamable HTTP listen port. |
-| `DECO_MCP_STREAMABLE_HTTP_PATH` | `/mcp` | Streamable HTTP endpoint path. |
+| `DECO_SERVER_HOST` | `127.0.0.1` | Shared HTTP bind address; Compose sets `0.0.0.0` inside the container. |
+| `DECO_SERVER_PORT` | `8000` | Shared REST and MCP listen port. |
+| `DECO_MCP_PATH` | `/mcp` | Streamable HTTP mount path. |
 | `DECO_MCP_PUBLIC_URL` | — | Complete externally visible MCP endpoint URL, required for HTTP authorization metadata. |
-| `DECO_MCP_BEARER_TOKEN` | — | Deployment-scoped bearer token of at least 32 characters, required for HTTP. |
-| `DECO_MCP_ALLOWED_HOSTS` | — | Comma-separated permitted HTTP `Host` headers, required for DNS-rebinding protection. |
-| `DECO_MCP_ALLOWED_ORIGINS` | — | Comma-separated permitted browser origins; requests without an `Origin` remain valid. |
-| `DECO_MCP_ALLOW_SENSITIVE_READS` | off | Permit reads classified as `secret`. |
-| `DECO_MCP_ALLOW_BULK_SECRET_READS` | off | Permit configuration-backup and log downloads; also requires the sensitive-read gate. |
-| `DECO_MCP_ALLOW_BINARY_CONTENT` | off | Permit base64 binary content in MCP results; digest-only reads do not require this gate. |
-| `DECO_MCP_ALLOW_MUTATIONS` | off | Permit ordinary configuration mutations. |
-| `DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION` | off | Permit only the three P9-verified HTTP setting current-value no-ops; also requires the ordinary mutation gate. |
-| `DECO_MCP_ALLOW_DESTRUCTIVE` | off | Permit reboot, reset, removal and upgrade operations. |
-| `DECO_MCP_ALLOW_INTERNAL` | off | Permit firmware-internal mesh/debug operations. |
+| `DECO_SERVER_BEARER_TOKEN` | — | Deployment-scoped bearer token of at least 32 characters shared by REST and MCP. |
+| `DECO_SERVER_ALLOWED_HOSTS` | — | Comma-separated permitted HTTP `Host` headers applied to both surfaces. |
+| `DECO_SERVER_ALLOWED_ORIGINS` | — | Comma-separated browser origins allowed by Origin enforcement and REST CORS. |
+| `DECO_SERVER_MAX_IN_FLIGHT_REQUESTS` | `32` | Shared upper bound for concurrent REST and MCP requests. |
+| `DECO_REST_ENABLED` | off | Register the OpenAPI REST router under the configured prefix. |
+| `DECO_REST_PREFIX` | `/api/v1` | REST prefix; must start with `/` and must not end with `/`. |
+| `DECO_REST_EXPOSE_DOCS` | off | Expose `/openapi.json`, `/docs` and `/redoc`; disabled by default. |
+| `DECO_ALLOW_SENSITIVE_READS` | off | Permit reads classified as `secret`. |
+| `DECO_ALLOW_BULK_SECRET_READS` | off | Permit configuration-backup and log downloads; also requires the sensitive-read gate. |
+| `DECO_ALLOW_BINARY_CONTENT` | off | Permit base64 binary content in MCP results; digest-only reads do not require this gate. |
+| `DECO_ALLOW_MUTATIONS` | off | Permit ordinary configuration mutations. |
+| `DECO_ALLOW_HTTP_NOOP_VERIFICATION` | off | Permit only the three P9-verified HTTP setting current-value no-ops; also requires the ordinary mutation gate. |
+| `DECO_ALLOW_DESTRUCTIVE` | off | Permit reboot, reset, removal and upgrade operations. |
+| `DECO_ALLOW_INTERNAL` | off | Permit firmware-internal mesh/debug operations. |
 | `DECO_TP_LINK_ID` | — | TP-Link account email used only to derive the TMP SSH username. |
 | `DECO_TMP_HOST_KEY_SHA256` | — | Required pinned SSH host-key fingerprint for authenticated TMP connections. |
-| `DECO_MCP_ALLOW_TMP_READS` | off | Permit TMP reads that have positive P9 evidence. |
-| `DECO_MCP_ALLOW_UNVERIFIED_TMP_READS` | off | Additionally permit read-only opcodes not yet tested on the P9. |
-| `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit P9-verified TMP current-value no-ops; also requires the ordinary mutation and TMP-read gates. |
+| `DECO_ALLOW_TMP_READS` | off | Permit TMP reads that have positive P9 evidence. |
+| `DECO_ALLOW_UNVERIFIED_TMP_READS` | off | Additionally permit read-only opcodes not yet tested on the P9. |
+| `DECO_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit P9-verified TMP current-value no-ops; also requires the ordinary mutation and TMP-read gates. |
 | `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS` | off | Register protocol-specific catalogue, raw read, discovery and mutation-analysis tools and resources. This changes discoverability only and is not a mutation authorization gate. |
 | `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS` | off | Register the raw endpoint mutation executor independently of diagnostics. All ordinary risk gates, model evidence and confirmations still apply. |
 
@@ -67,18 +71,18 @@ codex mcp add tplink-deco \
   --env DECO_USERNAME=admin \
   --env DECO_PASSWORD='op://Private/tplinkdeco.net/password' \
   --env DECO_TIMEOUT=60 \
-  --env DECO_MCP_ALLOW_SENSITIVE_READS=0 \
-  --env DECO_MCP_ALLOW_BULK_SECRET_READS=0 \
-  --env DECO_MCP_ALLOW_BINARY_CONTENT=0 \
-  --env DECO_MCP_ALLOW_MUTATIONS=0 \
-  --env DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION=0 \
-  --env DECO_MCP_ALLOW_DESTRUCTIVE=0 \
-  --env DECO_MCP_ALLOW_INTERNAL=0 \
+  --env DECO_ALLOW_SENSITIVE_READS=0 \
+  --env DECO_ALLOW_BULK_SECRET_READS=0 \
+  --env DECO_ALLOW_BINARY_CONTENT=0 \
+  --env DECO_ALLOW_MUTATIONS=0 \
+  --env DECO_ALLOW_HTTP_NOOP_VERIFICATION=0 \
+  --env DECO_ALLOW_DESTRUCTIVE=0 \
+  --env DECO_ALLOW_INTERNAL=0 \
   --env DECO_TP_LINK_ID='op://Private/tplinkdeco.net/tp_link_id' \
   --env DECO_TMP_HOST_KEY_SHA256='SHA256:TpmUAt8R9aKgOoas0FlZybt0YeLufHW3+JIEffm2/Ts' \
-  --env DECO_MCP_ALLOW_TMP_READS=1 \
-  --env DECO_MCP_ALLOW_UNVERIFIED_TMP_READS=0 \
-  --env DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=0 \
+  --env DECO_ALLOW_TMP_READS=1 \
+  --env DECO_ALLOW_UNVERIFIED_TMP_READS=0 \
+  --env DECO_ALLOW_TMP_NOOP_VERIFICATION=0 \
   --env DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=0 \
   --env DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=0 \
   -- /opt/homebrew/bin/op run -- \
@@ -94,17 +98,17 @@ because an already-open task may retain the earlier tool snapshot.
 
 ### Docker Compose on a home-network host
 
-The included Compose profile runs one authenticated Streamable HTTP replica and
-does not require host networking, elevated Linux capabilities or persistent
-storage. A single replica intentionally owns the shared Deco login, mutation
-latches and pending plans.
+The included Compose profile runs one authenticated REST and Streamable HTTP MCP
+replica and does not require host networking, elevated Linux capabilities or
+persistent storage. A single replica intentionally owns the shared Deco login,
+mutation latches, pending plans and process-local REST idempotency records.
 
 Copy or clone the repository to the Linux host, then configure it:
 
 ```bash
-sudo install -d -m 0750 /opt/deco-mcp
-sudo chown "$USER":"$USER" /opt/deco-mcp
-cd /opt/deco-mcp
+sudo install -d -m 0750 /opt/deco-server
+sudo chown "$USER":"$USER" /opt/deco-server
+cd /opt/deco-server
 
 # Clone or copy the repository contents here first.
 cp .env.example .env
@@ -112,8 +116,8 @@ chmod 600 .env
 ```
 
 Edit `.env`, replace every `CHANGE_ME` value and replace the example TEST-NET
-address. Use the host's static LAN address for `DECO_MCP_BIND_ADDRESS`, `DECO_MCP_PUBLIC_URL` and
-`DECO_MCP_ALLOWED_HOSTS`. Generate the bearer token independently of the Deco
+address. Use the host's static LAN address for `DECO_SERVER_BIND_ADDRESS`, `DECO_MCP_PUBLIC_URL` and
+`DECO_SERVER_ALLOWED_HOSTS`. Generate the bearer token independently of the Deco
 password:
 
 ```bash
@@ -126,14 +130,15 @@ Start and inspect the service:
 docker compose build --pull
 docker compose up -d
 docker compose ps
-docker compose logs --tail=100 deco-mcp
+docker compose logs --tail=100 deco-server
 ```
 
 The deployment does not depend on whether the Docker host is a Proxmox LXC, a
 VM or an ordinary Linux machine. The MCP endpoint is the configured
-`DECO_MCP_PUBLIC_URL`; clients must send
-`Authorization: Bearer <DECO_MCP_BEARER_TOKEN>`. The unauthenticated
-`/healthz` endpoint checks only process liveness and never contacts the router.
+`DECO_MCP_PUBLIC_URL`; REST is served under `DECO_REST_PREFIX`. Both surfaces
+require
+`Authorization: Bearer <DECO_SERVER_BEARER_TOKEN>`. The unauthenticated
+`/healthz` and `/readyz` endpoints never contact the router.
 The container runs as UID/GID 10001, has a read-only root filesystem, drops all
 Linux capabilities and uses only an ephemeral `/tmp` tmpfs.
 
@@ -211,13 +216,13 @@ falls back to local token and cookie invalidation.
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
 devices, traffic and address reservations additionally require
-`DECO_MCP_ALLOW_SENSITIVE_READS=1`.
+`DECO_ALLOW_SENSITIVE_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
-| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `mcp_server_host`, `mcp_server_port`, `mcp_streamable_http_path`, `mcp_public_url`, `mcp_bearer_token_configured`, `mcp_allowed_hosts`, `mcp_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
+| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
-| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_resources`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
+| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
@@ -230,13 +235,13 @@ devices, traffic and address reservations additionally require
 | `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
 
 Each `capabilities[]` item contains `name`, `description`, `category`,
-`sensitivity`, `support_status`, `readable`, `mutable`, `read_tool`,
+`sensitivity`, `support_status`, `readable`, `mutable`, `read_operation`,
 `related_mutations`, `evidence_level` and `reason_unavailable`. Each
 `mutations[]` item contains `name`, `description`, `category`, `risk`,
 `sensitivity`, `scope`, `changes_schema`, `support_status`, `validation_status`,
 `execution_scope`, `execution_status`, `required_gates`,
 `confirmation_required`, `preflight_available`, `verification_available`,
-`rollback_available`, `planner_tool`, `executor_tool` and `blockers`.
+`rollback_available`, `plan_operation`, `execute_operation` and `blockers`.
 Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `active`, `access_status`, `blocked`, `reserved`, `prioritized`,
 `reservation_ip`, `up_speed`, `down_speed`, `wire_type`, `connection_type`,
@@ -287,7 +292,7 @@ contains the detailed network features, normalized device records contain
 topology and blocking state, traffic has its own resource, status contains
 speed-test and firmware state, and logs exposes categories without contents.
 Client-bearing and private overview reads require
-`DECO_MCP_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
+`DECO_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
 
 Every tool publishes MCP annotations. Read tools advertise `readOnlyHint=true`;
 the semantic planner is non-destructive but stateful because it may create a
@@ -403,7 +408,7 @@ reads—56 owner-session and three plaintext bootstrap—have an SDK call path.
 Pass a controller such as `admin/network` or `login` to keep responses bounded.
 Secret operations are skipped by default; including them
 requires both `include_sensitive=true` and
-`DECO_MCP_ALLOW_SENSITIVE_READS=1`. Results preserve each complete firmware
+`DECO_ALLOW_SENSITIVE_READS=1`. Results preserve each complete firmware
 envelope and report per-call firmware or transport failures without aborting the
 remaining batch.
 
@@ -411,7 +416,7 @@ remaining batch.
 contract requires no parameters by default. It can be scoped to categories such
 as `network`, `clients`, `wireless`, `system` or `qos`. Because these responses
 can contain private topology, client and account state, the tool requires both
-`DECO_MCP_ALLOW_TMP_READS=1` and `DECO_MCP_ALLOW_SENSITIVE_READS=1`. It never
+`DECO_ALLOW_TMP_READS=1` and `DECO_ALLOW_SENSITIVE_READS=1`. It never
 selects payload-rejected, AppV2-rejected, binary, mutation, destructive or
 internal opcodes.
 
@@ -584,8 +589,8 @@ excluded because complete table equality can detect drift but cannot reliably
 restore an arbitrary changed table. The tool accepts an operation name and its
 exact confirmation string from `deco_p9_mutation_inventory`; it accepts no
 desired value or request parameters. It requires both
-`DECO_MCP_ALLOW_MUTATIONS=1` and
-`DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION=1` before server startup.
+`DECO_ALLOW_MUTATIONS=1` and
+`DECO_ALLOW_HTTP_NOOP_VERIFICATION=1` before server startup.
 
 Each call reads current state, writes only those exact fields, immediately
 rereads them, and writes the preflight state again if verification mismatches or
@@ -694,9 +699,9 @@ supplied. That opt-in can cause the router to return account, client, VPN,
 telephony or backup data into process memory, although the probe still discards
 all values and writes only value-free evidence. Use `--max-operations N` for a
 short smoke pass. The equivalent MCP tool additionally requires
-`DECO_MCP_ALLOW_TMP_READS=1` and
-`DECO_MCP_ALLOW_UNVERIFIED_TMP_READS=1`; sensitive selection also requires
-`DECO_MCP_ALLOW_SENSITIVE_READS=1`.
+`DECO_ALLOW_TMP_READS=1` and
+`DECO_ALLOW_UNVERIFIED_TMP_READS=1`; sensitive selection also requires
+`DECO_ALLOW_SENSITIVE_READS=1`.
 
 A P9 audit on 2026-07-11 first found TCP 20001 open while conventional SSH 22
 and direct TMP 20002 were refused. A later value-free live probe authenticated
@@ -762,7 +767,7 @@ mutation opcodes, and never emits or persists source or response values.
 With `include_inferred_iot_module_contract=true`, it adds exactly 11 `0x404B`
 requests—one for each concrete 3.10.215 IoT module enum—and labels their weaker
 evidence explicitly. For MCP, this inferred mode additionally requires
-`DECO_MCP_ALLOW_UNVERIFIED_TMP_READS=1`; the ordinary exact-contract mode does
+`DECO_ALLOW_UNVERIFIED_TMP_READS=1`; the ordinary exact-contract mode does
 not. The terminal runner's explicit flag is its direct operator opt-in.
 The equivalent terminal runner reports every attempted operation:
 
@@ -818,8 +823,8 @@ tool is exposed.
 The unified `deco_verify_setting_noop` tool exposes the verified monthly-report
 TMP no-op as capability `monthly_report`; the protocol-specific
 `deco_verify_tmp_ieee80211r_noop` remains available only on the diagnostic
-surface. Both remain disabled unless `DECO_MCP_ALLOW_MUTATIONS=1`,
-`DECO_MCP_ALLOW_TMP_READS=1` and `DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION=1` are all
+surface. Both remain disabled unless `DECO_ALLOW_MUTATIONS=1`,
+`DECO_ALLOW_TMP_READS=1` and `DECO_ALLOW_TMP_NOOP_VERIFICATION=1` are all
 set before server startup. Each call must repeat its exact confirmation. The
 tools obtain the current boolean, send only that same value, immediately verify
 it and restore the preflight value if verification fails. They return

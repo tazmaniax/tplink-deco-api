@@ -1,14 +1,14 @@
 services:
-  deco-mcp:
+  deco-server:
     build:
       context: .
-    image: tplink-deco-mcp:local
+    image: tplink-deco-server:local
     restart: unless-stopped
     init: true
     env_file:
       - ${DECO_MCP_ENV_FILE:-.env}
     ports:
-      - "${DECO_MCP_BIND_ADDRESS:-127.0.0.1}:${DECO_MCP_PORT:-8000}:${DECO_MCP_PORT:-8000}"
+      - "${DECO_SERVER_BIND_ADDRESS:-127.0.0.1}:${DECO_SERVER_PORT:-8000}:${DECO_SERVER_PORT:-8000}"
     read_only: true
     tmpfs:
       - /tmp:size=16m,mode=1777
@@ -22,7 +22,7 @@ services:
         - >-
           python -c 'import os, urllib.request;
           urllib.request.urlopen("http://127.0.0.1:" +
-          os.getenv("DECO_MCP_PORT", "8000") + "/healthz", timeout=2)'
+          os.getenv("DECO_SERVER_PORT", "8000") + "/healthz", timeout=2)'
       interval: 30s
       timeout: 5s
       retries: 3

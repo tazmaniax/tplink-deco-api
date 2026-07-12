@@ -1,21 +1,22 @@
-# TP-Link Deco MCP
+# TP-Link Deco API and MCP
 
 [![CI](https://github.com/tazmaniax/tplink-deco-api/actions/workflows/ci.yml/badge.svg)](https://github.com/tazmaniax/tplink-deco-api/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/license/mit)
 
-A model-aware [Model Context Protocol](https://modelcontextprotocol.io/) server
-for discovering, monitoring and safely controlling TP-Link Deco mesh networks
-through their local interfaces.
+A model-aware REST and [Model Context Protocol](https://modelcontextprotocol.io/)
+service for discovering, monitoring and safely controlling TP-Link Deco mesh
+networks through their local interfaces.
 
 The project presents agents with one semantic view of a Deco network. It detects
 the connected controller, selects the supported HTTP/LuCI or TMP/AppV2 operation,
 normalizes the response and reports the route and evidence used. Agents do not
 need to choose between Deco protocols or model-specific endpoints.
 
-The MCP server is now the primary product. The underlying typed Python SDK,
-reverse-engineered operation catalogues, compatibility evidence and bounded
-hardware probes remain available for developers and contributors.
+REST, MCP and the typed Python SDK share one semantic service, router session,
+safety policy and mutation-plan store. Reverse-engineered operation catalogues,
+compatibility evidence and bounded hardware probes remain available for
+developers and contributors.
 
 > [!IMPORTANT]
 > This is an unofficial community project. TP-Link does not publish or support
@@ -26,6 +27,8 @@ hardware probes remain available for developers and contributors.
 ## What it provides
 
 - A small, protocol-neutral default MCP surface: 13 resources and five tools.
+- An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
+  preflight, planning and idempotent execution resources.
 - Automatic controller identification and evidence-based capability routing.
 - Normalized network status, configuration, mesh, devices, traffic,
   reservations, logs, capabilities and mutation inventory.
@@ -79,6 +82,9 @@ absent from the default agent interface.
 See the [complete MCP reference](docs/mcp.md) for resource schemas, tool
 parameters, routing provenance and diagnostic surfaces.
 
+See the [REST API reference](docs/rest.md) for routes, authentication, error
+responses, CORS behaviour and mutation semantics.
+
 ## Quick start with stdio
 
 Requirements:
@@ -119,9 +125,10 @@ resources authenticate lazily when first read.
 
 ## Docker Compose
 
-The included Compose service exposes authenticated Streamable HTTP and can run
-on any suitable Docker host. It does not require host networking, elevated
-Linux capabilities or persistent application storage.
+The included Compose service exposes authenticated Streamable HTTP MCP at
+`/mcp` and REST at `/api/v1`. It can run on any suitable Docker host and does
+not require host networking, elevated Linux capabilities or persistent
+application storage.
 
 From a source checkout:
 
@@ -137,7 +144,8 @@ docker compose ps
 
 The service uses a deployment-scoped bearer token, DNS-rebinding protection, a
 read-only root filesystem, no Linux capabilities and an unauthenticated process
-liveness endpoint at `/healthz`. The supplied endpoint is plain HTTP and should
+liveness endpoint at `/healthz`. Cross-origin browser access is disabled unless
+exact origins are configured. The supplied endpoint is plain HTTP and should
 remain on a trusted, firewalled home network unless TLS is added in front of it.
 
 See the [deployment guide](docs/mcp.md#docker-compose-on-a-home-network-host)

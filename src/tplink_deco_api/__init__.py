@@ -29,10 +29,17 @@ from .endpoint_spec import EndpointSpec
 from .exceptions import (
     ApiError,
     AuthenticationError,
+    ConfirmationError,
+    ControllerChangedError,
     CryptoError,
     DecoError,
+    ExpiredPlanError,
+    IdempotencyConflictError,
+    IdempotencyInProgressError,
+    MutationIneligibleError,
     TmpProtocolError,
     TransportError,
+    UnknownPlanError,
 )
 from .fuzzy import build_fuzzy_read_candidates, restore_fuzzy_read_candidate
 from .http_mutation_verification import build_http_mutation_verification_queue
@@ -98,6 +105,8 @@ from .models import (
     WlanHost,
 )
 from .mutation_planner import build_mutation_plan
+from .server import ServerConfig
+from .service import DecoService
 from .tmp_beamforming_noop_verification import (
     TMP_BEAMFORMING_NOOP_CONFIRMATION,
     verify_tmp_beamforming_noop,
@@ -157,9 +166,12 @@ __all__ = [
     "ClientDevice",
     "CompatibilityDelta",
     "CompatibilityManifest",
+    "ConfirmationError",
+    "ControllerChangedError",
     "CryptoError",
     "DecoClient",
     "DecoError",
+    "DecoService",
     "DecoTmpClient",
     "Device",
     "DeviceMode",
@@ -167,10 +179,13 @@ __all__ = [
     "EndpointObservation",
     "EndpointProbeResult",
     "EndpointSpec",
+    "ExpiredPlanError",
     "FuzzyReadCandidate",
     "FuzzyReadObservation",
     "HttpMutationVerificationCandidate",
     "HttpNoopVerificationResult",
+    "IdempotencyConflictError",
+    "IdempotencyInProgressError",
     "InternetStatus",
     "IotHost",
     "IpInfo",
@@ -181,11 +196,13 @@ __all__ = [
     "MloHost",
     "ModelCompatibilityProfile",
     "MutationCapabilityRoute",
+    "MutationIneligibleError",
     "MutationPlan",
     "NetworkTotals",
     "NodeClientList",
     "OperationCompatibility",
     "Performance",
+    "ServerConfig",
     "SignalLevel",
     "SpeedTest",
     "TimeSettings",
@@ -199,6 +216,7 @@ __all__ = [
     "TmpSshStream",
     "TmpStream",
     "TransportError",
+    "UnknownPlanError",
     "WanDetails",
     "WanInfo",
     "WirelessPower",

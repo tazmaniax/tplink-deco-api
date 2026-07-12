@@ -2,9 +2,23 @@
 
 ## [0.1.0] - Unreleased
 
-This is the first release of the MCP-focused fork. It retains the typed
-`tplink_deco_api` SDK while adding a model-aware agent interface, a second local
-Deco transport, compatibility evidence and a conservative mutation workflow.
+This is the first release of the model-aware service. It retains the typed
+`tplink_deco_api` SDK while adding REST and MCP interfaces, a second local Deco
+transport, compatibility evidence and a conservative mutation workflow.
+
+### REST API
+
+* added an authenticated OpenAPI 3.1 API under `/api/v1` alongside MCP at `/mcp`
+* shared one `DecoService`, router session, safety policy and application
+  lifespan across both protocol adapters
+* added semantic status, configuration, mesh, client, traffic, reservation,
+  log-type, capability, WLAN, cloud and mutation resources
+* separated non-creating mutation preflight from short-lived plan registration
+* added synchronous no-op plan execution with process-local idempotent replay
+* returned typed RFC 9457 errors for plan, confirmation, controller, router and
+  idempotency failures
+* applied bearer authentication, Host and Origin enforcement, explicit CORS,
+  request IDs and fail-closed configuration to the composite HTTP service
 
 ### MCP server
 
