@@ -13,6 +13,8 @@ transport, compatibility evidence and a conservative mutation workflow.
   lifespan across both protocol adapters
 * added semantic status, configuration, mesh, client, traffic, reservation,
   log-type, capability, WLAN, cloud and mutation resources
+* published named OpenAPI response schemas from frozen protocol-neutral
+  dataclasses shared with MCP, without adding Pydantic to the base SDK
 * separated non-creating mutation preflight from short-lived plan registration
 * added synchronous no-op plan execution with process-local idempotent replay
 * returned a configurable `Location` header for created plans while keeping

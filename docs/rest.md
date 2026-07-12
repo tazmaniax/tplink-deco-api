@@ -81,6 +81,27 @@ a trusted network without TLS.
 Responses retain `schema_version` where the semantic service defines it.
 Private and secret responses must not be cached or persisted unintentionally.
 
+## Response contracts
+
+Every successful operation references a named response schema in OpenAPI rather
+than an unstructured JSON-document placeholder. Stable top-level fields are
+explicitly typed, so generated clients, editors and schema validators can detect
+missing fields and type changes. Firmware-dependent nested router data remains a
+bounded JSON value where TP-Link models legitimately return different shapes.
+
+The same contracts are exported as frozen standard-library dataclasses from
+`tplink_deco_api.responses`. They are protocol-neutral and mapping-compatible,
+so REST and MCP can serialize the same result without maintaining parallel
+models. The base SDK therefore does not depend on Pydantic; FastAPI consumes the
+dataclasses only at the REST boundary to generate and validate OpenAPI responses.
+
+```python
+from tplink_deco_api.responses import NetworkStatusResponse
+
+status: NetworkStatusResponse
+payload = status.to_dict()
+```
+
 ## Mutation workflow
 
 Real state changes are not currently execution-eligible. Only fixed,
