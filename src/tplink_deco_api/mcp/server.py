@@ -98,6 +98,7 @@ def create_server(
     service: DecoService | None = None,
     *,
     include_health_route: bool = True,
+    streamable_http_path: str | None = None,
 ) -> FastMCP[None]:
     """Create a transport-configurable MCP server with conservative safety defaults."""
     effective_config = config or ServerConfig.from_env()
@@ -153,7 +154,7 @@ def create_server(
         lifespan=lifespan,
         host=effective_config.server_host,
         port=effective_config.server_port,
-        streamable_http_path=effective_config.mcp_path,
+        streamable_http_path=streamable_http_path or effective_config.mcp_path,
         auth=auth,
         token_verifier=token_verifier,
         transport_security=transport_security,

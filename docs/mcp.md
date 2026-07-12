@@ -28,15 +28,15 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_MCP_TRANSPORT` | `stdio` | `stdio` or `streamable-http`; HTTP fails closed unless its security settings are complete. |
 | `DECO_SERVER_HOST` | `127.0.0.1` | Shared HTTP bind address; Compose sets `0.0.0.0` inside the container. |
 | `DECO_SERVER_PORT` | `8000` | Shared REST and MCP listen port. |
-| `DECO_MCP_PATH` | `/mcp` | Streamable HTTP mount path. |
+| `DECO_MCP_PATH` | `/mcp` | Streamable HTTP mount path; must be absolute, non-root and have no trailing slash. |
 | `DECO_MCP_PUBLIC_URL` | — | Complete externally visible MCP endpoint URL, required for HTTP authorization metadata. |
 | `DECO_SERVER_BEARER_TOKEN` | — | Deployment-scoped bearer token of at least 32 characters shared by REST and MCP. |
 | `DECO_SERVER_ALLOWED_HOSTS` | — | Comma-separated permitted HTTP `Host` headers applied to both surfaces. |
 | `DECO_SERVER_ALLOWED_ORIGINS` | — | Comma-separated browser origins allowed by Origin enforcement and REST CORS. |
 | `DECO_SERVER_MAX_IN_FLIGHT_REQUESTS` | `32` | Shared upper bound for concurrent REST and MCP requests. |
 | `DECO_REST_ENABLED` | off | Register the OpenAPI REST router under the configured prefix. |
-| `DECO_REST_PREFIX` | `/api/v1` | REST prefix; must start with `/` and must not end with `/`. |
-| `DECO_REST_EXPOSE_DOCS` | off | Expose `/openapi.json`, `/docs` and `/redoc`; disabled by default. |
+| `DECO_REST_PREFIX` | `/api/v1` | REST prefix; must be absolute and have no trailing slash. |
+| `DECO_REST_EXPOSE_DOCS` | off | Expose authenticated `/docs` and `/redoc`; disabled by default. |
 | `DECO_ALLOW_SENSITIVE_READS` | off | Permit reads classified as `secret`. |
 | `DECO_ALLOW_BULK_SECRET_READS` | off | Permit configuration-backup and log downloads; also requires the sensitive-read gate. |
 | `DECO_ALLOW_BINARY_CONTENT` | off | Permit base64 binary content in MCP results; digest-only reads do not require this gate. |
@@ -138,7 +138,9 @@ VM or an ordinary Linux machine. The MCP endpoint is the configured
 `DECO_MCP_PUBLIC_URL`; REST is served under `DECO_REST_PREFIX`. Both surfaces
 require
 `Authorization: Bearer <DECO_SERVER_BEARER_TOKEN>`. The unauthenticated
-`/healthz` and `/readyz` endpoints never contact the router.
+`/healthz` and `/readyz` endpoints never contact the router. The MCP and REST
+paths must not contain one another or overlap `/healthz`, `/readyz`,
+`/openapi.json`, `/docs` or `/redoc`.
 The container runs as UID/GID 10001, has a read-only root filesystem, drops all
 Linux capabilities and uses only an ephemeral `/tmp` tmpfs.
 

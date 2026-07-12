@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
+from dataclasses import replace
 from unittest import mock
 
 import pytest
@@ -18,10 +20,12 @@ from tplink_deco_api.exceptions import (
     ExpiredPlanError,
     IdempotencyInProgressError,
 )
+from tplink_deco_api.mcp.server import create_server
 from tplink_deco_api.rest import create_http_application
 from tplink_deco_api.rest._in_memory_idempotency_store import _InMemoryIdempotencyStore
 from tplink_deco_api.rest.request_capacity_middleware import RequestCapacityMiddleware
 from tplink_deco_api.server import ServerConfig, StaticBearerAuthenticator
+from tplink_deco_api.service import DecoService
 
 _TOKEN = "x" * 32
 _AUTH = {"Authorization": f"Bearer {_TOKEN}"}
@@ -88,6 +92,82 @@ def test_composite_application_exposes_health_rest_openapi_and_mcp() -> None:
     assert missing_capability.status_code == 404
     assert missing_capability.json()["code"] == "resource_not_found"
     assert "x-request-id" in health.headers
+
+
+def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
+    schema = create_http_application(_config()).openapi()
+    expected_operations = {
+        ("/api/v1/service", "get"): "getServiceStatus",
+        ("/api/v1/status", "get"): "getNetworkStatus",
+        ("/api/v1/configuration", "get"): "getConfiguration",
+        ("/api/v1/mesh", "get"): "getMesh",
+        ("/api/v1/clients", "get"): "getClients",
+        ("/api/v1/traffic", "get"): "getTraffic",
+        ("/api/v1/address-reservations", "get"): "getAddressReservations",
+        ("/api/v1/log-types", "get"): "getLogTypes",
+        ("/api/v1/capabilities", "get"): "getCapabilities",
+        ("/api/v1/capabilities/{name}", "get"): "getCapability",
+        ("/api/v1/wlan", "get"): "getWlan",
+        ("/api/v1/cloud", "get"): "getCloud",
+        ("/api/v1/mutations", "get"): "getMutations",
+        ("/api/v1/mutations/{name}", "get"): "getMutation",
+        ("/api/v1/mutation-preflights", "post"): "preflightMutation",
+        ("/api/v1/mutation-plans", "post"): "createMutationPlan",
+        ("/api/v1/mutation-plans/{plan_id}", "get"): "getMutationPlan",
+        ("/api/v1/mutation-plans/{plan_id}/executions", "post"): ("executeMutationPlan"),
+    }
+    operations = {
+        (path, method): operation["operationId"]
+        for path, path_item in schema["paths"].items()
+        for method, operation in path_item.items()
+        if method in {"get", "post"}
+    }
+
+    assert schema["openapi"].startswith("3.1")
+    assert operations == expected_operations
+    assert all(
+        schema["paths"][path][method]["security"] == [{"BearerAuth": []}]
+        for path, method in expected_operations
+    )
+    created_response = schema["paths"]["/api/v1/mutation-plans"]["post"]["responses"]["201"]
+    assert created_response["headers"]["Location"]["schema"] == {"type": "string"}
+
+
+@pytest.mark.asyncio
+async def test_mcp_resources_and_rest_routes_serialize_shared_results_identically() -> None:
+    config = _config()
+    service = mock.create_autospec(DecoService, instance=True)
+    pairs = (
+        ("public_status", "deco://mcp", "/api/v1/service"),
+        ("network_status_resource", "deco://status", "/api/v1/status"),
+        ("configuration_resource", "deco://configuration", "/api/v1/configuration"),
+        ("device_inventory", "deco://mesh", "/api/v1/mesh"),
+        ("client_devices_resource", "deco://devices", "/api/v1/clients"),
+        ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
+        (
+            "address_reservations_resource",
+            "deco://address-reservations",
+            "/api/v1/address-reservations",
+        ),
+        ("logs_resource", "deco://logs", "/api/v1/log-types"),
+        ("capabilities", "deco://capabilities", "/api/v1/capabilities"),
+        ("semantic_mutations", "deco://mutations", "/api/v1/mutations"),
+    )
+    for method_name, _, _ in pairs:
+        getattr(service, method_name).return_value = {
+            "schema_version": 1,
+            "source": method_name,
+        }
+    with mock.patch("tplink_deco_api.rest.app.DecoService", return_value=service):
+        application = create_http_application(config)
+    mcp_server = create_server(config, service)
+
+    with TestClient(application) as client:
+        for _, resource_uri, rest_path in pairs:
+            rest_response = client.get(rest_path, headers=_AUTH)
+            resource_result = await mcp_server.read_resource(resource_uri)
+            assert isinstance(resource_result[0].content, str)
+            assert rest_response.json() == json.loads(resource_result[0].content)
 
 
 def test_non_ascii_bearer_token_is_rejected_without_type_error() -> None:
@@ -206,7 +286,7 @@ def test_rest_mutation_catalog_and_noncreating_preflight() -> None:
 
 
 def test_rest_plan_creation_rejects_blockers_and_returns_created_plan() -> None:
-    application = create_http_application(_config())
+    application = create_http_application(replace(_config(), rest_prefix="/router/v1"))
     service = application.state.deco_service
     blocked = {
         "execution_allowed": False,
@@ -228,12 +308,12 @@ def test_rest_plan_creation_rejects_blockers_and_returns_created_plan() -> None:
         TestClient(application) as client,
     ):
         rejected = client.post(
-            "/api/v1/mutation-plans",
+            "/router/v1/mutation-plans",
             headers=_AUTH,
             json={"name": "beamforming", "changes": {"enable": False}},
         )
         accepted = client.post(
-            "/api/v1/mutation-plans",
+            "/router/v1/mutation-plans",
             headers=_AUTH,
             json={"name": "beamforming", "mode": "verify_current_value_noop"},
         )
@@ -244,6 +324,7 @@ def test_rest_plan_creation_rejects_blockers_and_returns_created_plan() -> None:
     assert rejected.json()["blockers"] == blocked["blockers"]
     assert accepted.status_code == 201
     assert accepted.json()["plan_id"] == "plan-1"
+    assert accepted.headers["location"] == "/router/v1/mutation-plans/plan-1"
 
 
 def test_rest_execution_is_synchronous_and_process_idempotent() -> None:

@@ -399,6 +399,9 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
     confirmation = noop_plan["required_confirmation"]
     assert isinstance(plan_id, str)
     assert isinstance(confirmation, str)
+    plan_status = service.semantic_mutation_plan(plan_id)
+    assert plan_status["status"] == "pending"
+    assert "required_confirmation" not in plan_status
     with (
         mock.patch.object(
             service,

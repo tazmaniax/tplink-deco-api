@@ -5,10 +5,19 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Mapping, Sequence
 from contextlib import asynccontextmanager
-from dataclasses import replace
 from typing import TYPE_CHECKING, Annotated, Literal, cast
 
-from fastapi import APIRouter, FastAPI, Header, HTTPException, Query, Security, status
+from fastapi import (
+    APIRouter,
+    FastAPI,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    Security,
+    status,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
@@ -49,8 +58,6 @@ if TYPE_CHECKING:
 
     from .._json import JsonValue
 
-from fastapi import Request
-
 _bearer_scheme = HTTPBearer(auto_error=False, scheme_name="BearerAuth")
 _ERROR_RESPONSES: dict[type[Exception], tuple[int, str, str]] = {
     UnknownPlanError: (404, "unknown_plan", "Mutation plan not found"),
@@ -87,8 +94,12 @@ def create_http_application(config: ServerConfig | None = None) -> FastAPI:
     service = DecoService(effective_config)
     authenticator = StaticBearerAuthenticator(effective_config.bearer_token)
     idempotency_store = _InMemoryIdempotencyStore()
-    child_config = replace(effective_config, mcp_path="/")
-    mcp_server = create_server(child_config, service, include_health_route=False)
+    mcp_server = create_server(
+        effective_config,
+        service,
+        include_health_route=False,
+        streamable_http_path="/",
+    )
     mcp_application = mcp_server.streamable_http_app()
 
     @asynccontextmanager
@@ -330,16 +341,32 @@ def _create_rest_router(
         response_model=JsonDocument,
         status_code=status.HTTP_201_CREATED,
         operation_id="createMutationPlan",
+        responses={
+            status.HTTP_201_CREATED: {
+                "description": "Mutation plan created",
+                "headers": {
+                    "Location": {
+                        "description": "Path of the new mutation-plan status resource",
+                        "schema": {"type": "string"},
+                    }
+                },
+            }
+        },
     )
-    def create_mutation_plan(request: MutationRequest) -> dict[str, JsonValue]:
+    def create_mutation_plan(
+        request: MutationRequest,
+        response: Response,
+    ) -> dict[str, JsonValue]:
         """Create a short-lived plan only when semantic execution is eligible."""
         result = service.plan_semantic_mutation(
             request.name,
             cast("dict[str, JsonValue]", request.changes),
             mode=request.mode,
         )
-        if result.get("plan_id") is None:
+        plan_id = result.get("plan_id")
+        if not isinstance(plan_id, str):
             raise MutationIneligibleError(_string_tuple(result.get("blockers")))
+        response.headers["Location"] = f"{config.rest_prefix}/mutation-plans/{plan_id}"
         return result
 
     @router.get(

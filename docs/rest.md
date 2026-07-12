@@ -27,6 +27,10 @@ uses one process and one router-session owner; running multiple replicas for
 the same Deco mesh is unsupported because plans, latches and idempotency
 records are process-local.
 
+The REST and MCP paths must be absolute, have no trailing slash, remain outside
+one another, and not overlap `/healthz`, `/readyz`, `/openapi.json`, `/docs` or
+`/redoc`.
+
 The shared server admits at most `DECO_SERVER_MAX_IN_FLIGHT_REQUESTS` concurrent
 REST and MCP requests. Excess requests receive `429 Too Many Requests` with a
 short `Retry-After` value instead of consuming unbounded worker threads.
@@ -101,13 +105,17 @@ required gates and blockers without registering process state.
 
 Create a plan with the same request at `/api/v1/mutation-plans`. An eligible
 request returns `201 Created`, a plan ID, exact confirmation and five-minute
-expiry. An ineligible request returns `409 Conflict` with structured blockers.
+expiry. Its `Location` header identifies the new plan-status resource. An
+ineligible request returns `409 Conflict` with structured blockers.
 
 Inspect a pending plan:
 
 ```http
 GET /api/v1/mutation-plans/{plan_id}
 ```
+
+The status view reports plan state and expiry but does not repeat the exact
+confirmation returned only when the plan was created.
 
 Execute it synchronously:
 

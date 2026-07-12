@@ -15,10 +15,13 @@ transport, compatibility evidence and a conservative mutation workflow.
   log-type, capability, WLAN, cloud and mutation resources
 * separated non-creating mutation preflight from short-lived plan registration
 * added synchronous no-op plan execution with process-local idempotent replay
+* returned a configurable `Location` header for created plans while keeping
+  exact confirmations out of subsequent plan-status reads
 * returned typed RFC 9457 errors for plan, confirmation, controller, router and
   idempotency failures
 * applied bearer authentication, Host and Origin enforcement, explicit CORS,
   request IDs and fail-closed configuration to the composite HTTP service
+* rejected overlapping, nested and reserved REST or MCP route configuration
 
 ### MCP server
 
@@ -104,7 +107,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 399 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 436 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

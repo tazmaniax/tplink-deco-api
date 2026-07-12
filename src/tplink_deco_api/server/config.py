@@ -10,6 +10,13 @@ if TYPE_CHECKING:
     from .._json import JsonValue
 
 _TRUE_VALUES: frozenset[str] = frozenset({"1", "true", "yes", "on"})
+_RESERVED_HTTP_PATHS: tuple[str, ...] = (
+    "/healthz",
+    "/readyz",
+    "/openapi.json",
+    "/docs",
+    "/redoc",
+)
 McpTransport = Literal["stdio", "streamable-http"]
 
 
@@ -54,6 +61,10 @@ def _get_transport() -> McpTransport:
             "Failed to configure MCP: DECO_MCP_TRANSPORT must be stdio or streamable-http"
         )
     return cast("McpTransport", value)
+
+
+def _paths_overlap(left: str, right: str) -> bool:
+    return left == right or left.startswith(f"{right}/") or right.startswith(f"{left}/")
 
 
 @dataclass(frozen=True)
@@ -142,6 +153,23 @@ class ServerConfig:
             raise ValueError(
                 "Failed to configure server: DECO_REST_PREFIX must start with / and not end with /"
             )
+        if not self.mcp_path.startswith("/") or self.mcp_path.endswith("/"):
+            raise ValueError(
+                "Failed to configure server: DECO_MCP_PATH must start with / and not end with /"
+            )
+        if _paths_overlap(self.rest_prefix, self.mcp_path):
+            raise ValueError(
+                "Failed to configure server: DECO_REST_PREFIX and DECO_MCP_PATH must not overlap"
+            )
+        for configured_path in (self.rest_prefix, self.mcp_path):
+            if any(
+                _paths_overlap(configured_path, reserved_path)
+                for reserved_path in _RESERVED_HTTP_PATHS
+            ):
+                raise ValueError(
+                    "Failed to configure server: REST and MCP paths must not overlap "
+                    "reserved HTTP routes"
+                )
         if self.max_in_flight_requests <= 0:
             raise ValueError(
                 "Failed to configure server: DECO_SERVER_MAX_IN_FLIGHT_REQUESTS must be positive"
@@ -154,8 +182,6 @@ class ServerConfig:
             raise ValueError(
                 "Failed to configure server: DECO_SERVER_PORT must be between 1 and 65535"
             )
-        if not self.mcp_path.startswith("/"):
-            raise ValueError("Failed to configure server: DECO_MCP_PATH must start with /")
         if not self.mcp_public_url.startswith(("http://", "https://")):
             raise ValueError("Failed to configure MCP: DECO_MCP_PUBLIC_URL must be an HTTP(S) URL")
         if len(self.bearer_token) < 32:
@@ -170,7 +196,7 @@ class ServerConfig:
             )
 
     def public_settings(self) -> dict[str, JsonValue]:
-        """Return non-secret settings that agents may inspect safely."""
+        """Return non-secret settings that callers may inspect safely."""
         return {
             "host": self.host,
             "username": self.username,

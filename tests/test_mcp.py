@@ -231,6 +231,38 @@ def test_server_config_rejects_invalid_rest_prefix(
         ServerConfig.from_env()
 
 
+@pytest.mark.parametrize("value", ["mcp", "/mcp/", "/"])
+def test_server_config_rejects_invalid_mcp_path(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    monkeypatch.setenv("DECO_MCP_PATH", value)
+
+    with pytest.raises(ValueError, match="DECO_MCP_PATH"):
+        ServerConfig.from_env()
+
+
+@pytest.mark.parametrize(
+    ("rest_prefix", "mcp_path"),
+    [
+        ("/api/v1", "/api/v1"),
+        ("/mcp/api", "/mcp"),
+        ("/api", "/api/mcp"),
+        ("/docs", "/mcp"),
+        ("/api/v1", "/readyz"),
+        ("/healthz/api", "/mcp"),
+    ],
+)
+def test_server_config_rejects_overlapping_http_paths(
+    rest_prefix: str,
+    mcp_path: str,
+) -> None:
+    config = replace(_config(), rest_prefix=rest_prefix, mcp_path=mcp_path)
+
+    with pytest.raises(ValueError, match="must not overlap"):
+        config.validate_server()
+
+
 @pytest.mark.parametrize("value", ["invalid", "0", "-1"])
 def test_server_config_rejects_invalid_request_capacity(
     monkeypatch: pytest.MonkeyPatch,
@@ -959,7 +991,7 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
             service.tmp_read(0x424D)
         with pytest.raises(PermissionError, match="rejected by the P9"):
             service.tmp_read(0x424C)
-        with pytest.raises(PermissionError, match="binary TMP read tool"):
+        with pytest.raises(PermissionError, match="binary TMP read operation"):
             service.tmp_read(0x401E)
         with pytest.raises(PermissionError, match="SENSITIVE_READS"):
             service.tmp_read(0x4009)
@@ -2223,7 +2255,7 @@ def test_mcp_service_does_not_retry_unrelated_transport_error() -> None:
 def test_mcp_service_mutation_gates_and_confirmation() -> None:
     service = DecoService(_config())
 
-    with pytest.raises(PermissionError, match="use the read tool"):
+    with pytest.raises(PermissionError, match="use the read operation"):
         service.invoke_mutation(
             "admin.network.performance.read",
             None,

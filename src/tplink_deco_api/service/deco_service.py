@@ -1,4 +1,4 @@
-"""Safety boundary between MCP tools and the Deco SDK."""
+"""Transport-neutral safety boundary over the Deco SDK."""
 
 from __future__ import annotations
 
@@ -965,7 +965,6 @@ class DecoService:
                 "mode": plan.mode,
                 "status": "pending",
                 "expires_in_seconds": remaining,
-                "required_confirmation": plan.confirmation,
                 "fallback_policy": "none",
             }
 
@@ -1188,7 +1187,7 @@ class DecoService:
             )
         if operation.p9_observation == "returned_binary":
             raise PermissionError(
-                "Failed to read TMP operation: use the binary TMP read tool for this opcode"
+                "Failed to read TMP operation: use the binary TMP read operation for this opcode"
             )
         if operation.p9_observation == "untested" and not self._config.allow_unverified_tmp_reads:
             raise PermissionError(
@@ -3331,7 +3330,7 @@ class DecoService:
         endpoint = get_endpoint(name)
         if endpoint.safety == "read_only":
             raise PermissionError(
-                "Failed to mutate endpoint: use the read tool for read-only calls"
+                "Failed to mutate endpoint: use the read operation for read-only calls"
             )
         if confirmation != name:
             raise PermissionError(
@@ -3927,7 +3926,7 @@ def _controller_model(value: JsonValue) -> str:
 def _json_string(value: Mapping[str, JsonValue], key: str) -> str:
     selected = value.get(key)
     if not isinstance(selected, str):
-        raise ValueError(f"Failed to read MCP resource: {key} is not a string")
+        raise ValueError(f"Failed to read service data: {key} is not a string")
     return selected
 
 
