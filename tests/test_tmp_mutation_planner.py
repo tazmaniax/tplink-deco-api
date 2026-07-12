@@ -27,8 +27,8 @@ def test_all_tmp_writes_remain_non_executable_with_static_app_contracts() -> Non
         == 14
     )
     assert sum(plan.p9_opcode_tested for plan in plans) == 3
-    assert sum(plan.p9_parameter_contract_verified for plan in plans) == 3
-    assert sum(plan.complete_safety_contract for plan in plans) == 3
+    assert sum(plan.p9_parameter_contract_verified for plan in plans) == 0
+    assert sum(plan.complete_safety_contract for plan in plans) == 0
     assert not any(plan.to_dict()["execution_eligible"] for plan in plans)
     assert sum(plan.preflight_code is not None for plan in plans) == 222
     assert sum(plan.rollback_code is not None for plan in plans) == 188
@@ -53,14 +53,15 @@ def test_set_plan_uses_observed_read_for_preflight_and_state_restore() -> None:
     assert plan.verification_relationship_evidence == "curated_opcode_relationship"
     assert plan.rollback_relationship_evidence == "preflight_state_restore"
     assert plan.p9_opcode_tested
-    assert plan.p9_parameter_contract_verified
-    assert plan.p9_mutation_observation == "verified_noop"
+    assert not plan.p9_parameter_contract_verified
+    assert plan.p9_mutation_observation == "adverse_event_suspected"
     assert plan.p9_mutation_firmware_error_code == 0
     assert plan.p9_mutation_parameter_keys == ("enable",)
     assert plan.p9_mutation_state_unchanged is True
     assert plan.p9_mutation_rollback_attempted is False
     assert plan.p9_mutation_request_count == 1
-    assert plan.complete_safety_contract
+    assert not plan.complete_safety_contract
+    assert "post-test topology outage" in " ".join(plan.warnings)
     assert plan.to_dict()["execution_eligible"] is False
 
 

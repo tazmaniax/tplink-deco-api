@@ -119,6 +119,8 @@ def _candidate(plan: TmpMutationPlan) -> TmpMutationVerificationCandidate:
 
 def _risk_flags(plan: TmpMutationPlan) -> tuple[str, ...]:
     flags: list[str] = []
+    if plan.p9_mutation_observation == "adverse_event_suspected":
+        flags.append("post_validation_adverse_event")
     if plan.safety == "destructive":
         flags.append("destructive_operation")
     if plan.sensitivity == "secret":
@@ -177,6 +179,8 @@ def _tier(
     risk_flags: tuple[str, ...],
     blocking_gaps: tuple[str, ...],
 ) -> str:
+    if plan.p9_mutation_observation == "adverse_event_suspected":
+        return "adverse_event_suspected"
     if plan.p9_mutation_observation == "verified_noop":
         return "verified_noop"
     if plan.safety == "destructive":
@@ -212,6 +216,7 @@ def _priority_score(
     blocking_gaps: tuple[str, ...],
 ) -> int:
     tier_base = {
+        "adverse_event_suspected": 0,
         "verified_noop": 120,
         "priority_noop_candidate": 100,
         "secondary_noop_candidate": 80,
@@ -233,6 +238,7 @@ def _priority_score(
 
 def _sort_key(candidate: TmpMutationVerificationCandidate) -> tuple[int, int, int, int]:
     tier_order = {
+        "adverse_event_suspected": 6,
         "verified_noop": -1,
         "priority_noop_candidate": 0,
         "secondary_noop_candidate": 1,

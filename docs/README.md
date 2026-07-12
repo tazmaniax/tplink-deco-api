@@ -110,17 +110,16 @@ The complete TMP data tool has a separate `include_parameterized` opt-in. It
 uses only the seven confirmed owner/version/IoT-list contracts and derives at
 most three owner identifiers in memory, allowing all 55 positively observed
 JSON datasets to be fetched without returning request parameter values.
-The offline TMP mutation-verification queue ranks evidence-complete no-op and
-round-trip candidates while keeping sensitive, deferred and destructive tiers
-behind explicit filters; it never contacts the router. A separately authorized
-P9 current-value no-op verified `11R_SET` (`0x4209`) with immediate `11R_GET`
-post-read equality and no rollback. Its
-[value-free result](./api-responses/p9-tmp-ieee80211r-noop.json) records no
-setting or response values, and no generic TMP mutation tool is exposed.
-The TMP MCP surface exposes only a disabled-by-default 802.11r current-value
-no-op verifier; it accepts no desired value and requires three independent
-runtime gates plus exact per-call confirmation. A non-verified outcome latches
-the scoped write path off until server restart.
+The offline TMP mutation-verification queue ranks evidence and gaps while
+keeping sensitive, deferred and destructive tiers behind explicit filters; it
+never contacts the router. Three P9 current-value writes returned firmware
+success and immediate post-read equality, but were downgraded to
+`adverse_event_suspected` after a later mesh topology failure. Causality is
+unresolved. MCP, REST and the deployed service now hard-disable all TMP writes;
+TMP remains available only for explicitly enabled experimental reads and
+offline analysis. The source-checkout lab harnesses require a separate lab gate,
+exact confirmation and exact live controller identity binding. See the
+[incident record](./incidents/2026-07-12-p9-tmp-topology-loss.md).
 The HTTP mutation surface has a separate offline queue covering all 23 P9
 candidates. It proposes zero new verifications: four are already no-op-verified,
 15 are high-risk deferred, three are destructive, and one lacks sufficient

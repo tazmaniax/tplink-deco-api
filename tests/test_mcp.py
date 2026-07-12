@@ -13,9 +13,7 @@ from starlette.testclient import TestClient
 
 from tplink_deco_api import (
     HTTP_NOOP_CONFIRMATIONS,
-    TMP_BEAMFORMING_NOOP_CONFIRMATION,
     TMP_IEEE80211R_NOOP_CONFIRMATION,
-    TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
     AddressReservation,
     AddressReservationTable,
     ApiError,
@@ -109,7 +107,6 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("DECO_TMP_HOST_KEY_SHA256", "SHA256:test")
     monkeypatch.setenv("DECO_ALLOW_TMP_READS", "yes")
     monkeypatch.setenv("DECO_ALLOW_UNVERIFIED_TMP_READS", "true")
-    monkeypatch.setenv("DECO_ALLOW_TMP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_ALLOW_HTTP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS", "on")
     monkeypatch.setenv("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS", "on")
@@ -129,14 +126,16 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     assert config.tmp_host_key_sha256 == "SHA256:test"
     assert config.allow_tmp_reads
     assert config.allow_unverified_tmp_reads
-    assert config.allow_tmp_noop_verification
+    assert not config.allow_tmp_noop_verification
     assert config.allow_http_noop_verification
     assert config.expose_diagnostic_tools
     assert config.expose_raw_mutation_tools
     assert public["password_configured"] is True
     assert public["tp_link_id_configured"] is True
     assert public["tmp_host_key_sha256"] == "SHA256:test"
-    assert public["allow_tmp_noop_verification"] is True
+    assert public["allow_tmp_noop_verification"] is False
+    assert public["tmp_writes_hard_disabled"] is True
+    assert public["tmp_transport_status"] == "experimental"
     assert public["allow_http_noop_verification"] is True
     assert public["allow_bulk_secret_reads"] is True
     assert public["allow_binary_content"] is True
@@ -424,8 +423,10 @@ def test_mcp_service_reports_transport_coverage_offline() -> None:
     assert capabilities["tmp_appv2"]["external_port"] == 20001
     assert capabilities["tmp_appv2"]["protocol_implemented"] is True
     assert capabilities["tmp_appv2"]["read_only_session_implemented"] is True
-    assert capabilities["tmp_appv2"]["scoped_noop_verification_implemented"] is True
+    assert capabilities["tmp_appv2"]["scoped_noop_verification_implemented"] is False
     assert capabilities["tmp_appv2"]["scoped_noop_runtime_gate_enabled"] is False
+    assert capabilities["tmp_appv2"]["server_writes_hard_disabled"] is True
+    assert capabilities["tmp_appv2"]["source_checkout_lab_harness_available"] is True
     assert capabilities["tmp_appv2"]["generic_mutation_implemented"] is False
     assert capabilities["tmp_appv2"]["ssh_adapter_implemented"] is True
     assert capabilities["tmp_appv2"]["p9_transport_authenticated"] is True
@@ -447,7 +448,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
     assert coverage["unified_semantic_surface"]["capability_count"] == 6
-    assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 4
+    assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
     assert coverage["http"]["catalogued_read_count"] == 219
@@ -510,19 +511,18 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "direct_static_app_contract_count": 291,
         "indirect_static_app_contract_count": 24,
         "static_app_contract_missing_count": 33,
-        "complete_safety_contract_count": 3,
+        "complete_safety_contract_count": 0,
         "p9_static_key_preflight_count": 67,
         "preflight_candidate_key_coverage_complete_count": 19,
         "preflight_candidate_key_coverage_blocked_count": 48,
         "execution_eligible_count": 0,
-        "execution_available": True,
+        "execution_available": False,
         "generic_execution_available": False,
-        "scoped_noop_executor_count": 2,
+        "scoped_noop_executor_count": 0,
         "scoped_noop_runtime_gate_enabled": False,
-        "scoped_noop_executors": [
-            "verify_setting_noop",
-            "verify_tmp_ieee80211r_noop",
-        ],
+        "scoped_noop_executors": [],
+        "server_write_policy": "hard_disabled",
+        "source_checkout_lab_harness_available": True,
         "verification_candidate_count": 0,
         "default_verification_queue_count": 0,
         "verification_queue_operation": "p9_tmp_mutation_verification_queue",
@@ -537,7 +537,8 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "http_generic_noop_only_execution_absent": True,
         "http_scoped_noop_execution_exposed": True,
         "tmp_generic_mutation_execution_absent": True,
-        "tmp_scoped_noop_execution_exposed": True,
+        "tmp_scoped_noop_execution_exposed": False,
+        "tmp_server_writes_hard_disabled": True,
     }
     assert coverage["unresolved_summary"] == {
         "http_binary_reads_untested": 0,
@@ -576,7 +577,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert gaps["http_mutations"]["count"] == 23
     assert "no new bounded candidates" in gaps["http_mutations"]["next_action"]
     assert gaps["tmp_mutations"]["count"] == 345
-    assert "retain all other writes planning-only" in gaps["tmp_mutations"]["next_action"]
+    assert "isolated source-checkout" in gaps["tmp_mutations"]["next_action"]
 
 
 def test_mcp_service_filters_unverified_tmp_opcode_catalog_offline() -> None:
@@ -650,57 +651,34 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
     assert inventory["static_app_model_only_count"] == 14
     assert inventory["static_app_contract_missing_count"] == 33
     assert inventory["mutation_tested_count"] == 3
-    assert inventory["complete_safety_contract_count"] == 3
+    assert inventory["complete_safety_contract_count"] == 0
     assert inventory["execution_eligible_count"] == 0
-    assert inventory["execution_available"] is True
+    assert inventory["execution_available"] is False
     assert inventory["generic_execution_available"] is False
-    assert inventory["scoped_noop_executor_count"] == 2
+    assert inventory["scoped_noop_executor_count"] == 0
     assert inventory["scoped_noop_runtime_gate_enabled"] is False
-    assert inventory["scoped_noop_operations"][0]["executor"] == ("verify_tmp_ieee80211r_noop")
-    assert inventory["prepared_verification_harness_count"] == 2
-    assert inventory["prepared_verification_harnesses"] == [
-        {
-            "code": 0x421C,
-            "hex_code": "0x421C",
-            "name": "TMP_APPV2_OP_BEAMFORMING_SET",
-            "harness": "examples/verify_tmp_beamforming_noop.py",
-            "scope": "current_value_noop_only",
-            "exact_confirmation_required": True,
-            "confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
-            "live_invoked": True,
-            "execution_available": False,
-        },
-        {
-            "code": 0x4223,
-            "hex_code": "0x4223",
-            "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
-            "harness": "examples/verify_tmp_monthly_report_noop.py",
-            "scope": "current_value_noop_only",
-            "exact_confirmation_required": True,
-            "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
-            "live_invoked": True,
-            "execution_available": True,
-            "executor": "verify_setting_noop",
-            "capability": "monthly_report",
-        },
-    ]
+    assert inventory["scoped_noop_operations"] == []
+    assert inventory["server_write_policy"] == "hard_disabled"
+    assert inventory["tmp_transport_status"] == "experimental"
+    assert inventory["prepared_verification_harness_count"] == 3
+    assert all(
+        harness["scope"] == "isolated_source_checkout_lab_only"
+        and harness["execution_available"] is False
+        for harness in inventory["prepared_verification_harnesses"]
+    )
     ieee80211r = next(plan for plan in inventory["plans"] if plan["code"] == 0x4209)
-    assert ieee80211r["scoped_execution_supported"] is True
+    assert ieee80211r["scoped_execution_supported"] is False
     assert ieee80211r["runtime_gate_enabled"] is False
     assert ieee80211r["execution_eligible"] is False
     beamforming = next(plan for plan in inventory["plans"] if plan["code"] == 0x421C)
     assert beamforming["verification_harness"] == "examples/verify_tmp_beamforming_noop.py"
-    assert beamforming["verification_confirmation"] == TMP_BEAMFORMING_NOOP_CONFIRMATION
     assert beamforming["live_verification_invoked"] is True
     assert beamforming["scoped_execution_supported"] is False
     assert beamforming["execution_eligible"] is False
     monthly_report = next(plan for plan in inventory["plans"] if plan["code"] == 0x4223)
     assert monthly_report["verification_harness"] == ("examples/verify_tmp_monthly_report_noop.py")
-    assert monthly_report["verification_confirmation"] == (TMP_MONTHLY_REPORT_NOOP_CONFIRMATION)
     assert monthly_report["live_verification_invoked"] is True
-    assert monthly_report["scoped_execution_supported"] is True
-    assert monthly_report["scoped_executor"] == "verify_setting_noop"
-    assert monthly_report["scoped_capability"] == "monthly_report"
+    assert monthly_report["scoped_execution_supported"] is False
     assert monthly_report["runtime_gate_enabled"] is False
     assert monthly_report["execution_eligible"] is False
     qos = next(plan for plan in inventory["plans"] if plan["code"] == 0x4037)
@@ -726,8 +704,8 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
             allow_tmp_noop_verification=True,
         )
     ).p9_tmp_mutation_inventory()
-    assert enabled["execution_eligible_count"] == 2
-    assert enabled["scoped_noop_runtime_gate_enabled"] is True
+    assert enabled["execution_eligible_count"] == 0
+    assert enabled["scoped_noop_runtime_gate_enabled"] is False
 
 
 def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
@@ -746,7 +724,7 @@ def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
         "destructive_excluded": 71,
         "evidence_blocked": 193,
         "high_risk_deferred": 81,
-        "verified_noop": 3,
+        "adverse_event_suspected": 3,
     }
     assert queue["verification_candidate_count"] == 0
     assert queue["returned_count"] == 0
@@ -759,87 +737,22 @@ def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
     assert queue["execution_available"] is False
 
 
-def test_mcp_tmp_noop_verification_rejects_before_router_contact() -> None:
+def test_mcp_service_hard_blocks_tmp_writes_with_all_gates_enabled() -> None:
     get_tmp_client = mock.Mock()
-
-    service = DecoService(_config())
+    service = DecoService(
+        _config(
+            allow_mutations=True,
+            allow_tmp_reads=True,
+            allow_tmp_noop_verification=True,
+        )
+    )
     with (
         mock.patch.object(service, "_get_tmp_client", get_tmp_client),
-        pytest.raises(PermissionError, match="exact per-call confirmation"),
-    ):
-        service.verify_tmp_ieee80211r_noop("wrong")
-
-    service = DecoService(_config(allow_mutations=True))
-    with (
-        mock.patch.object(service, "_get_tmp_client", get_tmp_client),
-        pytest.raises(PermissionError, match="ALLOW_TMP_READS"),
-    ):
-        service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
-
-    service = DecoService(_config(allow_mutations=True, allow_tmp_reads=True))
-    with (
-        mock.patch.object(service, "_get_tmp_client", get_tmp_client),
-        pytest.raises(PermissionError, match="ALLOW_TMP_NOOP_VERIFICATION"),
+        pytest.raises(PermissionError, match="server-side TMP writes are hard-disabled"),
     ):
         service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
 
     get_tmp_client.assert_not_called()
-
-
-def test_mcp_tmp_noop_verification_executes_only_verified_current_value() -> None:
-    service = DecoService(
-        _config(
-            allow_mutations=True,
-            allow_tmp_reads=True,
-            allow_tmp_noop_verification=True,
-        )
-    )
-    _prime_p9_profile(service)
-    client = mock.Mock()
-    client.request_read_json.side_effect = [
-        {"error_code": 0, "result": {"enable": True}},
-        {"error_code": 0, "result": {"enable": True}},
-    ]
-    client._request_mutation_json.return_value = {"error_code": 0}
-
-    with mock.patch.object(service, "_get_tmp_client", return_value=client):
-        result = service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
-
-    assert result["status"] == "verified_noop"
-    assert result["execution_scope"] == "verified_current_value_noop_only"
-    assert result["generic_tmp_mutation_supported"] is False
-    assert result["requires_attention"] is False
-    assert result["parameter_values_retained"] is False
-    assert result["response_values_retained"] is False
-    assert client.request_read_json.call_args_list == [mock.call(0x4208), mock.call(0x4208)]
-    client._request_mutation_json.assert_called_once_with(0x4209, {"enable": True})
-
-
-def test_mcp_tmp_noop_verification_latches_after_nonverified_outcome() -> None:
-    service = DecoService(
-        _config(
-            allow_mutations=True,
-            allow_tmp_reads=True,
-            allow_tmp_noop_verification=True,
-        )
-    )
-    _prime_p9_profile(service)
-    client = mock.Mock()
-    client.request_read_json.side_effect = [
-        {"error_code": 0, "result": {"enable": False}},
-        {"error_code": 0, "result": {"enable": False}},
-    ]
-    client._request_mutation_json.return_value = {"error_code": 1}
-
-    with mock.patch.object(service, "_get_tmp_client", return_value=client):
-        result = service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
-        with pytest.raises(PermissionError, match="safety latch"):
-            service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
-
-    assert result["status"] == "write_rejected_or_uncertain_state_unchanged"
-    assert result["requires_attention"] is True
-    assert service.public_status()["tmp_mutation_latched"] is True
-    client._request_mutation_json.assert_called_once()
 
 
 def test_mcp_http_noop_verification_rejects_before_router_contact() -> None:
@@ -2946,7 +2859,6 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         "deco_p9_access_coverage",
         "deco_plan_tmp_mutation",
         "deco_p9_tmp_mutation_verification_queue",
-        "deco_verify_tmp_ieee80211r_noop",
         "deco_verify_p9_http_noop",
         "deco_tmp_host_key",
         "deco_tmp_read",
@@ -2981,7 +2893,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
         "deco_compare_manifests",
     } <= tool_names
     assert "deco_invoke_mutation" not in tool_names
-    assert len(tool_names) == 48
+    assert len(tool_names) == 47
     assert len(resources) == 22
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
@@ -2996,7 +2908,8 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     assert '"protocol_implemented": true' in str(tmp_opcodes_resource)
     assert "TMP_APPV2_OP_PLC_PAIR_GET" in str(tmp_opcodes_resource)
     assert '"candidate_count": 348' in str(tmp_mutations_resource)
-    assert '"execution_available": true' in str(tmp_mutations_resource)
+    assert '"execution_available": false' in str(tmp_mutations_resource)
+    assert '"server_write_policy": "hard_disabled"' in str(tmp_mutations_resource)
     assert '"generic_execution_available": false' in str(tmp_mutations_resource)
     assert '"returned_count": 0' in str(tmp_verification_queue)
     assert '"verification_candidate_count": 0' in str(http_verification_queue)

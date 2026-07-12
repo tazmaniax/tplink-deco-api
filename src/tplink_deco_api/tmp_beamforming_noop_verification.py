@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
     from .models import TmpNoopVerificationResult
     from .tmp_client import DecoTmpClient
+    from .tmp_lab import TmpLabTarget
 
 TMP_BEAMFORMING_NOOP_CONFIRMATION = (
     "I authorize a TMP/AppV2 beamforming no-op write on opcode 0x421C, using the current "
@@ -22,6 +23,7 @@ def verify_tmp_beamforming_noop(
     client: DecoTmpClient,
     confirmation: str,
     *,
+    target: TmpLabTarget | None = None,
     progress: Callable[[str], None] | None = None,
 ) -> TmpNoopVerificationResult:
     """Send one exact current-value write and verify or restore the prior state."""
@@ -34,5 +36,6 @@ def verify_tmp_beamforming_noop(
         read_name="TMP_APPV2_OP_BEAMFORMING_GET",
         write_opcode=0x421C,
         write_name="TMP_APPV2_OP_BEAMFORMING_SET",
+        target=target,
         progress=progress,
     )

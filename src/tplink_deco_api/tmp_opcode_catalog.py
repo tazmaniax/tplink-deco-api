@@ -520,6 +520,7 @@ def _load_p9_mutation_observations() -> dict[int, JsonObject]:
     observations: dict[int, JsonObject] = {}
     valid_statuses = {
         "verified_noop",
+        "adverse_event_suspected",
         "write_rejected",
         "rollback_confirmed",
         "rollback_unconfirmed",

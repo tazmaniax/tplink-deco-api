@@ -31,6 +31,7 @@ TmpAppContractProvenance: TypeAlias = Literal[
 TmpP9MutationObservation: TypeAlias = Literal[
     "untested",
     "verified_noop",
+    "adverse_event_suspected",
     "write_rejected",
     "rollback_confirmed",
     "rollback_unconfirmed",

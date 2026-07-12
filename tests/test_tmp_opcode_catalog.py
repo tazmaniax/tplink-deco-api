@@ -125,11 +125,11 @@ def test_tmp_plc_opcodes_report_exact_p9_rejection_evidence() -> None:
     assert write.category == "plc"
 
 
-def test_tmp_catalog_exposes_value_free_p9_noop_evidence() -> None:
+def test_tmp_catalog_exposes_suspected_adverse_event_evidence() -> None:
     operation = get_tmp_opcode(0x4209)
 
     assert operation.p9_opcode_tested
-    assert operation.p9_mutation_observation == "verified_noop"
+    assert operation.p9_mutation_observation == "adverse_event_suspected"
     assert operation.p9_mutation_firmware_error_code == 0
     assert operation.p9_mutation_parameter_keys == ("enable",)
     assert operation.p9_mutation_state_unchanged is True
@@ -143,7 +143,7 @@ def test_tmp_catalog_exposes_value_free_p9_noop_evidence() -> None:
         (0x4223, "p9-tmp-monthly-report-noop.json"),
     ):
         additional = get_tmp_opcode(code)
-        assert additional.p9_mutation_observation == "verified_noop"
+        assert additional.p9_mutation_observation == "adverse_event_suspected"
         assert additional.p9_mutation_firmware_error_code == 0
         assert additional.p9_mutation_parameter_keys == ("enable",)
         assert additional.p9_mutation_state_unchanged is True

@@ -1,5 +1,6 @@
 {
   "current_value_source": "live_preflight_0x4222",
+  "adverse_event_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
   "different_value_write_invoked": false,
   "mutation_request_count": 1,
   "operation_code": 16931,
@@ -23,10 +24,11 @@
   "same_value_payload": true,
   "schema_version": 1,
   "state_unchanged": true,
-  "status": "verified_noop",
+  "server_execution_eligible": false,
+  "status": "same_value_observed_adverse_event_suspected",
   "transport": "tmp_appv2_over_ssh",
   "verification_code": 16930,
-  "verified_noop": true,
+  "verified_noop": false,
   "write_error_type": "",
   "write_firmware_error_code": 0
 }

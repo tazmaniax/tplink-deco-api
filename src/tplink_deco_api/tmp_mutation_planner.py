@@ -171,11 +171,15 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         and operation.p9_mutation_state_unchanged is True
         and operation.p9_mutation_parameter_keys == operation.app_candidate_parameter_keys
     )
-    warnings = (
-        ["P9 mutation verified only as a current-value no-op"]
-        if operation.p9_mutation_observation == "verified_noop"
-        else ["P9 mutation opcode has not been tested"]
-    )
+    if operation.p9_mutation_observation == "verified_noop":
+        warnings = ["P9 mutation was observed only as a current-value write"]
+    elif operation.p9_mutation_observation == "adverse_event_suspected":
+        warnings = [
+            "P9 mutation is associated with a post-test topology outage; causality is unresolved"
+        ]
+    else:
+        warnings = ["P9 mutation opcode has not been tested"]
+    warnings.append("server-side TMP mutation execution is hard-disabled")
     if parameter_contract == "unknown":
         warnings.append("mutation parameter contract is unknown")
     else:
@@ -241,7 +245,7 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         app_call_site_count=operation.app_call_site_count,
         app_contract_sha256=operation.app_contract_sha256,
         evidence=(
-            "value_free_p9_live_noop_and_signed_deco_android_static_contracts"
+            "value_free_p9_live_write_and_signed_deco_android_static_contracts"
             if operation.p9_mutation_observation != "untested"
             else "opcode_name_pair_inference_and_signed_deco_android_static_contracts"
         ),

@@ -8,7 +8,7 @@
       "code": 16905,
       "hex_code": "0x4209",
       "name": "TMP_APPV2_OP_11R_SET",
-      "status": "verified_noop",
+      "status": "adverse_event_suspected",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"
@@ -24,13 +24,15 @@
       "mutation_request_count": 1,
       "different_value_write_invoked": false,
       "observed_at": "2026-07-11",
+      "adverse_event_observed_at": "2026-07-12",
+      "adverse_event_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
       "evidence_artifact": "docs/api-responses/p9-tmp-ieee80211r-noop.json"
     },
     {
       "code": 16924,
       "hex_code": "0x421C",
       "name": "TMP_APPV2_OP_BEAMFORMING_SET",
-      "status": "verified_noop",
+      "status": "adverse_event_suspected",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"
@@ -46,13 +48,15 @@
       "mutation_request_count": 1,
       "different_value_write_invoked": false,
       "observed_at": "2026-07-11",
+      "adverse_event_observed_at": "2026-07-12",
+      "adverse_event_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
       "evidence_artifact": "docs/api-responses/p9-tmp-beamforming-noop.json"
     },
     {
       "code": 16931,
       "hex_code": "0x4223",
       "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
-      "status": "verified_noop",
+      "status": "adverse_event_suspected",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"
@@ -68,6 +72,8 @@
       "mutation_request_count": 1,
       "different_value_write_invoked": false,
       "observed_at": "2026-07-11",
+      "adverse_event_observed_at": "2026-07-12",
+      "adverse_event_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
       "evidence_artifact": "docs/api-responses/p9-tmp-monthly-report-noop.json"
     }
   ]
