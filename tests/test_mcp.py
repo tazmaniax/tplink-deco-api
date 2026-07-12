@@ -49,12 +49,13 @@ from tplink_deco_api import (
     WlanHost,
     get_endpoint,
 )
-from tplink_deco_api.mcp import DecoMcpService, McpConfig
 from tplink_deco_api.mcp._static_token_verifier import _StaticTokenVerifier
 from tplink_deco_api.mcp.server import create_server, main
+from tplink_deco_api.server import ServerConfig
+from tplink_deco_api.service import DecoService
 
 
-def _config(**overrides: bool) -> McpConfig:
+def _config(**overrides: bool) -> ServerConfig:
     values: dict[str, bool] = {
         "allow_sensitive_reads": False,
         "allow_bulk_secret_reads": False,
@@ -67,7 +68,7 @@ def _config(**overrides: bool) -> McpConfig:
         "expose_diagnostic_tools": True,
     }
     values.update(overrides)
-    return McpConfig(
+    return ServerConfig(
         host="192.0.2.1",
         username="admin",
         password="secret",
@@ -89,7 +90,7 @@ def _p9_controller() -> Device:
     )
 
 
-def _prime_p9_profile(service: DecoMcpService) -> None:
+def _prime_p9_profile(service: DecoService) -> None:
     service._device_cache = (_p9_controller(),)
 
 
@@ -98,22 +99,22 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("DECO_USERNAME", "owner")
     monkeypatch.setenv("DECO_PASSWORD", "secret")
     monkeypatch.setenv("DECO_TIMEOUT", "30")
-    monkeypatch.setenv("DECO_MCP_ALLOW_SENSITIVE_READS", "yes")
-    monkeypatch.setenv("DECO_MCP_ALLOW_BULK_SECRET_READS", "true")
-    monkeypatch.setenv("DECO_MCP_ALLOW_BINARY_CONTENT", "1")
-    monkeypatch.setenv("DECO_MCP_ALLOW_MUTATIONS", "true")
-    monkeypatch.setenv("DECO_MCP_ALLOW_DESTRUCTIVE", "1")
-    monkeypatch.setenv("DECO_MCP_ALLOW_INTERNAL", "on")
+    monkeypatch.setenv("DECO_ALLOW_SENSITIVE_READS", "yes")
+    monkeypatch.setenv("DECO_ALLOW_BULK_SECRET_READS", "true")
+    monkeypatch.setenv("DECO_ALLOW_BINARY_CONTENT", "1")
+    monkeypatch.setenv("DECO_ALLOW_MUTATIONS", "true")
+    monkeypatch.setenv("DECO_ALLOW_DESTRUCTIVE", "1")
+    monkeypatch.setenv("DECO_ALLOW_INTERNAL", "on")
     monkeypatch.setenv("DECO_TP_LINK_ID", "owner@example.com")
     monkeypatch.setenv("DECO_TMP_HOST_KEY_SHA256", "SHA256:test")
-    monkeypatch.setenv("DECO_MCP_ALLOW_TMP_READS", "yes")
-    monkeypatch.setenv("DECO_MCP_ALLOW_UNVERIFIED_TMP_READS", "true")
-    monkeypatch.setenv("DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION", "on")
-    monkeypatch.setenv("DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION", "on")
+    monkeypatch.setenv("DECO_ALLOW_TMP_READS", "yes")
+    monkeypatch.setenv("DECO_ALLOW_UNVERIFIED_TMP_READS", "true")
+    monkeypatch.setenv("DECO_ALLOW_TMP_NOOP_VERIFICATION", "on")
+    monkeypatch.setenv("DECO_ALLOW_HTTP_NOOP_VERIFICATION", "on")
     monkeypatch.setenv("DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS", "on")
     monkeypatch.setenv("DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS", "on")
 
-    config = McpConfig.from_env()
+    config = ServerConfig.from_env()
     public = config.public_settings()
 
     assert config.host == "192.0.2.2"
@@ -147,24 +148,30 @@ def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch
 
 def test_mcp_config_loads_streamable_http_security(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DECO_MCP_TRANSPORT", "streamable-http")
-    monkeypatch.setenv("DECO_MCP_HOST", "0.0.0.0")
-    monkeypatch.setenv("DECO_MCP_PORT", "9000")
-    monkeypatch.setenv("DECO_MCP_STREAMABLE_HTTP_PATH", "/router-mcp")
+    monkeypatch.setenv("DECO_SERVER_HOST", "0.0.0.0")
+    monkeypatch.setenv("DECO_SERVER_PORT", "9000")
+    monkeypatch.setenv("DECO_MCP_PATH", "/router-mcp")
     monkeypatch.setenv("DECO_MCP_PUBLIC_URL", "http://192.0.2.10:9000/router-mcp")
-    monkeypatch.setenv("DECO_MCP_BEARER_TOKEN", "x" * 32)
-    monkeypatch.setenv("DECO_MCP_ALLOWED_HOSTS", "192.0.2.10:9000, localhost:9000")
-    monkeypatch.setenv("DECO_MCP_ALLOWED_ORIGINS", "https://agent.example")
+    monkeypatch.setenv("DECO_SERVER_BEARER_TOKEN", "x" * 32)
+    monkeypatch.setenv("DECO_SERVER_ALLOWED_HOSTS", "192.0.2.10:9000, localhost:9000")
+    monkeypatch.setenv("DECO_SERVER_ALLOWED_ORIGINS", "https://agent.example")
+    monkeypatch.setenv("DECO_REST_ENABLED", "1")
+    monkeypatch.setenv("DECO_REST_PREFIX", "/router-api/v1")
+    monkeypatch.setenv("DECO_REST_EXPOSE_DOCS", "true")
 
-    config = McpConfig.from_env()
+    config = ServerConfig.from_env()
     public = config.public_settings()
 
     assert config.transport == "streamable-http"
     assert config.server_host == "0.0.0.0"
     assert config.server_port == 9000
-    assert config.streamable_http_path == "/router-mcp"
+    assert config.mcp_path == "/router-mcp"
     assert config.allowed_hosts == ("192.0.2.10:9000", "localhost:9000")
     assert config.allowed_origins == ("https://agent.example",)
-    assert public["mcp_bearer_token_configured"] is True
+    assert public["server_bearer_token_configured"] is True
+    assert config.rest_enabled is True
+    assert config.rest_prefix == "/router-api/v1"
+    assert config.rest_expose_docs is True
     assert "x" * 32 not in str(public)
 
 
@@ -173,10 +180,10 @@ def test_mcp_config_rejects_invalid_http_port(
     monkeypatch: pytest.MonkeyPatch,
     value: str,
 ) -> None:
-    monkeypatch.setenv("DECO_MCP_PORT", value)
+    monkeypatch.setenv("DECO_SERVER_PORT", value)
 
-    with pytest.raises(ValueError, match="DECO_MCP_PORT"):
-        McpConfig.from_env()
+    with pytest.raises(ValueError, match="DECO_SERVER_PORT"):
+        ServerConfig.from_env()
 
 
 def test_mcp_config_rejects_incomplete_streamable_http(
@@ -185,20 +192,20 @@ def test_mcp_config_rejects_incomplete_streamable_http(
     monkeypatch.setenv("DECO_MCP_TRANSPORT", "streamable-http")
 
     with pytest.raises(ValueError, match="DECO_MCP_PUBLIC_URL"):
-        McpConfig.from_env()
+        ServerConfig.from_env()
 
     short_token = replace(
         _config(),
         transport="streamable-http",
-        public_url="http://192.0.2.10:8000/mcp",
+        mcp_public_url="http://192.0.2.10:8000/mcp",
         bearer_token="short",
         allowed_hosts=("192.0.2.10:8000",),
     )
-    with pytest.raises(ValueError, match="DECO_MCP_BEARER_TOKEN"):
+    with pytest.raises(ValueError, match="DECO_SERVER_BEARER_TOKEN"):
         create_server(short_token)
 
     missing_hosts = replace(short_token, bearer_token="x" * 32, allowed_hosts=())
-    with pytest.raises(ValueError, match="DECO_MCP_ALLOWED_HOSTS"):
+    with pytest.raises(ValueError, match="DECO_SERVER_ALLOWED_HOSTS"):
         create_server(missing_hosts)
 
 
@@ -210,11 +217,65 @@ def test_mcp_config_rejects_invalid_timeout(
     monkeypatch.setenv("DECO_TIMEOUT", value)
 
     with pytest.raises(ValueError, match="DECO_TIMEOUT"):
-        McpConfig.from_env()
+        ServerConfig.from_env()
+
+
+@pytest.mark.parametrize("value", ["api/v1", "/api/v1/"])
+def test_server_config_rejects_invalid_rest_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    monkeypatch.setenv("DECO_REST_PREFIX", value)
+
+    with pytest.raises(ValueError, match="DECO_REST_PREFIX"):
+        ServerConfig.from_env()
+
+
+@pytest.mark.parametrize("value", ["mcp", "/mcp/", "/"])
+def test_server_config_rejects_invalid_mcp_path(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    monkeypatch.setenv("DECO_MCP_PATH", value)
+
+    with pytest.raises(ValueError, match="DECO_MCP_PATH"):
+        ServerConfig.from_env()
+
+
+@pytest.mark.parametrize(
+    ("rest_prefix", "mcp_path"),
+    [
+        ("/api/v1", "/api/v1"),
+        ("/mcp/api", "/mcp"),
+        ("/api", "/api/mcp"),
+        ("/docs", "/mcp"),
+        ("/api/v1", "/readyz"),
+        ("/healthz/api", "/mcp"),
+    ],
+)
+def test_server_config_rejects_overlapping_http_paths(
+    rest_prefix: str,
+    mcp_path: str,
+) -> None:
+    config = replace(_config(), rest_prefix=rest_prefix, mcp_path=mcp_path)
+
+    with pytest.raises(ValueError, match="must not overlap"):
+        config.validate_server()
+
+
+@pytest.mark.parametrize("value", ["invalid", "0", "-1"])
+def test_server_config_rejects_invalid_request_capacity(
+    monkeypatch: pytest.MonkeyPatch,
+    value: str,
+) -> None:
+    monkeypatch.setenv("DECO_SERVER_MAX_IN_FLIGHT_REQUESTS", value)
+
+    with pytest.raises(ValueError, match="DECO_SERVER_MAX_IN_FLIGHT_REQUESTS"):
+        ServerConfig.from_env()
 
 
 def test_mcp_service_catalog_and_public_status() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     read_catalog = service.endpoint_catalog("read_only")
     public_catalog = service.endpoint_catalog()
@@ -326,7 +387,7 @@ def test_mcp_service_catalog_and_public_status() -> None:
 
 
 def test_mcp_service_reports_transport_coverage_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with mock.patch.object(service, "_get_client") as get_client:
         capabilities = service.transport_capabilities()
@@ -357,7 +418,7 @@ def test_mcp_service_reports_transport_coverage_offline() -> None:
         "bulk_secret_gate_enabled": False,
         "content_export_gate_required": True,
         "content_export_gate_enabled": False,
-        "digest_discovery_tool": "deco_discover_p9_binary_reads",
+        "digest_discovery_operation": "discover_p9_binary_reads",
         "binary_content_returned_by_discovery": False,
     }
     assert capabilities["tmp_appv2"]["external_port"] == 20001
@@ -373,7 +434,7 @@ def test_mcp_service_reports_transport_coverage_offline() -> None:
 
 
 def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -385,12 +446,10 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_agent_surface"]["capability_count"] == 6
-    assert coverage["unified_agent_surface"]["mutation_capability_count"] == 4
-    assert coverage["unified_agent_surface"]["default_tool_count"] == 5
-    assert coverage["unified_agent_surface"]["diagnostic_tool_count"] == 48
-    assert coverage["unified_agent_surface"]["agent_selects_protocol"] is False
-    assert coverage["unified_agent_surface"]["automatic_mutation_fallback"] is False
+    assert coverage["unified_semantic_surface"]["capability_count"] == 6
+    assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 4
+    assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
+    assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
     assert coverage["http"]["catalogued_read_count"] == 219
     assert coverage["http"]["p9_observation_counts"] == {
         "invalid_response": 1,
@@ -432,16 +491,16 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "p9_candidate_count": 23,
         "tested_count": 4,
         "execution_eligible_count": 0,
-        "execution_tool_exposed": True,
+        "execution_available": True,
         "execution_policy": "general_scope_model_evidence_required",
         "verification_candidate_count": 0,
-        "verification_queue_tool": "deco_p9_http_mutation_verification_queue",
+        "verification_queue_operation": "p9_http_mutation_verification_queue",
         "scoped_noop_operation_count": 3,
         "scoped_noop_runtime_gate_enabled": False,
         "scoped_noop_execution_eligible_count": 0,
-        "scoped_noop_tools": [
-            "deco_verify_setting_noop",
-            "deco_verify_p9_http_noop",
+        "scoped_noop_executors": [
+            "verify_setting_noop",
+            "verify_p9_http_noop",
         ],
     }
     assert coverage["mutations"]["tmp"] == {
@@ -456,23 +515,23 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "preflight_candidate_key_coverage_complete_count": 19,
         "preflight_candidate_key_coverage_blocked_count": 48,
         "execution_eligible_count": 0,
-        "execution_tool_exposed": True,
-        "generic_execution_tool_exposed": False,
-        "scoped_noop_tool_count": 2,
+        "execution_available": True,
+        "generic_execution_available": False,
+        "scoped_noop_executor_count": 2,
         "scoped_noop_runtime_gate_enabled": False,
-        "scoped_noop_tools": [
-            "deco_verify_setting_noop",
-            "deco_verify_tmp_ieee80211r_noop",
+        "scoped_noop_executors": [
+            "verify_setting_noop",
+            "verify_tmp_ieee80211r_noop",
         ],
         "verification_candidate_count": 0,
         "default_verification_queue_count": 0,
-        "verification_queue_tool": "deco_p9_tmp_mutation_verification_queue",
+        "verification_queue_operation": "p9_tmp_mutation_verification_queue",
     }
     assert coverage["invariants"] == {
-        "all_positive_http_reads_have_agent_call_path": True,
-        "all_positive_tmp_reads_have_agent_call_path": True,
+        "all_positive_http_reads_have_caller_path": True,
+        "all_positive_tmp_reads_have_caller_path": True,
         "all_positive_tmp_json_reads_have_batch_path": True,
-        "all_positive_reads_have_agent_call_path": True,
+        "all_positive_reads_have_caller_path": True,
         "all_tmp_reads_tested_on_p9": True,
         "mutations_default_disabled": True,
         "http_generic_noop_only_execution_absent": True,
@@ -502,7 +561,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "p9_tmp_beamforming_noop_verification",
         "p9_tmp_monthly_report_noop_verification",
     }
-    assert audits["p9_mcp_complete_tmp_batch_audit"]["registered_tool_count"] == 43
+    assert audits["p9_mcp_complete_tmp_batch_audit"]["mutation_invoked"] is False
     assert audits["p9_tmp_beamforming_noop_verification"]["state_unchanged"] is True
     assert audits["p9_tmp_monthly_report_noop_verification"]["state_unchanged"] is True
     assert all(action["explicit_authorization_required"] for action in actions.values())
@@ -521,7 +580,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
 
 
 def test_mcp_service_filters_unverified_tmp_opcode_catalog_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with mock.patch.object(service, "_get_client") as get_client:
         catalog = service.p9_tmp_opcode_catalog(category="plc")
@@ -554,7 +613,7 @@ def test_mcp_service_filters_unverified_tmp_opcode_catalog_offline() -> None:
 
 
 def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -593,11 +652,11 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
     assert inventory["mutation_tested_count"] == 3
     assert inventory["complete_safety_contract_count"] == 3
     assert inventory["execution_eligible_count"] == 0
-    assert inventory["execution_tool_exposed"] is True
-    assert inventory["generic_execution_tool_exposed"] is False
-    assert inventory["scoped_noop_tool_count"] == 2
+    assert inventory["execution_available"] is True
+    assert inventory["generic_execution_available"] is False
+    assert inventory["scoped_noop_executor_count"] == 2
     assert inventory["scoped_noop_runtime_gate_enabled"] is False
-    assert inventory["scoped_noop_operations"][0]["tool"] == ("deco_verify_tmp_ieee80211r_noop")
+    assert inventory["scoped_noop_operations"][0]["executor"] == ("verify_tmp_ieee80211r_noop")
     assert inventory["prepared_verification_harness_count"] == 2
     assert inventory["prepared_verification_harnesses"] == [
         {
@@ -609,7 +668,7 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
             "exact_confirmation_required": True,
             "confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
             "live_invoked": True,
-            "mcp_execution_exposed": False,
+            "execution_available": False,
         },
         {
             "code": 0x4223,
@@ -620,28 +679,28 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
             "exact_confirmation_required": True,
             "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
             "live_invoked": True,
-            "mcp_execution_exposed": True,
-            "mcp_tool": "deco_verify_setting_noop",
-            "mcp_capability": "monthly_report",
+            "execution_available": True,
+            "executor": "verify_setting_noop",
+            "capability": "monthly_report",
         },
     ]
     ieee80211r = next(plan for plan in inventory["plans"] if plan["code"] == 0x4209)
-    assert ieee80211r["scoped_mcp_execution_supported"] is True
+    assert ieee80211r["scoped_execution_supported"] is True
     assert ieee80211r["runtime_gate_enabled"] is False
     assert ieee80211r["execution_eligible"] is False
     beamforming = next(plan for plan in inventory["plans"] if plan["code"] == 0x421C)
     assert beamforming["verification_harness"] == "examples/verify_tmp_beamforming_noop.py"
     assert beamforming["verification_confirmation"] == TMP_BEAMFORMING_NOOP_CONFIRMATION
     assert beamforming["live_verification_invoked"] is True
-    assert beamforming["scoped_mcp_execution_supported"] is False
+    assert beamforming["scoped_execution_supported"] is False
     assert beamforming["execution_eligible"] is False
     monthly_report = next(plan for plan in inventory["plans"] if plan["code"] == 0x4223)
     assert monthly_report["verification_harness"] == ("examples/verify_tmp_monthly_report_noop.py")
     assert monthly_report["verification_confirmation"] == (TMP_MONTHLY_REPORT_NOOP_CONFIRMATION)
     assert monthly_report["live_verification_invoked"] is True
-    assert monthly_report["scoped_mcp_execution_supported"] is True
-    assert monthly_report["scoped_mcp_tool"] == "deco_verify_setting_noop"
-    assert monthly_report["scoped_mcp_capability"] == "monthly_report"
+    assert monthly_report["scoped_execution_supported"] is True
+    assert monthly_report["scoped_executor"] == "verify_setting_noop"
+    assert monthly_report["scoped_capability"] == "monthly_report"
     assert monthly_report["runtime_gate_enabled"] is False
     assert monthly_report["execution_eligible"] is False
     qos = next(plan for plan in inventory["plans"] if plan["code"] == 0x4037)
@@ -660,7 +719,7 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
     with pytest.raises(ValueError, match="is read_only"):
         service.plan_tmp_mutation(0x4004)
 
-    enabled = DecoMcpService(
+    enabled = DecoService(
         _config(
             allow_mutations=True,
             allow_tmp_reads=True,
@@ -672,7 +731,7 @@ def test_mcp_service_reports_tmp_mutation_inventory_offline() -> None:
 
 
 def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -697,27 +756,27 @@ def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
     assert queue["parameter_values_included"] is False
     assert queue["payloads_generated"] is False
     assert queue["mutation_invoked"] is False
-    assert queue["execution_tool_exposed"] is False
+    assert queue["execution_available"] is False
 
 
 def test_mcp_tmp_noop_verification_rejects_before_router_contact() -> None:
     get_tmp_client = mock.Mock()
 
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     with (
         mock.patch.object(service, "_get_tmp_client", get_tmp_client),
         pytest.raises(PermissionError, match="exact per-call confirmation"),
     ):
         service.verify_tmp_ieee80211r_noop("wrong")
 
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     with (
         mock.patch.object(service, "_get_tmp_client", get_tmp_client),
         pytest.raises(PermissionError, match="ALLOW_TMP_READS"),
     ):
         service.verify_tmp_ieee80211r_noop(TMP_IEEE80211R_NOOP_CONFIRMATION)
 
-    service = DecoMcpService(_config(allow_mutations=True, allow_tmp_reads=True))
+    service = DecoService(_config(allow_mutations=True, allow_tmp_reads=True))
     with (
         mock.patch.object(service, "_get_tmp_client", get_tmp_client),
         pytest.raises(PermissionError, match="ALLOW_TMP_NOOP_VERIFICATION"),
@@ -728,7 +787,7 @@ def test_mcp_tmp_noop_verification_rejects_before_router_contact() -> None:
 
 
 def test_mcp_tmp_noop_verification_executes_only_verified_current_value() -> None:
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_mutations=True,
             allow_tmp_reads=True,
@@ -757,7 +816,7 @@ def test_mcp_tmp_noop_verification_executes_only_verified_current_value() -> Non
 
 
 def test_mcp_tmp_noop_verification_latches_after_nonverified_outcome() -> None:
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_mutations=True,
             allow_tmp_reads=True,
@@ -788,21 +847,21 @@ def test_mcp_http_noop_verification_rejects_before_router_contact() -> None:
     confirmation = HTTP_NOOP_CONFIRMATIONS[operation]
     get_client = mock.Mock()
 
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     with (
         mock.patch.object(service, "_get_client", get_client),
         pytest.raises(PermissionError, match="exact per-call confirmation"),
     ):
         service.verify_p9_http_noop(operation, "wrong")
 
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     with (
         mock.patch.object(service, "_get_client", get_client),
         pytest.raises(PermissionError, match="ALLOW_HTTP_NOOP_VERIFICATION"),
     ):
         service.verify_p9_http_noop(operation, confirmation)
 
-    service = DecoMcpService(_config(allow_http_noop_verification=True))
+    service = DecoService(_config(allow_http_noop_verification=True))
     with (
         mock.patch.object(service, "_get_client", get_client),
         pytest.raises(PermissionError, match="ALLOW_MUTATIONS"),
@@ -820,7 +879,7 @@ def test_mcp_http_noop_verification_executes_only_verified_current_value() -> No
     read_operation = "admin.device.timesetting.read"
     confirmation = HTTP_NOOP_CONFIRMATIONS[operation]
     state = {"timezone": "GMT0BST", "continent": "Europe", "tz_region": "London"}
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_mutations=True,
             allow_http_noop_verification=True,
@@ -854,7 +913,7 @@ def test_mcp_http_noop_verification_latches_after_nonverified_outcome() -> None:
     operation = "admin.wireless.ieee80211r.write"
     confirmation = HTTP_NOOP_CONFIRMATIONS[operation]
     state = {"enable": True}
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_mutations=True,
             allow_http_noop_verification=True,
@@ -880,7 +939,7 @@ def test_mcp_http_noop_verification_latches_after_nonverified_outcome() -> None:
 
 
 def test_mcp_tmp_host_key_probe_does_not_authenticate() -> None:
-    config = McpConfig(
+    config = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -889,8 +948,8 @@ def test_mcp_tmp_host_key_probe_does_not_authenticate() -> None:
     )
     client = mock.Mock()
     client.probe_host_key.return_value = "SHA256:observed"
-    with mock.patch("tplink_deco_api.mcp.service.DecoTmpClient", return_value=client):
-        result = DecoMcpService(config).tmp_host_key()
+    with mock.patch("tplink_deco_api.service.deco_service.DecoTmpClient", return_value=client):
+        result = DecoService(config).tmp_host_key()
 
     assert result == {
         "host": "192.0.2.1",
@@ -903,7 +962,7 @@ def test_mcp_tmp_host_key_probe_does_not_authenticate() -> None:
 
 
 def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None:
-    base = McpConfig(
+    base = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -912,9 +971,9 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
         tmp_host_key_sha256="SHA256:test",
     )
     with pytest.raises(PermissionError, match="ALLOW_TMP_READS"):
-        DecoMcpService(base).tmp_read(0x400F)
+        DecoService(base).tmp_read(0x400F)
 
-    enabled = McpConfig(
+    enabled = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -923,7 +982,7 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
         tmp_host_key_sha256="SHA256:test",
         allow_tmp_reads=True,
     )
-    service = DecoMcpService(enabled)
+    service = DecoService(enabled)
     get_client = mock.Mock()
     with mock.patch.object(service, "_get_tmp_client", get_client):
         with pytest.raises(ValueError, match="unknown opcode"):
@@ -932,7 +991,7 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
             service.tmp_read(0x424D)
         with pytest.raises(PermissionError, match="rejected by the P9"):
             service.tmp_read(0x424C)
-        with pytest.raises(PermissionError, match="binary TMP read tool"):
+        with pytest.raises(PermissionError, match="binary TMP read operation"):
             service.tmp_read(0x401E)
         with pytest.raises(PermissionError, match="SENSITIVE_READS"):
             service.tmp_read(0x4009)
@@ -940,7 +999,7 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
 
 
 def test_mcp_tmp_read_calls_positively_observed_reads() -> None:
-    verified_config = McpConfig(
+    verified_config = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -951,17 +1010,17 @@ def test_mcp_tmp_read_calls_positively_observed_reads() -> None:
     )
     client = mock.Mock()
     client.request_read_json.return_value = {"error_code": 0}
-    service = DecoMcpService(verified_config)
+    service = DecoService(verified_config)
     with mock.patch.object(service, "_get_tmp_client", return_value=client):
         assert service.tmp_read(0x400F, None) == {"error_code": 0}
     client.request_read_json.assert_called_once_with(0x400F, None)
 
-    location = DecoMcpService(verified_config)
+    location = DecoService(verified_config)
     with mock.patch.object(location, "_get_tmp_client", return_value=client):
         location.tmp_read(0x400A, {})
     client.request_read_json.assert_called_with(0x400A, {})
 
-    parameterized = DecoMcpService(replace(verified_config, allow_sensitive_reads=True))
+    parameterized = DecoService(replace(verified_config, allow_sensitive_reads=True))
     with mock.patch.object(parameterized, "_get_tmp_client", return_value=client) as get_client:
         with pytest.raises(ValueError, match="parameters are required"):
             parameterized.tmp_read(0x402D)
@@ -993,7 +1052,7 @@ def test_mcp_tmp_read_calls_positively_observed_reads() -> None:
 
 
 def test_mcp_tmp_binary_read_returns_digest_and_gates_content() -> None:
-    config = McpConfig(
+    config = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -1004,7 +1063,7 @@ def test_mcp_tmp_binary_read_returns_digest_and_gates_content() -> None:
     )
     client = mock.Mock()
     client.request_read.return_value = b"binary"
-    service = DecoMcpService(config)
+    service = DecoService(config)
     with mock.patch.object(service, "_get_tmp_client", return_value=client):
         result = service.tmp_read_binary(0x401E, None)
         with pytest.raises(PermissionError, match="SENSITIVE_READS"):
@@ -1020,7 +1079,7 @@ def test_mcp_tmp_binary_read_returns_digest_and_gates_content() -> None:
     assert result["sha256"] == hashlib.sha256(b"binary").hexdigest()
     assert result["content_base64"] is None
 
-    allowed = DecoMcpService(
+    allowed = DecoService(
         replace(
             config,
             allow_sensitive_reads=True,
@@ -1033,7 +1092,7 @@ def test_mcp_tmp_binary_read_returns_digest_and_gates_content() -> None:
 
 
 def test_mcp_tmp_contract_discovery_requires_read_and_inference_gates() -> None:
-    base = McpConfig(
+    base = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -1042,25 +1101,25 @@ def test_mcp_tmp_contract_discovery_requires_read_and_inference_gates() -> None:
         tmp_host_key_sha256="SHA256:test",
     )
     with pytest.raises(PermissionError, match="ALLOW_TMP_READS"):
-        DecoMcpService(base).discover_tmp_read_contracts()
+        DecoService(base).discover_tmp_read_contracts()
 
     tmp_enabled = replace(base, allow_tmp_reads=True)
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(tmp_enabled).discover_tmp_read_contracts()
+        DecoService(tmp_enabled).discover_tmp_read_contracts()
 
     sensitive_enabled = replace(tmp_enabled, allow_sensitive_reads=True)
     with pytest.raises(PermissionError, match="ALLOW_UNVERIFIED_TMP_READS"):
-        DecoMcpService(sensitive_enabled).discover_tmp_read_contracts(
+        DecoService(sensitive_enabled).discover_tmp_read_contracts(
             include_inferred_iot_module_contract=True
         )
 
-    service = DecoMcpService(replace(sensitive_enabled, allow_unverified_tmp_reads=True))
+    service = DecoService(replace(sensitive_enabled, allow_unverified_tmp_reads=True))
     client = mock.Mock()
     expected = {"confirmed_contract_count": 1}
     with (
         mock.patch.object(service, "_get_tmp_client", return_value=client),
         mock.patch(
-            "tplink_deco_api.mcp.service.probe_tmp_read_contracts",
+            "tplink_deco_api.service.deco_service.probe_tmp_read_contracts",
             return_value=expected,
         ) as probe,
     ):
@@ -1072,7 +1131,7 @@ def test_mcp_tmp_contract_discovery_requires_read_and_inference_gates() -> None:
 
 
 def test_mcp_unverified_tmp_discovery_requires_independent_gates() -> None:
-    base = McpConfig(
+    base = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -1081,23 +1140,23 @@ def test_mcp_unverified_tmp_discovery_requires_independent_gates() -> None:
         tmp_host_key_sha256="SHA256:test",
     )
     with pytest.raises(PermissionError, match="ALLOW_TMP_READS"):
-        DecoMcpService(base).discover_tmp_unverified_reads()
+        DecoService(base).discover_tmp_unverified_reads()
 
     tmp_enabled = replace(base, allow_tmp_reads=True)
     with pytest.raises(PermissionError, match="ALLOW_UNVERIFIED_TMP_READS"):
-        DecoMcpService(tmp_enabled).discover_tmp_unverified_reads()
+        DecoService(tmp_enabled).discover_tmp_unverified_reads()
 
     unverified_enabled = replace(tmp_enabled, allow_unverified_tmp_reads=True)
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(unverified_enabled).discover_tmp_unverified_reads(include_sensitive=True)
+        DecoService(unverified_enabled).discover_tmp_unverified_reads(include_sensitive=True)
 
-    service = DecoMcpService(unverified_enabled)
+    service = DecoService(unverified_enabled)
     client = mock.Mock()
     expected = {"selected_operation_count": 1}
     with (
         mock.patch.object(service, "_get_tmp_client", return_value=client),
         mock.patch(
-            "tplink_deco_api.mcp.service.probe_tmp_unverified_reads",
+            "tplink_deco_api.service.deco_service.probe_tmp_unverified_reads",
             return_value=expected,
         ) as probe,
     ):
@@ -1110,7 +1169,7 @@ def test_mcp_unverified_tmp_discovery_requires_independent_gates() -> None:
 
 
 def test_mcp_p9_tmp_data_requires_secret_gate_and_batches_confirmed_reads() -> None:
-    base = McpConfig(
+    base = ServerConfig(
         "192.0.2.1",
         "admin",
         "secret",
@@ -1119,11 +1178,11 @@ def test_mcp_p9_tmp_data_requires_secret_gate_and_batches_confirmed_reads() -> N
         tmp_host_key_sha256="SHA256:test",
     )
     with pytest.raises(PermissionError, match="ALLOW_TMP_READS"):
-        DecoMcpService(base).p9_tmp_data("qos")
+        DecoService(base).p9_tmp_data("qos")
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(replace(base, allow_tmp_reads=True)).p9_tmp_data("qos")
+        DecoService(replace(base, allow_tmp_reads=True)).p9_tmp_data("qos")
 
-    service = DecoMcpService(replace(base, allow_tmp_reads=True, allow_sensitive_reads=True))
+    service = DecoService(replace(base, allow_tmp_reads=True, allow_sensitive_reads=True))
     client = mock.Mock()
     client.request_read_json.return_value = {
         "error_code": 0,
@@ -1177,15 +1236,15 @@ def test_mcp_p9_tmp_data_requires_secret_gate_and_batches_confirmed_reads() -> N
             "hex_code": "0x402D",
             "name": "TMP_APPV2_OP_OWNER_GET",
             "confirmed_parameter_sets": [["owner_id"]],
-            "call_tool": "deco_tmp_read",
+            "read_operation": "tmp_read",
         }
     ]
     client.request_read_json.assert_called_once_with(0x4029)
 
 
 def test_mcp_p9_tmp_data_can_resolve_all_confirmed_parameterized_reads() -> None:
-    service = DecoMcpService(
-        McpConfig(
+    service = DecoService(
+        ServerConfig(
             "192.0.2.1",
             "admin",
             "secret",
@@ -1237,8 +1296,8 @@ def test_mcp_p9_tmp_data_can_resolve_all_confirmed_parameterized_reads() -> None
 
 
 def test_mcp_p9_tmp_data_reports_missing_parameter_source_without_guessing() -> None:
-    service = DecoMcpService(
-        McpConfig(
+    service = DecoService(
+        ServerConfig(
             "192.0.2.1",
             "admin",
             "secret",
@@ -1269,12 +1328,12 @@ def test_mcp_p9_tmp_data_reports_missing_parameter_source_without_guessing() -> 
 
 
 def test_mcp_tmp_configuration_and_shared_close_are_fail_closed() -> None:
-    service = DecoMcpService(McpConfig("192.0.2.1", "admin", "secret", 60.0))
+    service = DecoService(ServerConfig("192.0.2.1", "admin", "secret", 60.0))
     with pytest.raises(ValueError, match="DECO_TP_LINK_ID"):
         service._tmp_ssh_config()
 
-    service = DecoMcpService(
-        McpConfig(
+    service = DecoService(
+        ServerConfig(
             "192.0.2.1",
             "admin",
             "secret",
@@ -1296,13 +1355,13 @@ def test_mcp_tmp_configuration_and_shared_close_are_fail_closed() -> None:
 
 
 def test_mcp_service_probes_transport_ports_without_authentication() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     connection = mock.MagicMock()
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
         mock.patch(
-            "tplink_deco_api.mcp.service.socket.create_connection",
+            "tplink_deco_api.service.deco_service.socket.create_connection",
             side_effect=[ConnectionRefusedError, connection, TimeoutError],
         ) as create_connection,
     ):
@@ -1329,7 +1388,7 @@ def test_mcp_service_probes_transport_ports_without_authentication() -> None:
 
 
 def test_mcp_service_read_authorization_and_call() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"cpu_usage": 0.5}})
     client = mock.Mock()
     client.call.return_value = response
@@ -1347,7 +1406,7 @@ def test_mcp_service_read_authorization_and_call() -> None:
     bootstrap = mock.Mock()
     bootstrap.call_bootstrap.return_value = response
     with (
-        mock.patch("tplink_deco_api.mcp.service.DecoClient", return_value=bootstrap),
+        mock.patch("tplink_deco_api.service.deco_service.DecoClient", return_value=bootstrap),
         mock.patch.object(service, "_get_client") as get_client,
     ):
         bootstrap_response = service.read_endpoint("login.auth.read")
@@ -1356,7 +1415,7 @@ def test_mcp_service_read_authorization_and_call() -> None:
     get_client.assert_not_called()
     with pytest.raises(PermissionError, match="sensitive reads require"):
         service.read_endpoint("login.default_info.read")
-    sensitive_service = DecoMcpService(_config(allow_sensitive_reads=True))
+    sensitive_service = DecoService(_config(allow_sensitive_reads=True))
     domain_response = ApiResponse.from_api({"error_code": 0, "result": None})
     domain_client = mock.Mock()
     domain_client.call.return_value = domain_response
@@ -1367,7 +1426,7 @@ def test_mcp_service_read_authorization_and_call() -> None:
 
 
 def test_mcp_p9_http_data_batches_supported_reads_by_controller() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"value": 1}})
     with mock.patch.object(service, "read_endpoint", return_value=response) as read_endpoint:
         result = service.p9_http_data("admin/network")
@@ -1417,7 +1476,7 @@ def test_mcp_p9_http_data_batches_supported_reads_by_controller() -> None:
 
 
 def test_mcp_p9_http_data_includes_sensitive_values_only_after_opt_in() -> None:
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     response = ApiResponse.from_api({"error_code": 0, "result": {"credential": "private-value"}})
     with mock.patch.object(service, "read_endpoint", return_value=response) as read_endpoint:
         result = service.p9_http_data("admin/administration", include_sensitive=True)
@@ -1442,7 +1501,7 @@ def test_mcp_p9_http_data_includes_sensitive_values_only_after_opt_in() -> None:
 
 
 def test_mcp_reports_no_remaining_safe_untested_p9_http_reads() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     with mock.patch.object(service, "read_endpoint") as read_endpoint:
         result = service.discover_p9_untested_http_reads()
 
@@ -1459,7 +1518,7 @@ def test_mcp_reports_no_remaining_safe_untested_p9_http_reads() -> None:
 
 
 def test_mcp_service_allows_opted_in_sensitive_read() -> None:
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     response = ApiResponse.from_api({"error_code": 0, "result": {"ssid": "encoded"}})
     client = mock.Mock()
     client.call.return_value = response
@@ -1472,9 +1531,9 @@ def test_mcp_service_allows_opted_in_sensitive_read() -> None:
 
 def test_mcp_service_network_overview_uses_confirmed_high_level_reads() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).network_overview()
+        DecoService(_config()).network_overview()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.get_device_mode.return_value = DeviceMode("router", "Router", "GB")
     ip_status = IpStatus("connected", "connected", "dynamic", "dynamic", 0)
@@ -1543,7 +1602,7 @@ def test_mcp_service_network_overview_uses_confirmed_high_level_reads() -> None:
 
 
 def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     _prime_p9_profile(service)
     client = mock.Mock()
     client.get_device_mode.return_value = DeviceMode("router", "Router", "GB")
@@ -1597,8 +1656,8 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
         "mac_clone": {"mode": "default"},
     }
     assert configuration["nickname_status"] == "gated"
-    assert configuration["related_resources"]["client_devices"] == "deco://devices"
-    assert configuration["related_resources"]["logs"] == "deco://logs"
+    assert "client_devices" in configuration["related_sections"]
+    assert "logs" in configuration["related_sections"]
     assert configuration["passwords_included"] is False
     assert configuration["client_identities_included"] is False
     assert configuration["address_reservations_included"] is False
@@ -1606,7 +1665,7 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
 
 
 def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -> None:
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.call.return_value = ApiResponse.from_api(
         {
@@ -1689,9 +1748,9 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
 
 def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).traffic_resource()
+        DecoService(_config()).traffic_resource()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.get_traffic_statistics.return_value = {
         "client_list_speed": [
@@ -1715,7 +1774,7 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
 
 
 def test_mcp_logs_resource_excludes_log_contents() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.get_log_types.return_value = [LogType("system", 1), LogType("network", 2)]
 
@@ -1733,7 +1792,7 @@ def test_mcp_logs_resource_excludes_log_contents() -> None:
 
 
 def test_mcp_configuration_resource_includes_gated_nickname() -> None:
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     _prime_p9_profile(service)
     client = mock.Mock()
     unavailable = TransportError("not available")
@@ -1756,7 +1815,7 @@ def test_mcp_configuration_resource_includes_gated_nickname() -> None:
 
 
 def test_mcp_network_status_resource_summarizes_health_without_client_identities() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     controller = Device.from_api(
         {
             "mac": "AA:BB:CC:DD:EE:FF",
@@ -1835,7 +1894,7 @@ def test_mcp_network_status_resource_summarizes_health_without_client_identities
 
 
 def test_mcp_network_status_resource_returns_partial_results_and_gated_client_count() -> None:
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     controller = Device.from_api(
         {
             "device_model": "P9",
@@ -1883,9 +1942,9 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
 
 def test_mcp_service_mesh_overview_preserves_per_node_associations() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).mesh_overview()
+        DecoService(_config()).mesh_overview()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     device = Device.from_api(
         {
             "mac": "AA:BB:CC:DD:EE:FF",
@@ -1923,9 +1982,9 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
         MloHost("MLO", "mlo-secret", False, ("2g", "5g"), False),
     )
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).wlan_state()
+        DecoService(_config()).wlan_state()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.get_wlan_config.return_value = config
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
@@ -1950,9 +2009,9 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
 
 def test_mcp_service_cloud_state_requires_sensitive_gate() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).cloud_state()
+        DecoService(_config()).cloud_state()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     responses = [
         ApiResponse.from_api({"error_code": 0, "result": {"enabled": True}}),
         ApiResponse.from_api({"error_code": 0, "result": {"permissions": ["owner"]}}),
@@ -1972,9 +2031,9 @@ def test_mcp_service_cloud_state_requires_sensitive_gate() -> None:
 
 def test_mcp_service_client_overview_covers_confirmed_client_data() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).client_overview()
+        DecoService(_config()).client_overview()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client_device = ClientDevice.from_api(
         {
             "mac": "AA:BB:CC:DD:EE:01",
@@ -2002,9 +2061,9 @@ def test_mcp_service_client_overview_covers_confirmed_client_data() -> None:
 
 def test_mcp_service_system_overview_covers_confirmed_system_data() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).system_overview()
+        DecoService(_config()).system_overview()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.get_speed_test.return_value = SpeedTest(100, 20, "idle", True, 123)
     client.call.side_effect = [
@@ -2038,17 +2097,17 @@ def test_mcp_service_system_overview_covers_confirmed_system_data() -> None:
 def test_mcp_service_binary_read_requires_sensitive_opt_in() -> None:
     name = "admin.log_export.save_log.download"
     with pytest.raises(PermissionError, match="sensitive reads require"):
-        DecoMcpService(_config()).read_binary_endpoint(name)
+        DecoService(_config()).read_binary_endpoint(name)
 
-    sensitive_only = DecoMcpService(_config(allow_sensitive_reads=True))
+    sensitive_only = DecoService(_config(allow_sensitive_reads=True))
     with (
         mock.patch.object(sensitive_only, "_get_client") as get_client,
-        pytest.raises(PermissionError, match="DECO_MCP_ALLOW_BULK_SECRET_READS"),
+        pytest.raises(PermissionError, match="DECO_ALLOW_BULK_SECRET_READS"),
     ):
         sensitive_only.read_binary_endpoint(name)
     get_client.assert_not_called()
 
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_sensitive_reads=True,
             allow_bulk_secret_reads=True,
@@ -2066,12 +2125,12 @@ def test_mcp_service_binary_read_requires_sensitive_opt_in() -> None:
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
-        pytest.raises(PermissionError, match="DECO_MCP_ALLOW_BINARY_CONTENT"),
+        pytest.raises(PermissionError, match="DECO_ALLOW_BINARY_CONTENT"),
     ):
         service.read_binary_endpoint(name, include_content=True)
     get_client.assert_not_called()
 
-    content_service = DecoMcpService(
+    content_service = DecoService(
         _config(
             allow_sensitive_reads=True,
             allow_bulk_secret_reads=True,
@@ -2099,23 +2158,23 @@ def test_mcp_service_binary_read_requires_sensitive_opt_in() -> None:
 
 
 def test_mcp_service_binary_discovery_is_digest_only_and_independently_gated() -> None:
-    disabled = DecoMcpService(_config())
+    disabled = DecoService(_config())
     with (
         mock.patch.object(disabled, "_get_client") as get_client,
-        pytest.raises(PermissionError, match="DECO_MCP_ALLOW_SENSITIVE_READS"),
+        pytest.raises(PermissionError, match="DECO_ALLOW_SENSITIVE_READS"),
     ):
         disabled.discover_p9_binary_reads()
     get_client.assert_not_called()
 
-    sensitive_only = DecoMcpService(_config(allow_sensitive_reads=True))
+    sensitive_only = DecoService(_config(allow_sensitive_reads=True))
     with (
         mock.patch.object(sensitive_only, "_get_client") as get_client,
-        pytest.raises(PermissionError, match="DECO_MCP_ALLOW_BULK_SECRET_READS"),
+        pytest.raises(PermissionError, match="DECO_ALLOW_BULK_SECRET_READS"),
     ):
         sensitive_only.discover_p9_binary_reads()
     get_client.assert_not_called()
 
-    service = DecoMcpService(
+    service = DecoService(
         _config(
             allow_sensitive_reads=True,
             allow_bulk_secret_reads=True,
@@ -2163,7 +2222,7 @@ def test_mcp_service_binary_discovery_is_digest_only_and_independently_gated() -
 def test_mcp_service_relogs_once_for_expired_read_session(
     error: ApiError | TransportError,
 ) -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"ok": True}})
     client = mock.Mock()
     client.call.side_effect = [error, response]
@@ -2177,7 +2236,7 @@ def test_mcp_service_relogs_once_for_expired_read_session(
 
 
 def test_mcp_service_does_not_retry_unrelated_transport_error() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.call.side_effect = TransportError(
         "Failed to POST endpoint: HTTP 500",
@@ -2194,9 +2253,9 @@ def test_mcp_service_does_not_retry_unrelated_transport_error() -> None:
 
 
 def test_mcp_service_mutation_gates_and_confirmation() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
-    with pytest.raises(PermissionError, match="use the read tool"):
+    with pytest.raises(PermissionError, match="use the read operation"):
         service.invoke_mutation(
             "admin.network.performance.read",
             None,
@@ -2225,7 +2284,7 @@ def test_mcp_service_mutation_gates_and_confirmation() -> None:
 
 
 def test_mcp_service_rejects_unverified_mutation_before_connecting() -> None:
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     name = "admin.network.wan_mode.write"
     params = {"mode": "router"}
     plan_confirmation = service.plan_mutation(name, params)["confirmation_sha256"]
@@ -2258,7 +2317,7 @@ def test_mcp_service_rejects_noop_only_verified_mutation_for_general_execution(
     name: str,
     params: dict[str, object],
 ) -> None:
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     plan_confirmation = service.plan_mutation(name, params)["confirmation_sha256"]
 
     with (
@@ -2271,7 +2330,7 @@ def test_mcp_service_rejects_noop_only_verified_mutation_for_general_execution(
 
 
 def test_mcp_service_invokes_enabled_verified_mutation_with_matching_plan() -> None:
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     response = ApiResponse.from_api({"error_code": 0, "result": {"ok": True}})
     client = mock.Mock()
     client.call.return_value = response
@@ -2291,7 +2350,7 @@ def test_mcp_service_invokes_enabled_verified_mutation_with_matching_plan() -> N
     with (
         mock.patch.object(service, "_get_client", return_value=client),
         mock.patch(
-            "tplink_deco_api.mcp.service.get_compatibility_profile",
+            "tplink_deco_api.service.deco_service.get_compatibility_profile",
             return_value=profile,
         ),
     ):
@@ -2302,7 +2361,7 @@ def test_mcp_service_invokes_enabled_verified_mutation_with_matching_plan() -> N
 
 
 def test_mcp_service_rejects_mutation_when_plan_parameters_changed() -> None:
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
     name = "admin.network.wan_mode.write"
     plan_confirmation = service.plan_mutation(name, {"mode": "router"})["confirmation_sha256"]
 
@@ -2321,7 +2380,7 @@ def test_mcp_service_rejects_mutation_when_plan_parameters_changed() -> None:
 
 
 def test_mcp_service_validates_before_connecting_and_rejects_special_transport() -> None:
-    service = DecoMcpService(_config(allow_mutations=True))
+    service = DecoService(_config(allow_mutations=True))
 
     validation = service.validate_operation("admin.network.wan_mode.write", {})
 
@@ -2352,7 +2411,7 @@ def test_mcp_service_validates_before_connecting_and_rejects_special_transport()
         )
     get_client.assert_not_called()
 
-    internal = DecoMcpService(_config(allow_internal=True))
+    internal = DecoService(_config(allow_internal=True))
     with pytest.raises(PermissionError, match="transport 'token'"):
         internal.invoke_mutation(
             "admin.sync.sync_firmware.write",
@@ -2362,7 +2421,7 @@ def test_mcp_service_validates_before_connecting_and_rejects_special_transport()
 
 
 def test_mcp_service_plans_mutation_without_connecting() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     name = "admin.client.addr_reservation.add"
 
     with mock.patch.object(service, "_get_client") as get_client:
@@ -2383,7 +2442,7 @@ def test_mcp_service_plans_mutation_without_connecting() -> None:
 
 
 def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with mock.patch.object(service, "_get_client") as get_client:
         inventory = service.p9_mutation_inventory()
@@ -2401,14 +2460,14 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
         "high_risk_deferred": 15,
         "verified_noop": 4,
     }
-    assert inventory["verification_queue_tool"] == ("deco_p9_http_mutation_verification_queue")
-    assert inventory["scoped_noop_tool_count"] == 2
+    assert inventory["verification_queue_operation"] == ("p9_http_mutation_verification_queue")
+    assert inventory["scoped_noop_executor_count"] == 2
     assert inventory["scoped_noop_operation_count"] == 3
     assert inventory["scoped_noop_runtime_gate_enabled"] is False
     assert inventory["scoped_noop_execution_eligible_count"] == 0
-    assert inventory["scoped_noop_tools"] == [
-        "deco_verify_setting_noop",
-        "deco_verify_p9_http_noop",
+    assert inventory["scoped_noop_executors"] == [
+        "verify_setting_noop",
+        "verify_p9_http_noop",
     ]
     assert [item["operation"] for item in inventory["scoped_noop_operations"]] == list(
         HTTP_NOOP_CONFIRMATIONS
@@ -2419,7 +2478,7 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
         "plan_confirmation_required": True,
         "exact_name_confirmation_required": True,
         "runtime_safety_gate_required": True,
-        "noop_only_requires_scoped_tool": True,
+        "noop_only_requires_scoped_executor": True,
     }
     reservation = next(
         item
@@ -2481,7 +2540,7 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
     assert timesetting["execution_eligible"] is False
     assert any("limited to noop_only" in warning for warning in timesetting["plan_warnings"])
 
-    enabled = DecoMcpService(
+    enabled = DecoService(
         _config(
             allow_mutations=True,
             allow_http_noop_verification=True,
@@ -2504,7 +2563,7 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
 
 
 def test_mcp_service_ranks_http_mutation_verification_offline() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with mock.patch.object(service, "_get_client") as get_client:
         default = service.p9_http_mutation_verification_queue()
@@ -2519,7 +2578,7 @@ def test_mcp_service_ranks_http_mutation_verification_offline() -> None:
     assert default["candidate_count"] == 23
     assert default["verification_candidate_count"] == 0
     assert default["returned_count"] == 0
-    assert default["verification_execution_tool_exposed"] is False
+    assert default["verification_execution_available"] is False
     assert default["execution_eligible_count"] == 0
     assert complete["returned_count"] == 23
     assert complete["tier_counts"] == {
@@ -2533,7 +2592,7 @@ def test_mcp_service_ranks_http_mutation_verification_offline() -> None:
 
 
 def test_mcp_service_preflights_full_reservation_table_without_mutating() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.get_address_reservations.return_value = AddressReservationTable(
         (AddressReservation("AA:BB:CC:DD:EE:01", "192.168.68.10"),),
@@ -2556,7 +2615,7 @@ def test_mcp_service_preflights_full_reservation_table_without_mutating() -> Non
 
 
 def test_mcp_service_preflights_noop_reservation_modify_with_rollback() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     reservation = AddressReservation("AA:BB:CC:DD:EE:01", "192.168.68.10")
     client = mock.Mock()
     client.get_address_reservations.return_value = AddressReservationTable((reservation,), 64)
@@ -2574,7 +2633,7 @@ def test_mcp_service_preflights_noop_reservation_modify_with_rollback() -> None:
 
 
 def test_mcp_service_preflight_rejects_invalid_params_before_connecting() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with (
         mock.patch.object(service, "_get_client") as get_client,
@@ -2589,7 +2648,7 @@ def test_mcp_service_preflight_rejects_invalid_params_before_connecting() -> Non
 
 
 def test_mcp_service_reports_unknown_preflight_without_connecting() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
 
     with mock.patch.object(service, "_get_client") as get_client:
         result = service.preflight_mutation(
@@ -2605,7 +2664,7 @@ def test_mcp_service_reports_unknown_preflight_without_connecting() -> None:
 
 
 def test_mcp_service_preflights_wan_mode_and_returns_rollback() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"wan": {"mode": "dynamic_ip"}}})
 
     with mock.patch.object(service, "read_endpoint", return_value=response) as read_endpoint:
@@ -2634,7 +2693,7 @@ def test_mcp_service_preflights_boolean_wireless_toggles(
     target: bool,
     no_op: bool,
 ) -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"enable": current}})
 
     with mock.patch.object(service, "read_endpoint", return_value=response):
@@ -2646,7 +2705,7 @@ def test_mcp_service_preflights_boolean_wireless_toggles(
 
 
 def test_mcp_service_preflights_wireless_operation_mode() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     response = ApiResponse.from_api({"error_code": 0, "result": {"mode": "host"}})
 
     with mock.patch.object(service, "read_endpoint", return_value=response) as read_endpoint:
@@ -2662,7 +2721,7 @@ def test_mcp_service_preflights_wireless_operation_mode() -> None:
 
 
 def test_mcp_service_preflights_time_settings_and_blacklist() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     time_response = ApiResponse.from_api(
         {
             "error_code": 0,
@@ -2724,9 +2783,9 @@ def test_mcp_service_preflights_time_settings_and_blacklist() -> None:
 
 def test_mcp_service_discovers_and_closes() -> None:
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
-        DecoMcpService(_config()).get_clients_by_node()
+        DecoService(_config()).get_clients_by_node()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     probe = EndpointProbeResult(
         endpoint=get_endpoint("admin.component_control.switch_list.read"),
         status="supported",
@@ -2754,13 +2813,13 @@ def test_mcp_service_discovers_and_closes() -> None:
 
 
 def test_mcp_service_sensitive_schema_discovery_requires_gate() -> None:
-    service = DecoMcpService(_config())
-    with pytest.raises(PermissionError, match="DECO_MCP_ALLOW_SENSITIVE_READS"):
+    service = DecoService(_config())
+    with pytest.raises(PermissionError, match="DECO_ALLOW_SENSITIVE_READS"):
         service.discover_p9_sensitive_schemas()
-    with pytest.raises(PermissionError, match="DECO_MCP_ALLOW_SENSITIVE_READS"):
+    with pytest.raises(PermissionError, match="DECO_ALLOW_SENSITIVE_READS"):
         service.discover_all_sensitive_schemas()
 
-    service = DecoMcpService(_config(allow_sensitive_reads=True))
+    service = DecoService(_config(allow_sensitive_reads=True))
     observation = mock.Mock()
     client = mock.Mock()
     client.observe_endpoint_schema.return_value = observation
@@ -2785,7 +2844,7 @@ def test_mcp_service_sensitive_schema_discovery_requires_gate() -> None:
 
 
 def test_mcp_service_builds_value_free_compatibility_manifest() -> None:
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     probe = EndpointProbeResult(
         endpoint=get_endpoint("admin.network.performance.read"),
         status="supported",
@@ -2825,14 +2884,16 @@ def test_mcp_service_builds_value_free_compatibility_manifest() -> None:
 
 
 def test_mcp_service_connects_lazily_and_requires_password() -> None:
-    missing = McpConfig("192.0.2.1", "admin", "", 60.0)
+    missing = ServerConfig("192.0.2.1", "admin", "", 60.0)
     with pytest.raises(ValueError, match="DECO_PASSWORD"):
-        DecoMcpService(missing)._get_client()
+        DecoService(missing)._get_client()
 
-    service = DecoMcpService(_config())
+    service = DecoService(_config())
     client = mock.Mock()
     client.is_authenticated.side_effect = [False, True]
-    with mock.patch("tplink_deco_api.mcp.service.DecoClient", return_value=client) as client_type:
+    with mock.patch(
+        "tplink_deco_api.service.deco_service.DecoClient", return_value=client
+    ) as client_type:
         assert service._get_client() is client
         assert service._get_client() is client
 
@@ -2935,13 +2996,13 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     assert '"protocol_implemented": true' in str(tmp_opcodes_resource)
     assert "TMP_APPV2_OP_PLC_PAIR_GET" in str(tmp_opcodes_resource)
     assert '"candidate_count": 348' in str(tmp_mutations_resource)
-    assert '"execution_tool_exposed": true' in str(tmp_mutations_resource)
-    assert '"generic_execution_tool_exposed": false' in str(tmp_mutations_resource)
+    assert '"execution_available": true' in str(tmp_mutations_resource)
+    assert '"generic_execution_available": false' in str(tmp_mutations_resource)
     assert '"returned_count": 0' in str(tmp_verification_queue)
     assert '"verification_candidate_count": 0' in str(http_verification_queue)
     assert '"returned_count": 0' in str(http_verification_queue)
     assert "TMP_APPV2_OP_BEAMFORMING_SET" not in str(tmp_verification_queue)
-    assert '"all_positive_reads_have_agent_call_path": true' in str(coverage_resource)
+    assert '"all_positive_reads_have_caller_path": true' in str(coverage_resource)
     assert '"catalogued_read_without_transport_count": 0' in str(coverage_resource)
     assert '"returned_data_count": 55' in str(coverage_resource)
 
@@ -3013,7 +3074,7 @@ def test_streamable_http_server_is_authenticated_and_has_process_health() -> Non
         transport="streamable-http",
         server_host="0.0.0.0",
         server_port=8000,
-        public_url="http://192.0.2.10:8000/mcp",
+        mcp_public_url="http://192.0.2.10:8000/mcp",
         bearer_token="x" * 32,
         allowed_hosts=("testserver", "192.0.2.10:8000"),
         allowed_origins=("https://agent.example",),
@@ -3061,13 +3122,13 @@ def test_mcp_main_runs_configured_streamable_http_server() -> None:
     config = replace(
         _config(),
         transport="streamable-http",
-        public_url="http://192.0.2.10:8000/mcp",
+        mcp_public_url="http://192.0.2.10:8000/mcp",
         bearer_token="x" * 32,
         allowed_hosts=("192.0.2.10:8000",),
     )
     server = mock.Mock()
     with (
-        mock.patch("tplink_deco_api.mcp.server.McpConfig.from_env", return_value=config),
+        mock.patch("tplink_deco_api.mcp.server.ServerConfig.from_env", return_value=config),
         mock.patch("tplink_deco_api.mcp.server.create_server", return_value=server) as factory,
     ):
         main()

@@ -1,4 +1,4 @@
-"""Safety boundary between MCP tools and the Deco SDK."""
+"""Transport-neutral safety boundary over the Deco SDK."""
 
 from __future__ import annotations
 
@@ -32,7 +32,15 @@ from ..endpoint_catalog import (
     P9_PROFILE_OBSERVED_AT,
     get_endpoint,
 )
-from ..exceptions import ApiError, DecoError, TransportError
+from ..exceptions import (
+    ApiError,
+    ConfirmationError,
+    ControllerChangedError,
+    DecoError,
+    ExpiredPlanError,
+    TransportError,
+    UnknownPlanError,
+)
 from ..http_mutation_verification import (
     _HTTP_LIVE_PREFLIGHT_NAMES,
     build_http_mutation_verification_queue,
@@ -91,7 +99,7 @@ if TYPE_CHECKING:
         WlanBand,
         WlanConfig,
     )
-    from .config import McpConfig
+    from ..server.config import ServerConfig
 
 _P9_BINARY_READ_NAMES: tuple[str, ...] = (
     "admin.firmware.config.backup",
@@ -176,10 +184,10 @@ _SEMANTIC_PLAN_TTL_SECONDS = 300.0
 _LIVE_READ_ERRORS = (DecoError, OSError, TimeoutError, ValueError)
 
 
-class DecoMcpService:
-    """Authorize catalogued operations and reuse one authenticated router session."""
+class DecoService:
+    """Authorize semantic operations and reuse one authenticated router session."""
 
-    def __init__(self, config: McpConfig) -> None:
+    def __init__(self, config: ServerConfig) -> None:
         self._config = config
         self._client: DecoClient | None = None
         self._tmp_client: DecoTmpClient | None = None
@@ -259,7 +267,7 @@ class DecoMcpService:
                     "support_status": support_status,
                     "readable": True,
                     "mutable": bool(related_mutations),
-                    "read_tool": "deco_get_capability",
+                    "read_operation": "get_capability",
                     "related_mutations": related_mutations,
                     "evidence_level": route.equivalence_evidence
                     if profile_match == "exact"
@@ -312,6 +320,21 @@ class DecoMcpService:
             "router_contacted": inventory["router_contacted"],
             "mutation_invoked": False,
         }
+
+    def semantic_mutation(self, name: str) -> dict[str, JsonValue]:
+        """Return one semantic mutation candidate without building the full catalogue."""
+        try:
+            operations = _SEMANTIC_MUTATION_OPERATIONS[name]
+        except KeyError as exc:
+            raise ValueError(
+                f"Failed to read semantic mutation: unknown mutation {name!r}"
+            ) from exc
+        inventory = self.device_inventory()
+        return self._semantic_mutation_entry(
+            name,
+            operations,
+            _json_string(inventory, "profile_match"),
+        )
 
     def _semantic_mutation_entry(
         self,
@@ -377,8 +400,8 @@ class DecoMcpService:
             "preflight_available": bool(route and route.preflight_operation),
             "verification_available": exact_route,
             "rollback_available": exact_route,
-            "planner_tool": "deco_plan_mutation",
-            "executor_tool": "deco_execute_mutation" if exact_route else None,
+            "plan_operation": "plan_mutation",
+            "execute_operation": "execute_mutation" if exact_route else None,
             "blockers": blockers,
         }
 
@@ -460,7 +483,7 @@ class DecoMcpService:
         """Return normalized current per-device and aggregate traffic speeds."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read traffic: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read traffic: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         errors: list[dict[str, JsonValue]] = []
         traffic: JsonValue = None
@@ -709,18 +732,16 @@ class DecoMcpService:
             "schema_version": 1,
             "controller": inventory["controller"],
             **sections,
-            "related_resources": {
-                "status": "deco://status",
-                "mesh": "deco://mesh",
-                "client_devices": "deco://devices",
-                "active_client_devices": "deco://devices/active",
-                "blocked_client_devices": "deco://devices/blocked",
-                "traffic": "deco://traffic",
-                "address_reservations": "deco://address-reservations",
-                "logs": "deco://logs",
-                "capabilities": "deco://capabilities",
-                "mutations": "deco://mutations",
-            },
+            "related_sections": [
+                "status",
+                "mesh",
+                "client_devices",
+                "traffic",
+                "address_reservations",
+                "logs",
+                "capabilities",
+                "mutations",
+            ],
             "nickname": nickname,
             "nickname_status": nickname_status,
             "unavailable_sections": errors,
@@ -739,9 +760,9 @@ class DecoMcpService:
         return {
             "model": "P9",
             "router_contacted": False,
-            "agent_selects_protocol": False,
+            "caller_selects_protocol": False,
             "automatic_mutation_fallback": False,
-            "diagnostic_tools_exposed": self._config.expose_diagnostic_tools,
+            "diagnostics_exposed": self._config.expose_diagnostic_tools,
             "routes": [
                 {
                     **route.to_dict(),
@@ -785,7 +806,7 @@ class DecoMcpService:
             "all_environment_gates_enabled": all(gate_status.values()),
             "router_contacted": False,
             "mutation_invoked": False,
-            "agent_selects_protocol": False,
+            "caller_selects_protocol": False,
         }
 
     def plan_semantic_mutation(
@@ -796,6 +817,44 @@ class DecoMcpService:
         mode: str = "change",
     ) -> dict[str, JsonValue]:
         """Create a short-lived semantic mutation plan bound to this controller."""
+        assessment = self.preflight_semantic_mutation(name, changes, mode=mode)
+        execution_allowed = assessment["execution_allowed"] is True
+        plan_id: str | None = None
+        confirmation: str | None = None
+        expires_in_seconds: float | None = None
+        if execution_allowed:
+            route = get_mutation_capability_route(name)
+            plan_id = secrets.token_urlsafe(24)
+            confirmation = route.confirmation
+            expires_at = time.monotonic() + _SEMANTIC_PLAN_TTL_SECONDS
+            with self._lock:
+                controller_identity = self._controller_identity()
+                self._pending_mutation_plans[plan_id] = _PendingMutationPlan(
+                    plan_id=plan_id,
+                    mutation=name,
+                    mode=mode,
+                    confirmation=confirmation,
+                    controller_identity=controller_identity,
+                    expires_at=expires_at,
+                )
+            expires_in_seconds = _SEMANTIC_PLAN_TTL_SECONDS
+        assessment.update(
+            {
+                "plan_id": plan_id,
+                "expires_in_seconds": expires_in_seconds,
+                "required_confirmation": confirmation,
+            }
+        )
+        return assessment
+
+    def preflight_semantic_mutation(
+        self,
+        name: str,
+        changes: Mapping[str, JsonValue] | None,
+        *,
+        mode: str = "change",
+    ) -> dict[str, JsonValue]:
+        """Assess one semantic mutation without registering an execution plan."""
         if mode not in {"change", "verify_current_value_noop"}:
             raise ValueError(f"Failed to plan semantic mutation: unsupported mode {mode!r}")
         catalog = self.semantic_mutations()
@@ -829,24 +888,6 @@ class DecoMcpService:
             and catalog["profile_match"] == "exact"
             and all(self._mutation_gate_enabled(gate) for gate in route.required_environment_gates)
         )
-        plan_id: str | None = None
-        confirmation: str | None = None
-        expires_in_seconds: float | None = None
-        if execution_allowed and route is not None:
-            plan_id = secrets.token_urlsafe(24)
-            confirmation = route.confirmation
-            expires_at = time.monotonic() + _SEMANTIC_PLAN_TTL_SECONDS
-            with self._lock:
-                controller_identity = self._controller_identity()
-                self._pending_mutation_plans[plan_id] = _PendingMutationPlan(
-                    plan_id=plan_id,
-                    mutation=name,
-                    mode=mode,
-                    confirmation=confirmation,
-                    controller_identity=controller_identity,
-                    expires_at=expires_at,
-                )
-            expires_in_seconds = _SEMANTIC_PLAN_TTL_SECONDS
         return {
             "schema_version": 1,
             "mutation": name,
@@ -857,9 +898,9 @@ class DecoMcpService:
             "validation_status": entry.get("validation_status"),
             "execution_scope": entry.get("execution_scope"),
             "execution_allowed": execution_allowed,
-            "plan_id": plan_id,
-            "expires_in_seconds": expires_in_seconds,
-            "required_confirmation": confirmation,
+            "plan_id": None,
+            "expires_in_seconds": None,
+            "required_confirmation": None,
             "required_gates": entry.get("required_gates"),
             "preflight_available": entry.get("preflight_available"),
             "verification_available": entry.get("verification_available"),
@@ -879,18 +920,18 @@ class DecoMcpService:
         with self._lock:
             plan = self._pending_mutation_plans.get(plan_id)
             if plan is None:
-                raise PermissionError("Failed to execute semantic mutation: unknown plan ID")
+                raise UnknownPlanError("Failed to execute semantic mutation: unknown plan ID")
             if time.monotonic() > plan.expires_at:
                 del self._pending_mutation_plans[plan_id]
-                raise PermissionError("Failed to execute semantic mutation: plan has expired")
+                raise ExpiredPlanError("Failed to execute semantic mutation: plan has expired")
             if confirmation != plan.confirmation:
-                raise PermissionError(
+                raise ConfirmationError(
                     "Failed to execute semantic mutation: exact plan confirmation is required"
                 )
             self.device_inventory(refresh=True)
             if self._controller_identity() != plan.controller_identity:
                 del self._pending_mutation_plans[plan_id]
-                raise PermissionError(
+                raise ControllerChangedError(
                     "Failed to execute semantic mutation: connected controller identity changed"
                 )
             del self._pending_mutation_plans[plan_id]
@@ -906,6 +947,26 @@ class DecoMcpService:
             }
         )
         return result
+
+    def semantic_mutation_plan(self, plan_id: str) -> dict[str, JsonValue]:
+        """Return the current status of one pending semantic mutation plan."""
+        with self._lock:
+            plan = self._pending_mutation_plans.get(plan_id)
+            if plan is None:
+                raise UnknownPlanError("Failed to read semantic mutation plan: unknown plan ID")
+            remaining = plan.expires_at - time.monotonic()
+            if remaining <= 0:
+                del self._pending_mutation_plans[plan_id]
+                raise ExpiredPlanError("Failed to read semantic mutation plan: plan has expired")
+            return {
+                "schema_version": 1,
+                "plan_id": plan.plan_id,
+                "mutation": plan.mutation,
+                "mode": plan.mode,
+                "status": "pending",
+                "expires_in_seconds": remaining,
+                "fallback_policy": "none",
+            }
 
     def _controller_identity(self) -> str:
         devices = self._device_cache
@@ -962,17 +1023,17 @@ class DecoMcpService:
                 "selected_operation": route.operation,
                 "fallback_policy": "none",
                 "fallback_used": False,
-                "agent_selected_protocol": False,
+                "caller_selected_protocol": False,
             }
         )
         return evidence
 
     def _mutation_gate_enabled(self, gate: str) -> bool:
         states = {
-            "DECO_MCP_ALLOW_MUTATIONS": self._config.allow_mutations,
-            "DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION": (self._config.allow_http_noop_verification),
-            "DECO_MCP_ALLOW_TMP_READS": self._config.allow_tmp_reads,
-            "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION": (self._config.allow_tmp_noop_verification),
+            "DECO_ALLOW_MUTATIONS": self._config.allow_mutations,
+            "DECO_ALLOW_HTTP_NOOP_VERIFICATION": (self._config.allow_http_noop_verification),
+            "DECO_ALLOW_TMP_READS": self._config.allow_tmp_reads,
+            "DECO_ALLOW_TMP_NOOP_VERIFICATION": (self._config.allow_tmp_noop_verification),
         }
         return states[gate]
 
@@ -984,7 +1045,7 @@ class DecoMcpService:
             raise ValueError(f"Failed to read capability: unknown capability {name!r}") from exc
         if route.sensitivity == "secret" and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read capability: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to read capability: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         self.device_inventory()
         attempts: list[dict[str, JsonValue]] = []
@@ -1105,9 +1166,7 @@ class DecoMcpService:
     def tmp_read(self, opcode: int, params: JsonValue = None) -> JsonObject:
         """Invoke a gated read-only TMP opcode with exact P9 evidence checks."""
         if not self._config.allow_tmp_reads:
-            raise PermissionError(
-                "Failed to read TMP operation: DECO_MCP_ALLOW_TMP_READS is disabled"
-            )
+            raise PermissionError("Failed to read TMP operation: DECO_ALLOW_TMP_READS is disabled")
         try:
             operation = get_tmp_opcode(opcode)
         except KeyError as exc:
@@ -1120,7 +1179,7 @@ class DecoMcpService:
             )
         if operation.sensitivity == "secret" and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read TMP operation: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to read TMP operation: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         if operation.p9_observation in {"rejected", "payload_rejected"}:
             raise PermissionError(
@@ -1128,11 +1187,11 @@ class DecoMcpService:
             )
         if operation.p9_observation == "returned_binary":
             raise PermissionError(
-                "Failed to read TMP operation: use the binary TMP read tool for this opcode"
+                "Failed to read TMP operation: use the binary TMP read operation for this opcode"
             )
         if operation.p9_observation == "untested" and not self._config.allow_unverified_tmp_reads:
             raise PermissionError(
-                "Failed to read TMP operation: DECO_MCP_ALLOW_UNVERIFIED_TMP_READS is disabled"
+                "Failed to read TMP operation: DECO_ALLOW_UNVERIFIED_TMP_READS is disabled"
             )
         _validate_tmp_read_params(operation.p9_confirmed_parameter_sets, params)
         with self._lock:
@@ -1148,7 +1207,7 @@ class DecoMcpService:
         """Invoke an observed binary TMP read and return digest metadata by default."""
         if not self._config.allow_tmp_reads:
             raise PermissionError(
-                "Failed to read binary TMP operation: DECO_MCP_ALLOW_TMP_READS is disabled"
+                "Failed to read binary TMP operation: DECO_ALLOW_TMP_READS is disabled"
             )
         try:
             operation = get_tmp_opcode(opcode)
@@ -1166,13 +1225,12 @@ class DecoMcpService:
             )
         if include_content and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read binary TMP operation: content requires "
-                "DECO_MCP_ALLOW_SENSITIVE_READS=1"
+                "Failed to read binary TMP operation: content requires DECO_ALLOW_SENSITIVE_READS=1"
             )
         if include_content and not self._config.allow_binary_content:
             raise PermissionError(
                 "Failed to read binary TMP operation: content export requires "
-                "DECO_MCP_ALLOW_BINARY_CONTENT=1"
+                "DECO_ALLOW_BINARY_CONTENT=1"
             )
         envelope: dict[str, JsonValue] = {
             "configVersion": time.time_ns() // 1_000_000,
@@ -1198,16 +1256,15 @@ class DecoMcpService:
             )
         if not self._config.allow_mutations:
             raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: DECO_MCP_ALLOW_MUTATIONS is disabled"
+                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_MUTATIONS is disabled"
             )
         if not self._config.allow_tmp_reads:
             raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: DECO_MCP_ALLOW_TMP_READS is disabled"
+                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_TMP_READS is disabled"
             )
         if not self._config.allow_tmp_noop_verification:
             raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: "
-                "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION is disabled"
+                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_TMP_NOOP_VERIFICATION is disabled"
             )
         plan = build_tmp_mutation_plan(0x4209)
         if not plan.complete_safety_contract or plan.p9_mutation_observation != "verified_noop":
@@ -1232,9 +1289,9 @@ class DecoMcpService:
                 "model": "P9",
                 "execution_scope": "verified_current_value_noop_only",
                 "runtime_gates": [
-                    "DECO_MCP_ALLOW_MUTATIONS",
-                    "DECO_MCP_ALLOW_TMP_READS",
-                    "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                    "DECO_ALLOW_MUTATIONS",
+                    "DECO_ALLOW_TMP_READS",
+                    "DECO_ALLOW_TMP_NOOP_VERIFICATION",
                 ],
                 "generic_tmp_mutation_supported": False,
                 "requires_attention": not result.verified_noop,
@@ -1249,16 +1306,16 @@ class DecoMcpService:
             )
         if not self._config.allow_mutations:
             raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: DECO_MCP_ALLOW_MUTATIONS is disabled"
+                "Failed to verify TMP monthly-report no-op: DECO_ALLOW_MUTATIONS is disabled"
             )
         if not self._config.allow_tmp_reads:
             raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: DECO_MCP_ALLOW_TMP_READS is disabled"
+                "Failed to verify TMP monthly-report no-op: DECO_ALLOW_TMP_READS is disabled"
             )
         if not self._config.allow_tmp_noop_verification:
             raise PermissionError(
                 "Failed to verify TMP monthly-report no-op: "
-                "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION is disabled"
+                "DECO_ALLOW_TMP_NOOP_VERIFICATION is disabled"
             )
         plan = build_tmp_mutation_plan(0x4223)
         if not plan.complete_safety_contract or plan.p9_mutation_observation != "verified_noop":
@@ -1281,9 +1338,9 @@ class DecoMcpService:
                 "model": "P9",
                 "execution_scope": "verified_current_value_noop_only",
                 "runtime_gates": [
-                    "DECO_MCP_ALLOW_MUTATIONS",
-                    "DECO_MCP_ALLOW_TMP_READS",
-                    "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                    "DECO_ALLOW_MUTATIONS",
+                    "DECO_ALLOW_TMP_READS",
+                    "DECO_ALLOW_TMP_NOOP_VERIFICATION",
                 ],
                 "generic_tmp_mutation_supported": False,
                 "requires_attention": not result.verified_noop,
@@ -1306,11 +1363,11 @@ class DecoMcpService:
             )
         if not self._config.allow_mutations:
             raise PermissionError(
-                "Failed to verify P9 HTTP no-op: DECO_MCP_ALLOW_MUTATIONS is disabled"
+                "Failed to verify P9 HTTP no-op: DECO_ALLOW_MUTATIONS is disabled"
             )
         if not self._config.allow_http_noop_verification:
             raise PermissionError(
-                "Failed to verify P9 HTTP no-op: DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION is disabled"
+                "Failed to verify P9 HTTP no-op: DECO_ALLOW_HTTP_NOOP_VERIFICATION is disabled"
             )
         compatibility = P9_COMPATIBILITY_PROFILE.get(operation)
         if (
@@ -1340,8 +1397,8 @@ class DecoMcpService:
                 "model": "P9",
                 "execution_scope": "verified_current_value_noop_only",
                 "runtime_gates": [
-                    "DECO_MCP_ALLOW_MUTATIONS",
-                    "DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION",
+                    "DECO_ALLOW_MUTATIONS",
+                    "DECO_ALLOW_HTTP_NOOP_VERIFICATION",
                 ],
                 "generic_http_noop_execution_supported": False,
                 "requires_attention": not result.verified_noop,
@@ -1357,16 +1414,16 @@ class DecoMcpService:
         """Probe bounded parameterized TMP reads without returning source values."""
         if not self._config.allow_tmp_reads:
             raise PermissionError(
-                "Failed to discover TMP read contracts: DECO_MCP_ALLOW_TMP_READS is disabled"
+                "Failed to discover TMP read contracts: DECO_ALLOW_TMP_READS is disabled"
             )
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to discover TMP read contracts: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to discover TMP read contracts: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         if include_inferred_iot_module_contract and not self._config.allow_unverified_tmp_reads:
             raise PermissionError(
                 "Failed to discover inferred TMP read contract: "
-                "DECO_MCP_ALLOW_UNVERIFIED_TMP_READS is disabled"
+                "DECO_ALLOW_UNVERIFIED_TMP_READS is disabled"
             )
         with self._lock:
             return probe_tmp_read_contracts(
@@ -1383,17 +1440,16 @@ class DecoMcpService:
         """Probe newly catalogued reads while retaining only schemas and error codes."""
         if not self._config.allow_tmp_reads:
             raise PermissionError(
-                "Failed to discover unverified TMP reads: DECO_MCP_ALLOW_TMP_READS is disabled"
+                "Failed to discover unverified TMP reads: DECO_ALLOW_TMP_READS is disabled"
             )
         if not self._config.allow_unverified_tmp_reads:
             raise PermissionError(
                 "Failed to discover unverified TMP reads: "
-                "DECO_MCP_ALLOW_UNVERIFIED_TMP_READS is disabled"
+                "DECO_ALLOW_UNVERIFIED_TMP_READS is disabled"
             )
         if include_sensitive and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to discover unverified TMP reads: "
-                "DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to discover unverified TMP reads: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         with self._lock:
             return probe_tmp_unverified_reads(
@@ -1410,12 +1466,10 @@ class DecoMcpService:
     ) -> dict[str, JsonValue]:
         """Return all positively observed TMP JSON data in an optional category."""
         if not self._config.allow_tmp_reads:
-            raise PermissionError(
-                "Failed to read P9 TMP data: DECO_MCP_ALLOW_TMP_READS is disabled"
-            )
+            raise PermissionError("Failed to read P9 TMP data: DECO_ALLOW_TMP_READS is disabled")
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read P9 TMP data: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to read P9 TMP data: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         categories = {opcode.category for opcode in TMP_OPCODE_CATALOG}
         if category and category not in categories:
@@ -1568,7 +1622,7 @@ class DecoMcpService:
                     "confirmed_parameter_sets": [
                         list(parameter_set) for parameter_set in opcode.p9_confirmed_parameter_sets
                     ],
-                    "call_tool": "deco_tmp_read",
+                    "read_operation": "tmp_read",
                 }
                 for opcode in skipped_parameterized
             ],
@@ -1622,7 +1676,7 @@ class DecoMcpService:
                 ),
                 "content_export_gate_required": True,
                 "content_export_gate_enabled": self._config.allow_binary_content,
-                "digest_discovery_tool": "deco_discover_p9_binary_reads",
+                "digest_discovery_operation": "discover_p9_binary_reads",
                 "binary_content_returned_by_discovery": False,
             },
             "tmp_appv2": {
@@ -1759,12 +1813,10 @@ class DecoMcpService:
             "catalog_version": CATALOG_VERSION,
             "offline": True,
             "router_contacted": False,
-            "unified_agent_surface": {
+            "unified_semantic_surface": {
                 "capability_count": len(CAPABILITY_ROUTES),
                 "mutation_capability_count": len(MUTATION_CAPABILITY_ROUTES),
-                "default_tool_count": 5,
-                "diagnostic_tool_count": 48,
-                "agent_selects_protocol": False,
+                "caller_selects_protocol": False,
                 "automatic_fallback_scope": "proven_equivalent_reads_only",
                 "automatic_mutation_fallback": False,
                 "routes": [route.to_dict() for route in CAPABILITY_ROUTES],
@@ -1839,11 +1891,11 @@ class DecoMcpService:
                 "safe_untested_json_operations": list(http_safe_untested),
                 "catalogued_read_without_transport_count": len(http_without_transport),
                 "catalogued_read_without_transport": list(http_without_transport),
-                "access_tools": [
-                    "deco_read_endpoint",
-                    "deco_read_binary_endpoint",
-                    "deco_discover_p9_binary_reads",
-                    "deco_get_p9_http_data",
+                "access_operations": [
+                    "read_endpoint",
+                    "read_binary_endpoint",
+                    "discover_p9_binary_reads",
+                    "get_p9_http_data",
                 ],
             },
             "tmp": {
@@ -1881,12 +1933,12 @@ class DecoMcpService:
                 "appv2_rejected_operations": [opcode.name for opcode in tmp_rejected],
                 "untested_read_count": len(tmp_untested),
                 "all_reads_tested": not tmp_untested,
-                "access_tools": [
-                    "deco_tmp_read",
-                    "deco_tmp_read_binary",
-                    "deco_get_p9_tmp_data",
-                    "deco_discover_tmp_read_contracts",
-                    "deco_discover_tmp_unverified_reads",
+                "access_operations": [
+                    "tmp_read",
+                    "tmp_read_binary",
+                    "get_p9_tmp_data",
+                    "discover_tmp_read_contracts",
+                    "discover_tmp_unverified_reads",
                 ],
             },
             "mutations": {
@@ -1894,10 +1946,10 @@ class DecoMcpService:
                     "p9_candidate_count": http_mutations["candidate_count"],
                     "tested_count": http_mutations["mutation_tested_count"],
                     "execution_eligible_count": http_mutations["execution_eligible_count"],
-                    "execution_tool_exposed": True,
+                    "execution_available": True,
                     "execution_policy": "general_scope_model_evidence_required",
                     "verification_candidate_count": http_mutations["verification_candidate_count"],
-                    "verification_queue_tool": ("deco_p9_http_mutation_verification_queue"),
+                    "verification_queue_operation": "p9_http_mutation_verification_queue",
                     "scoped_noop_operation_count": http_mutations["scoped_noop_operation_count"],
                     "scoped_noop_runtime_gate_enabled": http_mutations[
                         "scoped_noop_runtime_gate_enabled"
@@ -1905,7 +1957,7 @@ class DecoMcpService:
                     "scoped_noop_execution_eligible_count": http_mutations[
                         "scoped_noop_execution_eligible_count"
                     ],
-                    "scoped_noop_tools": http_mutations["scoped_noop_tools"],
+                    "scoped_noop_executors": http_mutations["scoped_noop_executors"],
                 },
                 "tmp": {
                     "candidate_count": tmp_mutations["candidate_count"],
@@ -1931,32 +1983,28 @@ class DecoMcpService:
                         "preflight_candidate_key_coverage_blocked_count"
                     ],
                     "execution_eligible_count": tmp_mutations["execution_eligible_count"],
-                    "execution_tool_exposed": tmp_mutations["execution_tool_exposed"],
-                    "generic_execution_tool_exposed": tmp_mutations[
-                        "generic_execution_tool_exposed"
-                    ],
-                    "scoped_noop_tool_count": tmp_mutations["scoped_noop_tool_count"],
+                    "execution_available": tmp_mutations["execution_available"],
+                    "generic_execution_available": tmp_mutations["generic_execution_available"],
+                    "scoped_noop_executor_count": tmp_mutations["scoped_noop_executor_count"],
                     "scoped_noop_runtime_gate_enabled": tmp_mutations[
                         "scoped_noop_runtime_gate_enabled"
                     ],
-                    "scoped_noop_tools": [
-                        "deco_verify_setting_noop",
-                        "deco_verify_tmp_ieee80211r_noop",
+                    "scoped_noop_executors": [
+                        "verify_setting_noop",
+                        "verify_tmp_ieee80211r_noop",
                     ],
                     "verification_candidate_count": tmp_verification_queue[
                         "verification_candidate_count"
                     ],
                     "default_verification_queue_count": tmp_verification_queue["returned_count"],
-                    "verification_queue_tool": ("deco_p9_tmp_mutation_verification_queue"),
+                    "verification_queue_operation": "p9_tmp_mutation_verification_queue",
                 },
             },
             "invariants": {
-                "all_positive_http_reads_have_agent_call_path": positive_http_paths,
-                "all_positive_tmp_reads_have_agent_call_path": positive_tmp_paths,
+                "all_positive_http_reads_have_caller_path": positive_http_paths,
+                "all_positive_tmp_reads_have_caller_path": positive_tmp_paths,
                 "all_positive_tmp_json_reads_have_batch_path": True,
-                "all_positive_reads_have_agent_call_path": (
-                    positive_http_paths and positive_tmp_paths
-                ),
+                "all_positive_reads_have_caller_path": (positive_http_paths and positive_tmp_paths),
                 "all_tmp_reads_tested_on_p9": not tmp_untested,
                 "mutations_default_disabled": True,
                 "http_generic_noop_only_execution_absent": True,
@@ -1996,8 +2044,6 @@ class DecoMcpService:
                     "id": "p9_mcp_complete_tmp_batch_audit",
                     "artifact": ("docs/api-responses/p9-mcp-complete-tmp-batch-audit.json"),
                     "outcome": "55_of_55_datasets_succeeded_across_61_requests",
-                    "registered_tool_count": 43,
-                    "registered_resource_count": 9,
                     "mutation_invoked": False,
                     "response_values_retained": False,
                 },
@@ -2034,7 +2080,7 @@ class DecoMcpService:
                     ),
                     "next_action": (
                         "obtain explicit authorization, then run the opt-in inferred module "
-                        "variants through deco_discover_tmp_read_contracts"
+                        "variants through discover_tmp_read_contracts"
                     ),
                 },
                 *tmp_untested_gaps,
@@ -2044,7 +2090,7 @@ class DecoMcpService:
                     "gap": "P9 compatibility untested",
                     "next_action": (
                         "obtain explicit authorization, then run digest-only "
-                        "deco_discover_p9_binary_reads behind both bulk-secret gates"
+                        "discover_p9_binary_reads behind both bulk-secret gates"
                     ),
                 },
                 *http_transport_gaps,
@@ -2130,7 +2176,7 @@ class DecoMcpService:
         }
 
     def p9_tmp_mutation_inventory(self) -> dict[str, JsonValue]:
-        """Return TMP mutation evidence and the narrowly scoped MCP no-op path."""
+        """Return TMP mutation evidence and its narrowly scoped no-op executor."""
         plans = tuple(
             build_tmp_mutation_plan(opcode.code)
             for opcode in TMP_OPCODE_CATALOG
@@ -2148,8 +2194,8 @@ class DecoMcpService:
             if plan.code == 0x4209:
                 payload.update(
                     {
-                        "scoped_mcp_tool": "deco_verify_tmp_ieee80211r_noop",
-                        "scoped_mcp_execution_supported": True,
+                        "scoped_executor": "verify_tmp_ieee80211r_noop",
+                        "scoped_execution_supported": True,
                         "runtime_gate_enabled": scoped_noop_gate_enabled,
                         "execution_eligible": scoped_noop_gate_enabled,
                     }
@@ -2161,7 +2207,7 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
                         "live_verification_invoked": plan.p9_opcode_tested,
-                        "scoped_mcp_execution_supported": False,
+                        "scoped_execution_supported": False,
                         "runtime_gate_enabled": False,
                         "execution_eligible": False,
                     }
@@ -2173,9 +2219,9 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                         "live_verification_invoked": plan.p9_opcode_tested,
-                        "scoped_mcp_tool": "deco_verify_setting_noop",
-                        "scoped_mcp_capability": "monthly_report",
-                        "scoped_mcp_execution_supported": True,
+                        "scoped_executor": "verify_setting_noop",
+                        "scoped_capability": "monthly_report",
+                        "scoped_execution_supported": True,
                         "runtime_gate_enabled": scoped_noop_gate_enabled,
                         "execution_eligible": scoped_noop_gate_enabled,
                     }
@@ -2252,36 +2298,36 @@ class DecoMcpService:
             "mutation_tested_count": sum(plan.p9_opcode_tested for plan in plans),
             "complete_safety_contract_count": sum(plan.complete_safety_contract for plan in plans),
             "execution_eligible_count": 2 * int(scoped_noop_gate_enabled),
-            "execution_tool_exposed": True,
-            "generic_execution_tool_exposed": False,
-            "scoped_noop_tool_count": 2,
+            "execution_available": True,
+            "generic_execution_available": False,
+            "scoped_noop_executor_count": 2,
             "scoped_noop_runtime_gate_enabled": scoped_noop_gate_enabled,
             "scoped_noop_operations": [
                 {
                     "code": 0x4209,
                     "hex_code": "0x4209",
                     "name": "TMP_APPV2_OP_11R_SET",
-                    "tool": "deco_verify_tmp_ieee80211r_noop",
+                    "executor": "verify_tmp_ieee80211r_noop",
                     "execution_scope": "verified_current_value_noop_only",
                     "confirmation": TMP_IEEE80211R_NOOP_CONFIRMATION,
                     "required_environment_gates": [
-                        "DECO_MCP_ALLOW_MUTATIONS",
-                        "DECO_MCP_ALLOW_TMP_READS",
-                        "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                        "DECO_ALLOW_MUTATIONS",
+                        "DECO_ALLOW_TMP_READS",
+                        "DECO_ALLOW_TMP_NOOP_VERIFICATION",
                     ],
                 },
                 {
                     "code": 0x4223,
                     "hex_code": "0x4223",
                     "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
-                    "tool": "deco_verify_setting_noop",
+                    "executor": "verify_setting_noop",
                     "capability": "monthly_report",
                     "execution_scope": "verified_current_value_noop_only",
                     "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                     "required_environment_gates": [
-                        "DECO_MCP_ALLOW_MUTATIONS",
-                        "DECO_MCP_ALLOW_TMP_READS",
-                        "DECO_MCP_ALLOW_TMP_NOOP_VERIFICATION",
+                        "DECO_ALLOW_MUTATIONS",
+                        "DECO_ALLOW_TMP_READS",
+                        "DECO_ALLOW_TMP_NOOP_VERIFICATION",
                     ],
                 },
             ],
@@ -2296,7 +2342,7 @@ class DecoMcpService:
                     "exact_confirmation_required": True,
                     "confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
                     "live_invoked": True,
-                    "mcp_execution_exposed": False,
+                    "execution_available": False,
                 },
                 {
                     "code": 0x4223,
@@ -2307,9 +2353,9 @@ class DecoMcpService:
                     "exact_confirmation_required": True,
                     "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                     "live_invoked": True,
-                    "mcp_execution_exposed": True,
-                    "mcp_tool": "deco_verify_setting_noop",
-                    "mcp_capability": "monthly_report",
+                    "execution_available": True,
+                    "executor": "verify_setting_noop",
+                    "capability": "monthly_report",
                 },
             ],
             "evidence": (
@@ -2355,7 +2401,7 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
                         "live_invoked": candidate.plan.p9_opcode_tested,
-                        "mcp_execution_exposed": False,
+                        "execution_available": False,
                     }
                 )
             elif candidate.plan.code == 0x4223:
@@ -2365,9 +2411,9 @@ class DecoMcpService:
                         "verification_harness_scope": "current_value_noop_only",
                         "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
                         "live_invoked": candidate.plan.p9_opcode_tested,
-                        "mcp_execution_exposed": True,
-                        "mcp_tool": "deco_verify_setting_noop",
-                        "mcp_capability": "monthly_report",
+                        "execution_available": True,
+                        "executor": "verify_setting_noop",
+                        "capability": "monthly_report",
                     }
                 )
             candidate_payloads.append(payload)
@@ -2398,7 +2444,7 @@ class DecoMcpService:
             "payloads_generated": False,
             "mutation_invoked": False,
             "execution_eligible_count": 0,
-            "execution_tool_exposed": False,
+            "execution_available": False,
             "candidates": candidate_payloads,
         }
 
@@ -2483,7 +2529,7 @@ class DecoMcpService:
         """Return a compact view of confirmed P9 network and reservation state."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read network overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read network overview: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -2561,7 +2607,7 @@ class DecoMcpService:
         """Return mesh-node state with clients queried separately for each node."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read mesh overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read mesh overview: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -2579,7 +2625,7 @@ class DecoMcpService:
         """Return WLAN state, omitting passwords unless the caller explicitly requests them."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read WLAN state: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read WLAN state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -2601,7 +2647,7 @@ class DecoMcpService:
         """Return observed DDNS and cloud-manager state behind the sensitive-read gate."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read cloud state: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read cloud state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         return {
             "ddns": self.read_endpoint("admin.cloud.ddns.get").result,
@@ -2612,7 +2658,7 @@ class DecoMcpService:
         """Return confirmed client, traffic, blacklist, and reservation state."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read client overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read client overview: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -2640,7 +2686,7 @@ class DecoMcpService:
         """Return confirmed speed-test, firmware, nickname, and log-type state."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read system overview: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read system overview: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -2936,16 +2982,16 @@ class DecoMcpService:
             "verification_tier_counts": dict(
                 sorted(Counter(candidate.tier for candidate in verification_queue).items())
             ),
-            "verification_queue_tool": "deco_p9_http_mutation_verification_queue",
-            "scoped_noop_tool_count": 2,
+            "verification_queue_operation": "p9_http_mutation_verification_queue",
+            "scoped_noop_executor_count": 2,
             "scoped_noop_operation_count": len(HTTP_NOOP_CONFIRMATIONS),
             "scoped_noop_runtime_gate_enabled": scoped_noop_gate_enabled,
             "scoped_noop_execution_eligible_count": (
                 len(HTTP_NOOP_CONFIRMATIONS) if scoped_noop_gate_enabled else 0
             ),
-            "scoped_noop_tools": [
-                "deco_verify_setting_noop",
-                "deco_verify_p9_http_noop",
+            "scoped_noop_executors": [
+                "verify_setting_noop",
+                "verify_p9_http_noop",
             ],
             "scoped_noop_operations": [
                 {
@@ -2954,8 +3000,8 @@ class DecoMcpService:
                     "confirmation": confirmation,
                     "execution_scope": "verified_current_value_noop_only",
                     "required_environment_gates": [
-                        "DECO_MCP_ALLOW_MUTATIONS",
-                        "DECO_MCP_ALLOW_HTTP_NOOP_VERIFICATION",
+                        "DECO_ALLOW_MUTATIONS",
+                        "DECO_ALLOW_HTTP_NOOP_VERIFICATION",
                     ],
                 }
                 for operation, confirmation in HTTP_NOOP_CONFIRMATIONS.items()
@@ -2966,7 +3012,7 @@ class DecoMcpService:
                 "plan_confirmation_required": True,
                 "exact_name_confirmation_required": True,
                 "runtime_safety_gate_required": True,
-                "noop_only_requires_scoped_tool": True,
+                "noop_only_requires_scoped_executor": True,
             },
             "candidates": candidates,
         }
@@ -3019,8 +3065,8 @@ class DecoMcpService:
             "payloads_generated": False,
             "mutation_invoked": False,
             "execution_eligible_count": 0,
-            "verification_execution_tool_exposed": False,
-            "generic_mutation_tool": "deco_invoke_mutation",
+            "verification_execution_available": False,
+            "generic_mutation_operation": "invoke_mutation",
             "generic_mutation_requires_general_scope_evidence": True,
             "candidates": [candidate.to_dict() for candidate in selected],
         }
@@ -3038,7 +3084,7 @@ class DecoMcpService:
             )
         if endpoint.sensitivity == "secret" and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read endpoint: sensitive reads require DECO_MCP_ALLOW_SENSITIVE_READS=1"
+                "Failed to read endpoint: sensitive reads require DECO_ALLOW_SENSITIVE_READS=1"
             )
         if not endpoint.generic_call_supported and not endpoint.bootstrap_call_supported:
             raise PermissionError(
@@ -3083,7 +3129,7 @@ class DecoMcpService:
             raise ValueError(f"Failed to read P9 HTTP data: unknown controller {controller!r}")
         if include_sensitive and not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read P9 HTTP data: DECO_MCP_ALLOW_SENSITIVE_READS is disabled"
+                "Failed to read P9 HTTP data: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
         in_scope = tuple(
             endpoint for endpoint in supported if not controller or endpoint.path == controller
@@ -3198,17 +3244,17 @@ class DecoMcpService:
         if endpoint.sensitivity == "secret" and not self._config.allow_sensitive_reads:
             raise PermissionError(
                 "Failed to read binary endpoint: sensitive reads require "
-                "DECO_MCP_ALLOW_SENSITIVE_READS=1"
+                "DECO_ALLOW_SENSITIVE_READS=1"
             )
         if not self._config.allow_bulk_secret_reads:
             raise PermissionError(
                 "Failed to read binary endpoint: bulk secret reads require "
-                "DECO_MCP_ALLOW_BULK_SECRET_READS=1"
+                "DECO_ALLOW_BULK_SECRET_READS=1"
             )
         if include_content and not self._config.allow_binary_content:
             raise PermissionError(
                 "Failed to read binary endpoint: content export requires "
-                "DECO_MCP_ALLOW_BINARY_CONTENT=1"
+                "DECO_ALLOW_BINARY_CONTENT=1"
             )
         with self._lock:
             client = self._get_client()
@@ -3225,12 +3271,12 @@ class DecoMcpService:
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
                 "Failed to discover P9 binary reads: sensitive reads require "
-                "DECO_MCP_ALLOW_SENSITIVE_READS=1"
+                "DECO_ALLOW_SENSITIVE_READS=1"
             )
         if not self._config.allow_bulk_secret_reads:
             raise PermissionError(
                 "Failed to discover P9 binary reads: bulk secret reads require "
-                "DECO_MCP_ALLOW_BULK_SECRET_READS=1"
+                "DECO_ALLOW_BULK_SECRET_READS=1"
             )
         results: list[dict[str, JsonValue]] = []
         for name in _P9_BINARY_READ_NAMES:
@@ -3284,7 +3330,7 @@ class DecoMcpService:
         endpoint = get_endpoint(name)
         if endpoint.safety == "read_only":
             raise PermissionError(
-                "Failed to mutate endpoint: use the read tool for read-only calls"
+                "Failed to mutate endpoint: use the read operation for read-only calls"
             )
         if confirmation != name:
             raise PermissionError(
@@ -3292,15 +3338,15 @@ class DecoMcpService:
             )
         if endpoint.safety == "mutation" and not self._config.allow_mutations:
             raise PermissionError(
-                "Failed to mutate endpoint: mutations require DECO_MCP_ALLOW_MUTATIONS=1"
+                "Failed to mutate endpoint: mutations require DECO_ALLOW_MUTATIONS=1"
             )
         if endpoint.safety == "destructive" and not self._config.allow_destructive:
             raise PermissionError(
-                "Failed to mutate endpoint: destructive calls require DECO_MCP_ALLOW_DESTRUCTIVE=1"
+                "Failed to mutate endpoint: destructive calls require DECO_ALLOW_DESTRUCTIVE=1"
             )
         if endpoint.safety == "internal" and not self._config.allow_internal:
             raise PermissionError(
-                "Failed to mutate endpoint: internal calls require DECO_MCP_ALLOW_INTERNAL=1"
+                "Failed to mutate endpoint: internal calls require DECO_ALLOW_INTERNAL=1"
             )
         if not endpoint.generic_call_supported:
             raise PermissionError(
@@ -3386,7 +3432,7 @@ class DecoMcpService:
     ) -> tuple[EndpointObservation, ...]:
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to discover sensitive schemas: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to discover sensitive schemas: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -3399,7 +3445,7 @@ class DecoMcpService:
         """Return client lists queried separately from every mesh node."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
-                "Failed to read clients by node: DECO_MCP_ALLOW_SENSITIVE_READS=1 is required"
+                "Failed to read clients by node: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
         with self._lock:
             client = self._get_client()
@@ -3880,7 +3926,7 @@ def _controller_model(value: JsonValue) -> str:
 def _json_string(value: Mapping[str, JsonValue], key: str) -> str:
     selected = value.get(key)
     if not isinstance(selected, str):
-        raise ValueError(f"Failed to read MCP resource: {key} is not a string")
+        raise ValueError(f"Failed to read service data: {key} is not a string")
     return selected
 
 

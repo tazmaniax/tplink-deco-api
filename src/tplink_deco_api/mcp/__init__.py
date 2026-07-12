@@ -1,8 +1,7 @@
-"""MCP server integration for capability-aware Deco access."""
+"""MCP transport adapter for capability-aware Deco access."""
 
 from __future__ import annotations
 
-from .config import McpConfig
-from .service import DecoMcpService
+from .server import create_server
 
-__all__ = ["DecoMcpService", "McpConfig"]
+__all__ = ["create_server"]

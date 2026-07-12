@@ -15,9 +15,9 @@ from starlette.responses import PlainTextResponse
 
 from .._json import JsonObject, JsonValue, loads
 from ..models import CompatibilityManifest
+from ..server import ServerConfig
+from ..service import DecoService
 from ._static_token_verifier import _StaticTokenVerifier
-from .config import McpConfig
-from .service import DecoMcpService
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -93,16 +93,24 @@ def _json_value(value_json: str) -> JsonValue:
     return cast("JsonValue", json.loads(value_json))
 
 
-def create_server(config: McpConfig | None = None) -> FastMCP[None]:
+def create_server(
+    config: ServerConfig | None = None,
+    service: DecoService | None = None,
+    *,
+    include_health_route: bool = True,
+    streamable_http_path: str | None = None,
+) -> FastMCP[None]:
     """Create a transport-configurable MCP server with conservative safety defaults."""
-    effective_config = config or McpConfig.from_env()
+    effective_config = config or ServerConfig.from_env()
     effective_config.validate_server()
-    service = DecoMcpService(effective_config)
+    effective_service = service or DecoService(effective_config)
+    owns_service = service is None
+    service = effective_service
     auth: AuthSettings | None = None
     token_verifier: _StaticTokenVerifier | None = None
     transport_security: TransportSecuritySettings | None = None
     if effective_config.transport == "streamable-http":
-        public_url = AnyHttpUrl(effective_config.public_url)
+        public_url = AnyHttpUrl(effective_config.mcp_public_url)
         auth = AuthSettings(
             issuer_url=public_url,
             resource_server_url=public_url,
@@ -110,7 +118,7 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         )
         token_verifier = _StaticTokenVerifier(
             effective_config.bearer_token,
-            effective_config.public_url,
+            effective_config.mcp_public_url,
         )
         transport_security = TransportSecuritySettings(
             enable_dns_rebinding_protection=True,
@@ -123,7 +131,8 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         try:
             yield
         finally:
-            service.close()
+            if owns_service:
+                effective_service.close()
 
     server = FastMCP(
         "TP-Link Deco",
@@ -145,13 +154,13 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
         lifespan=lifespan,
         host=effective_config.server_host,
         port=effective_config.server_port,
-        streamable_http_path=effective_config.streamable_http_path,
+        streamable_http_path=streamable_http_path or effective_config.mcp_path,
         auth=auth,
         token_verifier=token_verifier,
         transport_security=transport_security,
     )
 
-    if effective_config.transport == "streamable-http":
+    if effective_config.transport == "streamable-http" and include_health_route:
 
         async def health_resource(_: Request) -> PlainTextResponse:
             """Return process liveness without contacting or authenticating to the router."""
@@ -162,7 +171,7 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
     @server.resource("deco://diagnostics/operations")
     def endpoint_catalog_resource() -> str:
         """Return the non-secret endpoint catalogue as JSON."""
-        return _json_text(service.endpoint_catalog())
+        return _json_text(effective_service.endpoint_catalog())
 
     @server.resource("deco://mcp")
     def mcp_resource() -> str:
@@ -690,7 +699,7 @@ def create_server(config: McpConfig | None = None) -> FastMCP[None]:
 
 def main() -> None:
     """Run the Deco MCP server over the configured transport."""
-    config = McpConfig.from_env()
+    config = ServerConfig.from_env()
     create_server(config).run(transport=config.transport)
 
 
