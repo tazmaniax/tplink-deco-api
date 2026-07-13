@@ -178,7 +178,7 @@ firmware, source interface and operation. Schema-only evidence can justify a
 gated firmware-native semantic leaf, but not a normalized field-equivalence
 claim.
 
-## Current implementation gap
+## Current implementation
 
 Controller identity now resolves from cached state, HTTP discovery, or the
 gated, pinned-host-key TMP device-list bootstrap. The bootstrap records both
@@ -186,8 +186,16 @@ attempts, validates the controller shape before caching it, permits unknown-mode
 identity reporting, and does not authorize P9-specific reads for an unmatched
 profile.
 
-The current registry still has only six HTTP-primary, TMP-fallback read
-contracts. Most canonical resources call HTTP directly, and the positively
-observed TMP-only datasets remain diagnostic. Future routing work must migrate
-these paths toward this policy without weakening existing mutation or
-sensitivity controls.
+The current registry has six HTTP-primary, TMP-fallback read contracts. Mesh,
+network status, configuration, client devices and address reservations now use
+the semantic selection boundary. A compound resource binds itself to one
+data-producing interface: HTTP returns the richer documented sections, while a
+TMP cold start returns the validated overlapping sections plus explicit
+`SourceUnavailable` evidence for HTTP-only sections. It does not merge live
+values from both interfaces.
+
+Traffic, WLAN, cloud, logs and other datasets without a validated alternative
+remain HTTP-only. Positively observed TMP-only datasets also remain diagnostic
+until they receive dedicated semantic contracts and response models. The six
+overlap routes and migrated canonical resources are therefore still a subset of
+the wider design.

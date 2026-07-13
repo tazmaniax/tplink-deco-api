@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
@@ -24,6 +25,8 @@ from tplink_deco_api.mcp.server import create_server
 from tplink_deco_api.responses import (
     CapabilitiesResponse,
     CapabilityResponse,
+    ClientsResponse,
+    ConfigurationResponse,
     MeshResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
@@ -31,9 +34,13 @@ from tplink_deco_api.responses import (
     MutationPreflightResponse,
     MutationResponse,
     MutationsResponse,
+    NetworkStatusResponse,
 )
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
+
+if TYPE_CHECKING:
+    from tplink_deco_api._json import JsonObject
 
 
 def _config() -> ServerConfig:
@@ -58,6 +65,17 @@ def _device_payload(*, model: str = "P9") -> dict[str, str]:
         "hardware_ver": "2.0",
         "software_ver": "1.3.0 Build 20250804 Rel. 58832",
     }
+
+
+def _internet_payload() -> JsonObject:
+    ip_status = {
+        "inet_status": "connected",
+        "dial_status": "connected",
+        "connect_type": "dynamic",
+        "auto_detect_type": "dynamic",
+        "error_code": 0,
+    }
+    return {"ipv4": ip_status, "ipv6": ip_status, "link_status": "up"}
 
 
 def test_capability_registry_contains_only_read_fallbacks() -> None:
@@ -399,10 +417,206 @@ def test_capability_fallback_works_after_tmp_cold_start_bootstrap() -> None:
 
     assert result["data"] == {"enabled": True}
     assert result["provenance"]["source_interface"] == "tmp_appv2"
+    assert result["provenance"]["attempts"][0] == {
+        "interface": "http_luci",
+        "operation": "admin.wireless.beamforming.read",
+        "status": "skipped",
+        "reason": "identity_bootstrap_selected_tmp",
+    }
+    http_client.get_beamforming.assert_not_called()
     assert tmp_client.request_read_json.call_args_list == [
         mock.call(0x400F, None),
         mock.call(0x421B, None),
     ]
+
+
+def test_network_status_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": _internet_payload()},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        status = service.network_status_resource()
+
+    assert_response_contract(NetworkStatusResponse, status)
+    assert status["internet"]["link_status"] == "up"
+    assert status["provenance"]["source_interface"] == "tmp_appv2"
+    assert status["provenance"]["identity_attempts"][0] == {
+        "interface": "http_luci",
+        "operation": "admin.device.device_list.read",
+        "status": "error",
+        "error_type": "TransportError",
+    }
+    assert status["client_count_status"] == "gated"
+    assert status["unavailable_sections"] == [
+        {
+            "section": section,
+            "status": "unavailable",
+            "error_type": "SourceUnavailable",
+        }
+        for section in ("performance", "firmware", "speed_test")
+    ]
+    http_client.get_internet_status.assert_not_called()
+    http_client.get_performance.assert_not_called()
+    http_client.get_speed_test.assert_not_called()
+
+
+def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.get_internet_status.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": _internet_payload(),
+    }
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        status = service.network_status_resource()
+
+    assert_response_contract(NetworkStatusResponse, status)
+    assert status["internet"]["link_status"] == "up"
+    assert status["provenance"]["source_interface"] == "tmp_appv2"
+    assert status["provenance"]["fallback_used"] is True
+    assert status["provenance"]["attempts"][0]["status"] == "error"
+    assert {item["section"] for item in status["unavailable_sections"]} == {
+        "performance",
+        "firmware",
+        "speed_test",
+    }
+    http_client.get_performance.assert_not_called()
+    http_client.get_speed_test.assert_not_called()
+    tmp_client.request_read_json.assert_called_once_with(0x400C, None)
+
+
+def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": {"enable": True}},
+        {"error_code": 0, "result": {"enable": False}},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        configuration = service.configuration_resource()
+
+    assert_response_contract(ConfigurationResponse, configuration)
+    assert configuration["internet"]["link_status"] == "up"
+    assert configuration["wireless_features"] == {
+        "fast_roaming": {"enabled": True},
+        "beamforming": {"enabled": False},
+    }
+    assert configuration["provenance"]["source_interface"] == "tmp_appv2"
+    assert {item["section"] for item in configuration["unavailable_sections"]} == {
+        "operating_mode",
+        "wan_lan",
+        "dhcp",
+        "network_features",
+        "time_settings",
+        "wireless_operation_mode",
+        "bridge",
+    }
+    http_client.get_device_mode.assert_not_called()
+    http_client.get_internet_status.assert_not_called()
+    http_client.get_wireless_operation_mode.assert_not_called()
+
+
+def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {
+            "error_code": 0,
+            "result": {
+                "client_list": [
+                    {
+                        "mac": "AA:BB:CC:DD:EE:01",
+                        "ip": "192.0.2.10",
+                        "name": "VGVzdA==",
+                        "online": True,
+                    }
+                ]
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "reservation_list": [{"mac": "AA:BB:CC:DD:EE:01", "ip": "192.0.2.10"}],
+                "reservation_list_max_count": 64,
+            },
+        },
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        devices = service.client_devices_resource()
+
+    assert_response_contract(ClientsResponse, devices)
+    assert devices["provenance"]["source_interface"] == "tmp_appv2"
+    assert devices["devices"][0]["reserved"] is True
+    assert devices["devices"][0]["reservation_ip"] == "192.0.2.10"
+    assert devices["source_counts"] == {
+        "client_list": 1,
+        "node_client_assignments": 0,
+        "blocked_devices": 0,
+        "address_reservations": 1,
+    }
+    assert {item["section"] for item in devices["unavailable_sections"]} == {
+        "clients_by_node",
+        "blocked_devices",
+    }
+    http_client.get_client_list.assert_not_called()
+    http_client.get_clients_by_node.assert_not_called()
+    http_client.get_address_reservations.assert_not_called()
 
 
 def test_tmp_identity_bootstrap_requires_its_ordinary_read_gate() -> None:

@@ -13,7 +13,7 @@ import threading
 import time
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from .._json import get_bool, get_int, get_str
 from ..capability_routing import (
@@ -74,6 +74,7 @@ from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
 from ._device_inventory_resolution import _DeviceInventoryResolution
 from ._pending_mutation_plan import _PendingMutationPlan
+from ._resource_read_context import _ResourceReadContext
 
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
@@ -91,6 +92,7 @@ if TYPE_CHECKING:
         WlanBand,
         WlanConfig,
     )
+    from ..models.capability_route import CapabilityInterface
     from ..server.config import ServerConfig
 
 _P9_BINARY_READ_NAMES: tuple[str, ...] = (
@@ -512,24 +514,50 @@ class DecoService:
         if view not in valid_views:
             raise ValueError(f"Failed to read client devices: unknown view {view!r}")
         capability = self.read_capability("clients")
+        provenance = capability.get("provenance")
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Failed to read client devices: provenance is not an object")
+        source_interface = _json_string(provenance, "source_interface")
         errors: list[dict[str, JsonValue]] = []
         node_clients: tuple[NodeClientList, ...] = ()
         blocked_result: JsonValue = None
-        reservations = AddressReservationTable((), 0)
-        try:
-            node_clients = self.get_clients_by_node()
-        except _LIVE_READ_ERRORS as exc:
-            errors.append(_configuration_error("clients_by_node", exc))
-        with self._lock:
-            client = self._get_client()
+        reservation_rows: tuple[JsonObject, ...] = ()
+        if source_interface == "http_luci":
             try:
-                blocked_result = client.call(get_endpoint("admin.client.black_list.list")).result
+                node_clients = self.get_clients_by_node()
             except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("blocked_devices", exc))
+                errors.append(_configuration_error("clients_by_node", exc))
+            with self._lock:
+                client = self._get_client()
+                try:
+                    blocked_result = client.call(
+                        get_endpoint("admin.client.black_list.list")
+                    ).result
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("blocked_devices", exc))
+                try:
+                    reservations = client.get_address_reservations()
+                    reservation_rows = tuple(
+                        {"mac": reservation.mac, "ip": reservation.ip}
+                        for reservation in reservations.reservations
+                    )
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("address_reservations", exc))
+        elif source_interface == "tmp_appv2":
+            errors.extend(
+                (
+                    _source_unavailable("clients_by_node"),
+                    _source_unavailable("blocked_devices"),
+                )
+            )
             try:
-                reservations = client.get_address_reservations()
+                reservation_data = self._read_tmp_capability("address_reservations")
+                if isinstance(reservation_data, Mapping):
+                    reservation_rows = _mapping_rows(reservation_data, "entries")
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("address_reservations", exc))
+        else:
+            raise ValueError("Failed to read client devices: unknown source interface")
 
         records: dict[str, dict[str, JsonValue]] = {}
         client_rows = _json_rows(capability.get("data"))
@@ -546,8 +574,12 @@ class DecoService:
         if isinstance(blocked_result, Mapping):
             for row in _mapping_rows(blocked_result, "client_list"):
                 _merge_blocked_device(records, ClientDevice.from_api(row))
-        for reservation in reservations.reservations:
-            _merge_reserved_device(records, reservation.mac, reservation.ip)
+        for reservation in reservation_rows:
+            _merge_reserved_device(
+                records,
+                get_str(reservation, "mac"),
+                get_str(reservation, "ip"),
+            )
 
         devices = sorted(
             (record for record in records.values() if _device_record_matches_view(record, view)),
@@ -565,9 +597,9 @@ class DecoService:
                 "blocked_devices": len(_mapping_rows(blocked_result, "client_list"))
                 if isinstance(blocked_result, Mapping)
                 else 0,
-                "address_reservations": len(reservations.reservations),
+                "address_reservations": len(reservation_rows),
             },
-            "provenance": capability.get("provenance"),
+            "provenance": provenance,
             "unavailable_sections": errors,
             "observed_at_epoch_seconds": time.time(),
             "router_contacted": True,
@@ -680,6 +712,7 @@ class DecoService:
     def network_status_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live health summary without client identities or secrets."""
         inventory = self.device_inventory(refresh=True)
+        context = _resource_read_context(inventory)
         devices = self._device_cache or ()
         controller = _controller_device(devices)
         online_nodes = tuple(device for device in devices if _device_is_online(device))
@@ -696,31 +729,53 @@ class DecoService:
         speed_test: JsonValue = None
         client_count: JsonValue = None
         client_count_status = "gated"
-        with self._lock:
-            client = self._get_client()
-            try:
-                internet = _internet_status_view(client.get_internet_status())
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("internet", exc))
-            try:
-                observed_performance = client.get_performance()
-                performance = {
-                    "cpu_usage": observed_performance.cpu_usage,
-                    "memory_usage": observed_performance.mem_usage,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("performance", exc))
-            try:
-                firmware = client.call(get_endpoint("admin.cloud.firmware_status.read")).result
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("firmware", exc))
-            try:
-                speed_test = _speed_test_view(client.get_speed_test())
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("speed_test", exc))
+        try:
+            internet_capability = self.read_capability("internet_status")
+            internet = internet_capability.get("data")
+            context = _capability_read_context(internet_capability, inventory)
+        except _LIVE_READ_ERRORS as exc:
+            errors.append(_configuration_error("internet", exc))
+        if context.interface == "http_luci":
+            with self._lock:
+                client = self._get_client()
+                try:
+                    observed_performance = client.get_performance()
+                    performance = {
+                        "cpu_usage": observed_performance.cpu_usage,
+                        "memory_usage": observed_performance.mem_usage,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("performance", exc))
+                try:
+                    firmware = client.call(get_endpoint("admin.cloud.firmware_status.read")).result
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("firmware", exc))
+                try:
+                    speed_test = _speed_test_view(client.get_speed_test())
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("speed_test", exc))
+                if self._config.allow_sensitive_reads:
+                    try:
+                        client_count = len(
+                            _json_rows(self._read_resource_capability("clients", context))
+                        )
+                        client_count_status = "available"
+                    except _LIVE_READ_ERRORS as exc:
+                        client_count_status = "unavailable"
+                        errors.append(_configuration_error("client_count", exc))
+        else:
+            errors.extend(
+                (
+                    _source_unavailable("performance"),
+                    _source_unavailable("firmware"),
+                    _source_unavailable("speed_test"),
+                )
+            )
             if self._config.allow_sensitive_reads:
                 try:
-                    client_count = len(client.get_client_list())
+                    client_count = len(
+                        _json_rows(self._read_resource_capability("clients", context))
+                    )
                     client_count_status = "available"
                 except _LIVE_READ_ERRORS as exc:
                     client_count_status = "unavailable"
@@ -783,6 +838,7 @@ class DecoService:
             "speed_test": speed_test,
             "client_count": client_count,
             "client_count_status": client_count_status,
+            "provenance": context.provenance(),
             "warnings": warnings,
             "unavailable_sections": errors,
             "observed_at_epoch_seconds": time.time(),
@@ -795,81 +851,114 @@ class DecoService:
     def configuration_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live configuration overview without secret datasets."""
         inventory = self.device_inventory()
+        context = _resource_read_context(inventory)
         sections: dict[str, JsonValue] = {}
         errors: list[dict[str, JsonValue]] = []
         nickname: JsonValue = None
         nickname_status = "gated"
-        with self._lock:
-            client = self._get_client()
-            try:
-                mode = client.get_device_mode()
-                sections["operating_mode"] = {
-                    "workmode": mode.workmode,
-                    "sysmode": mode.sysmode,
-                    "region": mode.region,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("operating_mode", exc))
-            try:
-                sections["internet"] = _internet_status_view(client.get_internet_status())
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("internet", exc))
-            try:
-                wan_info = client.get_wan_info()
-                sections["wan"] = {
-                    "ip_info": _ip_info(wan_info.wan.ip_info),
-                    "dial_type": wan_info.wan.dial_type,
-                    "enable_auto_dns": wan_info.wan.enable_auto_dns,
-                }
-                sections["lan"] = {"ip_info": _ip_info(wan_info.lan.ip_info)}
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("wan_lan", exc))
-            try:
-                sections["dhcp"] = client.get_dhcp_info()
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("dhcp", exc))
-            try:
-                sections["network_features"] = {
-                    "wan_mode": client.call(get_endpoint("admin.network.wan_mode.read")).result,
-                    "lan_ipv4": client.get_lan_ipv4(),
-                    "lan_ip": client.get_lan_ip(),
-                    "vlan": client.call(get_endpoint("admin.network.vlan.read")).result,
-                    "mac_clone": client.call(get_endpoint("admin.network.mac_clone.read")).result,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("network_features", exc))
-            try:
-                time_settings = client.get_time_settings()
-                sections["time_settings"] = {
-                    "time": time_settings.time,
-                    "date": time_settings.date,
-                    "timezone": time_settings.timezone,
-                    "tz_region": time_settings.tz_region,
-                    "continent": time_settings.continent,
-                    "dst_status": time_settings.dst_status,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("time_settings", exc))
-            try:
-                sections["wireless_features"] = {
-                    "operation_mode": client.get_wireless_operation_mode(),
-                    "bridge": client.get_bridge_status(),
-                    "fast_roaming": _boolean_setting_view(client.get_fast_roaming()),
-                    "beamforming": _boolean_setting_view(client.get_beamforming()),
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("wireless_features", exc))
-            if self._config.allow_sensitive_reads:
+        try:
+            internet_capability = self.read_capability("internet_status")
+            sections["internet"] = internet_capability.get("data")
+            context = _capability_read_context(internet_capability, inventory)
+        except _LIVE_READ_ERRORS as exc:
+            errors.append(_configuration_error("internet", exc))
+        if context.interface == "http_luci":
+            with self._lock:
+                client = self._get_client()
                 try:
-                    nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
-                    nickname_status = "available"
+                    mode = client.get_device_mode()
+                    sections["operating_mode"] = {
+                        "workmode": mode.workmode,
+                        "sysmode": mode.sysmode,
+                        "region": mode.region,
+                    }
                 except _LIVE_READ_ERRORS as exc:
-                    nickname_status = "unavailable"
-                    errors.append(_configuration_error("nickname", exc))
+                    errors.append(_configuration_error("operating_mode", exc))
+                try:
+                    wan_info = client.get_wan_info()
+                    sections["wan"] = {
+                        "ip_info": _ip_info(wan_info.wan.ip_info),
+                        "dial_type": wan_info.wan.dial_type,
+                        "enable_auto_dns": wan_info.wan.enable_auto_dns,
+                    }
+                    sections["lan"] = {"ip_info": _ip_info(wan_info.lan.ip_info)}
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("wan_lan", exc))
+                try:
+                    sections["dhcp"] = client.get_dhcp_info()
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("dhcp", exc))
+                try:
+                    sections["network_features"] = {
+                        "wan_mode": client.call(get_endpoint("admin.network.wan_mode.read")).result,
+                        "lan_ipv4": client.get_lan_ipv4(),
+                        "lan_ip": client.get_lan_ip(),
+                        "vlan": client.call(get_endpoint("admin.network.vlan.read")).result,
+                        "mac_clone": client.call(
+                            get_endpoint("admin.network.mac_clone.read")
+                        ).result,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("network_features", exc))
+                try:
+                    time_settings = client.get_time_settings()
+                    sections["time_settings"] = {
+                        "time": time_settings.time,
+                        "date": time_settings.date,
+                        "timezone": time_settings.timezone,
+                        "tz_region": time_settings.tz_region,
+                        "continent": time_settings.continent,
+                        "dst_status": time_settings.dst_status,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("time_settings", exc))
+                try:
+                    sections["wireless_features"] = {
+                        "operation_mode": client.get_wireless_operation_mode(),
+                        "bridge": client.get_bridge_status(),
+                        "fast_roaming": self._read_resource_capability("fast_roaming", context),
+                        "beamforming": self._read_resource_capability("beamforming", context),
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("wireless_features", exc))
+                if self._config.allow_sensitive_reads:
+                    try:
+                        nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
+                        nickname_status = "available"
+                    except _LIVE_READ_ERRORS as exc:
+                        nickname_status = "unavailable"
+                        errors.append(_configuration_error("nickname", exc))
+        else:
+            errors.extend(
+                _source_unavailable(section)
+                for section in (
+                    "operating_mode",
+                    "wan_lan",
+                    "dhcp",
+                    "network_features",
+                    "time_settings",
+                    "wireless_operation_mode",
+                    "bridge",
+                )
+            )
+            wireless_features: dict[str, JsonValue] = {}
+            for capability_name in ("fast_roaming", "beamforming"):
+                try:
+                    wireless_features[capability_name] = self._read_resource_capability(
+                        capability_name, context
+                    )
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error(capability_name, exc))
+            if wireless_features:
+                sections["wireless_features"] = wireless_features
+            if self._config.allow_sensitive_reads:
+                nickname_status = "unavailable"
+                errors.append(_source_unavailable("nickname"))
         return {
             "schema_version": 1,
             "controller": inventory["controller"],
             **sections,
+            "provenance": context.provenance(),
             "related_sections": [
                 "status",
                 "mesh",
@@ -1205,6 +1294,31 @@ class DecoService:
                 identity_attempts,
                 fallback_used=get_bool(inventory, "fallback_used"),
             )
+        context = _resource_read_context(inventory)
+        if (
+            context.interface == "tmp_appv2"
+            and route.fallback_interface == "tmp_appv2"
+            and self._tmp_fallback_available(route.sensitivity)
+        ):
+            data = self._read_tmp_capability(name)
+            return _capability_response(
+                route,
+                data,
+                [
+                    {
+                        "interface": route.primary_interface,
+                        "operation": route.primary_operation,
+                        "status": "skipped",
+                        "reason": "identity_bootstrap_selected_tmp",
+                    },
+                    {
+                        "interface": route.fallback_interface,
+                        "operation": route.fallback_operation,
+                        "status": "ok",
+                    },
+                ],
+                fallback_used=True,
+            )
         attempts: list[dict[str, JsonValue]] = []
         try:
             data = self._read_http_capability(name)
@@ -1243,6 +1357,22 @@ class DecoService:
             }
         )
         return _capability_response(route, data, attempts, fallback_used=False)
+
+    def _read_resource_capability(
+        self,
+        name: str,
+        context: _ResourceReadContext,
+    ) -> JsonValue:
+        route = get_capability_route(name)
+        if route.sensitivity == "secret" and not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read resource capability: DECO_ALLOW_SENSITIVE_READS is disabled"
+            )
+        if context.interface == "http_luci":
+            return self._read_http_capability(name)
+        if not self._tmp_fallback_available(route.sensitivity):
+            raise PermissionError("Failed to read resource capability: TMP route is not eligible")
+        return self._read_tmp_capability(name)
 
     def _read_http_capability(self, name: str) -> JsonValue:
         with self._lock:
@@ -3639,6 +3769,40 @@ def _capability_response(
     }
 
 
+def _resource_read_context(
+    inventory: Mapping[str, JsonValue],
+) -> _ResourceReadContext:
+    interface = _json_string(inventory, "identity_interface")
+    if interface not in {"http_luci", "tmp_appv2"}:
+        raise ValueError("Failed to select resource interface: unknown identity interface")
+    return _ResourceReadContext(
+        interface=cast("CapabilityInterface", interface),
+        source_operation=_json_string(inventory, "identity_source"),
+        attempts=_json_rows(inventory.get("identity_attempts")),
+        identity_attempts=_json_rows(inventory.get("identity_attempts")),
+        fallback_used=get_bool(inventory, "fallback_used"),
+    )
+
+
+def _capability_read_context(
+    capability: Mapping[str, JsonValue],
+    inventory: Mapping[str, JsonValue],
+) -> _ResourceReadContext:
+    provenance = capability.get("provenance")
+    if not isinstance(provenance, Mapping):
+        raise ValueError("Failed to select resource interface: provenance is not an object")
+    interface = _json_string(provenance, "source_interface")
+    if interface not in {"http_luci", "tmp_appv2"}:
+        raise ValueError("Failed to select resource interface: unknown capability interface")
+    return _ResourceReadContext(
+        interface=cast("CapabilityInterface", interface),
+        source_operation=_json_string(provenance, "source_operation"),
+        attempts=_json_rows(provenance.get("attempts")),
+        identity_attempts=_json_rows(inventory.get("identity_attempts")),
+        fallback_used=get_bool(provenance, "fallback_used"),
+    )
+
+
 def _mapping_rows(data: Mapping[str, JsonValue], key: str) -> tuple[JsonObject, ...]:
     value = data.get(key)
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
@@ -4054,6 +4218,14 @@ def _configuration_error(section: str, error: BaseException) -> dict[str, JsonVa
         "section": section,
         "status": "unavailable",
         "error_type": type(error).__name__,
+    }
+
+
+def _source_unavailable(section: str) -> dict[str, JsonValue]:
+    return {
+        "section": section,
+        "status": "unavailable",
+        "error_type": "SourceUnavailable",
     }
 
 

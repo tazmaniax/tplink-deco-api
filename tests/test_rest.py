@@ -221,6 +221,14 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             speed_test=None,
             client_count=None,
             client_count_status="gated",
+            provenance={
+                "source_interface": "http_luci",
+                "source_operation": "admin.device.device_list.read",
+                "fallback_used": False,
+                "attempts": [],
+                "identity_attempts": [],
+                "single_source_interface": True,
+            },
             warnings=[],
             unavailable_sections=[],
             observed_at_epoch_seconds=1.0,
@@ -232,6 +240,14 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
         "configuration_resource": ConfigurationResponse(
             schema_version=1,
             controller={},
+            provenance={
+                "source_interface": "http_luci",
+                "source_operation": "admin.device.device_list.read",
+                "fallback_used": False,
+                "attempts": [],
+                "identity_attempts": [],
+                "single_source_interface": True,
+            },
             related_sections=[],
             nickname=None,
             nickname_status="gated",
@@ -484,6 +500,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         "controller",
         "internet",
         "mesh",
+        "provenance",
         "router_contacted",
         "mutation_invoked",
     }.issubset(schema["components"]["schemas"]["NetworkStatusResponse"]["required"])

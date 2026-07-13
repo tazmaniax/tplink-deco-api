@@ -1635,7 +1635,14 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
                 "online": False,
             },
         ],
-        "provenance": {},
+        "provenance": {
+            "source_interface": "http_luci",
+            "source_operation": "admin.client.client_list.read",
+            "fallback_used": False,
+            "fallback_policy": "equivalent_read_only",
+            "equivalence_evidence": "p9_live_client_contract",
+            "attempts": [],
+        },
         "mutation_invoked": False,
     }
     assigned_client = ClientDevice.from_api(

@@ -69,6 +69,11 @@ Resources are the canonical read-only state views:
 | `deco://capabilities` | Reads available for the connected controller. |
 | `deco://mutations` | Known mutation intents, evidence and eligibility. |
 
+Mesh, status, configuration, devices and reservations select their interface
+inside the service. HTTP supplies the richer response when available; an
+eligible TMP cold start returns the validated subset with provenance and
+explicit unavailable fields, without merging live data from both transports.
+
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer
 parameters or for actions:

@@ -81,6 +81,11 @@ a trusted network without TLS.
 
 Responses retain `schema_version` where the semantic service defines it.
 Private and secret responses must not be cached or persisted unintentionally.
+Status, configuration and client responses bind each read to one selected
+interface. If HTTP is unavailable at cold start and gated TMP routing is
+eligible, they return the validated TMP-backed subset with provenance and
+explicit unavailable-section evidence instead of mixing values from both
+interfaces.
 
 ## Response contracts
 
