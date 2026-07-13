@@ -50,11 +50,15 @@ transport, compatibility evidence and a conservative mutation workflow.
   sections when HTTP cannot establish the session
 * reused TMP after TMP identity bootstrap without repeating a known-unavailable
   HTTP capability attempt, while keeping unmatched models fail-closed
+* added validated traffic and blocked-client HTTP-to-TMP fallback while keeping
+  every compound device response bound to one selected interface
+* enriched TMP-backed device records with blocking and live speed data instead
+  of hiding those positively evidenced reads behind diagnostics
 * promoted ten positively evidenced TMP-only network datasets into default
   protocol-neutral MCP resources and REST routes without enabling diagnostics
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
-* added six bounded, positively evidenced read-only fallback contracts while
+* added eight bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
   matrices to an independently enabled diagnostic surface
@@ -141,7 +145,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 474 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 477 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

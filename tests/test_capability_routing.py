@@ -96,6 +96,8 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "address_reservations",
         "fast_roaming",
         "beamforming",
+        "traffic",
+        "blocked_clients",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -107,9 +109,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "sip_alg",
         "mac_clone",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:6])
-    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[6:])
-    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[6:])
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:8])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[8:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[8:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -151,7 +153,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 16
+    assert len(result["routes"]) == 18
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -320,6 +322,117 @@ def test_capability_read_does_not_fallback_when_tmp_gate_is_disabled() -> None:
         service.read_capability("beamforming")
 
     get_tmp_client.assert_not_called()
+
+
+def test_traffic_capability_normalizes_equivalent_http_and_tmp_contracts() -> None:
+    raw_traffic = {
+        "client_list_speed": [
+            {"mac": "aa-bb-cc-dd-ee-01", "up_speed": 10, "down_speed": 20},
+            {"mac": "aa-bb-cc-dd-ee-02", "up_speed": 30, "down_speed": 40},
+        ]
+    }
+    http_service = DecoService(replace(_config(), allow_sensitive_reads=True))
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.get_traffic_statistics.return_value = raw_traffic
+
+    with (
+        mock.patch.object(http_service, "_get_client", return_value=http_client),
+        mock.patch.object(http_service, "_get_tmp_client") as get_tmp_client,
+    ):
+        http_result = http_service.read_capability("traffic")
+
+    tmp_service = DecoService(
+        replace(
+            _config(),
+            allow_sensitive_reads=True,
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_http_client = mock.Mock()
+    tmp_http_client.get_device_list.return_value = [_p9_device()]
+    tmp_http_client.get_traffic_statistics.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": raw_traffic}
+
+    with (
+        mock.patch.object(tmp_service, "_get_client", return_value=tmp_http_client),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_result = tmp_service.read_capability("traffic")
+
+    assert (
+        http_result["data"]
+        == tmp_result["data"]
+        == {
+            "device_speeds": [
+                {"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20},
+                {"mac": "AA:BB:CC:DD:EE:02", "up_speed": 30, "down_speed": 40},
+            ],
+            "device_count": 2,
+            "aggregate_speed": {"up_speed": 40, "down_speed": 60},
+        }
+    )
+    assert http_result["provenance"]["source_interface"] == "http_luci"
+    assert tmp_result["provenance"]["source_interface"] == "tmp_appv2"
+    assert tmp_result["provenance"]["fallback_used"] is True
+    get_tmp_client.assert_not_called()
+    tmp_client.request_read_json.assert_called_once_with(0x4014, None)
+
+
+def test_blocked_client_capability_normalizes_equivalent_http_and_tmp_contracts() -> None:
+    raw_blocked = {
+        "client_list": [
+            {
+                "mac": "aa-bb-cc-dd-ee-03",
+                "name": "QmxvY2tlZA==",
+                "client_type": "iot",
+            }
+        ]
+    }
+    http_service = DecoService(replace(_config(), allow_sensitive_reads=True))
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.call.return_value = ApiResponse.from_api({"error_code": 0, "result": raw_blocked})
+
+    with mock.patch.object(http_service, "_get_client", return_value=http_client):
+        http_result = http_service.read_capability("blocked_clients")
+
+    tmp_service = DecoService(
+        replace(
+            _config(),
+            allow_sensitive_reads=True,
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": raw_blocked}
+
+    with (
+        mock.patch.object(
+            tmp_service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_result = tmp_service.read_capability("blocked_clients")
+
+    assert (
+        http_result["data"]
+        == tmp_result["data"]
+        == {
+            "devices": [{"mac": "AA:BB:CC:DD:EE:03", "name": "Blocked", "client_type": "iot"}],
+            "device_count": 1,
+        }
+    )
+    assert tmp_result["provenance"]["fallback_used"] is True
+    tmp_client.request_read_json.assert_called_once_with(0x4018, None)
 
 
 def test_secret_capability_requires_one_logical_gate_before_transport_selection() -> None:
@@ -614,6 +727,26 @@ def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> N
         {
             "error_code": 0,
             "result": {
+                "client_list": [
+                    {
+                        "mac": "AA:BB:CC:DD:EE:02",
+                        "name": "QmxvY2tlZA==",
+                        "client_type": "iot",
+                    }
+                ]
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "client_list_speed": [
+                    {"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20}
+                ]
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
                 "reservation_list": [{"mac": "AA:BB:CC:DD:EE:01", "ip": "192.0.2.10"}],
                 "reservation_list_max_count": 64,
             },
@@ -630,19 +763,80 @@ def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> N
     assert devices["provenance"]["source_interface"] == "tmp_appv2"
     assert devices["devices"][0]["reserved"] is True
     assert devices["devices"][0]["reservation_ip"] == "192.0.2.10"
+    assert devices["devices"][0]["up_speed"] == 10
+    blocked = next(record for record in devices["devices"] if record["blocked"] is True)
+    assert blocked["mac"] == "AA:BB:CC:DD:EE:02"
     assert devices["source_counts"] == {
         "client_list": 1,
         "node_client_assignments": 0,
-        "blocked_devices": 0,
+        "blocked_devices": 1,
+        "device_speeds": 1,
         "address_reservations": 1,
     }
-    assert {item["section"] for item in devices["unavailable_sections"]} == {
-        "clients_by_node",
-        "blocked_devices",
-    }
+    assert {item["section"] for item in devices["unavailable_sections"]} == {"clients_by_node"}
     http_client.get_client_list.assert_not_called()
     http_client.get_clients_by_node.assert_not_called()
     http_client.get_address_reservations.assert_not_called()
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x4012, None),
+        mock.call(0x4018, None),
+        mock.call(0x4014, None),
+        mock.call(0x40C0, None),
+    ]
+
+
+def test_http_device_enrichment_does_not_cross_transport_after_partial_failure() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    capability = {
+        "capability": "clients",
+        "schema_version": 1,
+        "data": [
+            {
+                "mac": "AA:BB:CC:DD:EE:01",
+                "ip": "192.0.2.10",
+                "name": "Test",
+                "online": True,
+            }
+        ],
+        "provenance": {
+            "source_interface": "http_luci",
+            "source_operation": "admin.client.client_list.read",
+            "fallback_used": False,
+            "fallback_policy": "equivalent_read_only",
+            "equivalence_evidence": "p9_live_schema_equivalence",
+            "attempts": [],
+        },
+        "mutation_invoked": False,
+    }
+    http_client = mock.Mock()
+    http_client.call.side_effect = TransportError("blacklist unavailable")
+    http_client.get_traffic_statistics.return_value = {
+        "client_list_speed": [{"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20}]
+    }
+    http_client.get_address_reservations.return_value = mock.Mock(reservations=())
+
+    with (
+        mock.patch.object(service, "read_capability", return_value=capability),
+        mock.patch.object(service, "get_clients_by_node", return_value=()),
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+    ):
+        devices = service.client_devices_resource()
+
+    assert_response_contract(ClientsResponse, devices)
+    assert devices["devices"][0]["up_speed"] == 10
+    assert devices["source_counts"]["blocked_devices"] == 0
+    assert devices["source_counts"]["device_speeds"] == 1
+    assert {item["section"] for item in devices["unavailable_sections"]} == {"blocked_devices"}
+    get_tmp_client.assert_not_called()
 
 
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
@@ -1164,7 +1358,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 16
+    assert capabilities["supported_count"] == 18
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1240,7 +1434,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 16
+    assert capabilities["unknown_count"] == 18
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 

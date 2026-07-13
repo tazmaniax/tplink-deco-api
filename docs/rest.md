@@ -91,11 +91,12 @@ a trusted network without TLS.
 
 Responses retain `schema_version` where the semantic service defines it.
 Private and secret responses must not be cached or persisted unintentionally.
-Status, configuration and client responses bind each read to one selected
-interface. If HTTP is unavailable at cold start and gated TMP routing is
-eligible, they return the validated TMP-backed subset with provenance and
+Status, configuration, client and traffic responses bind each read to one
+selected interface. If HTTP is unavailable at cold start and gated TMP routing
+is eligible, they return the validated TMP-backed subset with provenance and
 explicit unavailable-section evidence instead of mixing values from both
-interfaces.
+interfaces. Client blocking and speed enrichment stays on that selected
+interface; a failed subread never falls back across transports independently.
 The ten network and IPv6 routes are positively evidenced TMP-only semantic
 reads and do not require diagnostic tools to be exposed. They require the TMP
 gate; LAN, DHCP, port forwarding and the three IPv6 routes also require the

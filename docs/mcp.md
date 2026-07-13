@@ -217,7 +217,7 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current six HTTP-primary overlap routes,
+bootstrap now follows that policy; the current eight HTTP-primary overlap routes,
 ten TMP-only network routes and directly implemented canonical resources remain
 a transitional subset of the wider design.
 
@@ -238,11 +238,11 @@ System-log pages require both the sensitive gate and
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `provenance`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `provenance`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
-| `deco://devices` | Every known device normalized from client, per-node, block-list and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
 | `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
-| `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
 | `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/dhcp` | Current DHCP pool, gateway, DNS and address usage. | `schema_version`, `status`, `start_ip`, `end_ip`, `gateway`, `dns_servers`, `addresses_in_use`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
@@ -278,6 +278,11 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `active` or `inactive`; blocking is an independent access state. Each
 `device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
 `categories[]` item contains a firmware level `name` and `value`.
+The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
+normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
+fallback. `deco://devices` reads blocking, traffic and reservations only from
+the interface selected for its client inventory; a failed enrichment is marked
+unavailable rather than being filled from the other interface.
 Each `deco://devices/ipv6` device contains normalized `mac`, `ip`, decoded
 `name` and `client_type` fields. IPv6 firewall `rules[]` preserve the
 firmware-reported rule objects because the observed P9 table was empty and did

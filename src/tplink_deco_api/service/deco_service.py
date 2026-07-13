@@ -72,6 +72,7 @@ from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
+from ._client_read_normalization import normalize_blocked_clients, normalize_client_traffic
 from ._device_inventory_resolution import _DeviceInventoryResolution
 from ._ipv6_normalization import (
     normalize_ipv6_clients,
@@ -611,23 +612,25 @@ class DecoService:
         source_interface = _json_string(provenance, "source_interface")
         errors: list[dict[str, JsonValue]] = []
         node_clients: tuple[NodeClientList, ...] = ()
-        blocked_result: JsonValue = None
+        blocked_data: JsonValue = None
+        traffic_data: JsonValue = None
         reservation_rows: tuple[JsonObject, ...] = ()
         if source_interface == "http_luci":
             try:
                 node_clients = self.get_clients_by_node()
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("clients_by_node", exc))
+            try:
+                blocked_data = self._read_http_capability("blocked_clients")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("blocked_devices", exc))
+            try:
+                traffic_data = self._read_http_capability("traffic")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("device_speeds", exc))
             with self._lock:
-                client = self._get_client()
                 try:
-                    blocked_result = client.call(
-                        get_endpoint("admin.client.black_list.list")
-                    ).result
-                except _LIVE_READ_ERRORS as exc:
-                    errors.append(_configuration_error("blocked_devices", exc))
-                try:
-                    reservations = client.get_address_reservations()
+                    reservations = self._get_client().get_address_reservations()
                     reservation_rows = tuple(
                         {"mac": reservation.mac, "ip": reservation.ip}
                         for reservation in reservations.reservations
@@ -635,12 +638,15 @@ class DecoService:
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("address_reservations", exc))
         elif source_interface == "tmp_appv2":
-            errors.extend(
-                (
-                    _source_unavailable("clients_by_node"),
-                    _source_unavailable("blocked_devices"),
-                )
-            )
+            errors.append(_source_unavailable("clients_by_node"))
+            try:
+                blocked_data = self._read_tmp_capability("blocked_clients")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("blocked_devices", exc))
+            try:
+                traffic_data = self._read_tmp_capability("traffic")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("device_speeds", exc))
             try:
                 reservation_data = self._read_tmp_capability("address_reservations")
                 if isinstance(reservation_data, Mapping):
@@ -662,9 +668,12 @@ class DecoService:
                     "clients_by_node",
                     connected_node=node.node_mac,
                 )
-        if isinstance(blocked_result, Mapping):
-            for row in _mapping_rows(blocked_result, "client_list"):
-                _merge_blocked_device(records, ClientDevice.from_api(row))
+        if isinstance(blocked_data, Mapping):
+            for row in _mapping_rows(blocked_data, "devices"):
+                _merge_blocked_device(records, _normalized_client_device(row))
+        if isinstance(traffic_data, Mapping):
+            for row in _mapping_rows(traffic_data, "device_speeds"):
+                _merge_device_speed(records, row)
         for reservation in reservation_rows:
             _merge_reserved_device(
                 records,
@@ -685,8 +694,11 @@ class DecoService:
             "source_counts": {
                 "client_list": len(client_rows),
                 "node_client_assignments": sum(len(node.clients) for node in node_clients),
-                "blocked_devices": len(_mapping_rows(blocked_result, "client_list"))
-                if isinstance(blocked_result, Mapping)
+                "blocked_devices": len(_mapping_rows(blocked_data, "devices"))
+                if isinstance(blocked_data, Mapping)
+                else 0,
+                "device_speeds": len(_mapping_rows(traffic_data, "device_speeds"))
+                if isinstance(traffic_data, Mapping)
                 else 0,
                 "address_reservations": len(reservation_rows),
             },
@@ -703,32 +715,28 @@ class DecoService:
             raise PermissionError(
                 "Failed to read traffic: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
-        errors: list[dict[str, JsonValue]] = []
-        traffic: JsonValue = None
-        with self._lock:
-            try:
-                traffic = self._get_client().get_traffic_statistics()
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("device_speeds", exc))
-        rows = _mapping_rows(traffic, "client_list_speed") if isinstance(traffic, Mapping) else ()
-        device_speeds: list[dict[str, JsonValue]] = [
-            {
-                "mac": ClientDevice.from_api(row).mac,
-                "up_speed": _record_integer(row, "up_speed"),
-                "down_speed": _record_integer(row, "down_speed"),
+        try:
+            capability = self.read_capability("traffic")
+            data, provenance = _capability_resource_parts(capability, "traffic")
+        except _LIVE_READ_ERRORS as exc:
+            return {
+                "schema_version": 1,
+                "device_speeds": [],
+                "device_count": 0,
+                "aggregate_speed": {"up_speed": 0, "down_speed": 0},
+                "status": "unavailable",
+                "provenance": None,
+                "unavailable_sections": [_configuration_error("device_speeds", exc)],
+                "observed_at_epoch_seconds": time.time(),
+                "router_contacted": True,
+                "mutation_invoked": False,
             }
-            for row in rows
-        ]
         return {
             "schema_version": 1,
-            "device_speeds": device_speeds,
-            "device_count": len(device_speeds),
-            "aggregate_speed": {
-                "up_speed": sum(_record_integer(row, "up_speed") for row in rows),
-                "down_speed": sum(_record_integer(row, "down_speed") for row in rows),
-            },
-            "status": "available" if not errors else "unavailable",
-            "unavailable_sections": errors,
+            **dict(data),
+            "status": "available",
+            "provenance": dict(provenance),
+            "unavailable_sections": [],
             "observed_at_epoch_seconds": time.time(),
             "router_contacted": True,
             "mutation_invoked": False,
@@ -1509,6 +1517,15 @@ class DecoService:
                 return _boolean_setting_view(client.get_fast_roaming())
             if name == "beamforming":
                 return _boolean_setting_view(client.get_beamforming())
+            if name == "traffic":
+                return normalize_client_traffic(client.get_traffic_statistics())
+            if name == "blocked_clients":
+                result = client.call(get_endpoint("admin.client.black_list.list")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError(
+                        "Failed to read HTTP capability: blocked clients result is not an object"
+                    )
+                return normalize_blocked_clients(result)
         raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
 
     def _read_tmp_capability(self, name: str) -> JsonValue:
@@ -1519,6 +1536,8 @@ class DecoService:
             "address_reservations": 0x40C0,
             "fast_roaming": 0x4208,
             "beamforming": 0x421B,
+            "traffic": 0x4014,
+            "blocked_clients": 0x4018,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1550,6 +1569,10 @@ class DecoService:
             return _internet_status_view(InternetStatus.from_api(result))
         if name == "address_reservations":
             return _address_reservation_view(AddressReservationTable.from_api(result))
+        if name == "traffic":
+            return normalize_client_traffic(result)
+        if name == "blocked_clients":
+            return normalize_blocked_clients(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4051,6 +4074,19 @@ def _merge_blocked_device(
     _append_device_source(record, "blocked_devices")
 
 
+def _merge_device_speed(
+    records: dict[str, dict[str, JsonValue]],
+    speed: JsonObject,
+) -> None:
+    client = ClientDevice.from_api({"mac": get_str(speed, "mac")})
+    if not client.mac:
+        return
+    record = records.setdefault(client.mac, _client_device_record(client))
+    record["up_speed"] = get_int(speed, "up_speed")
+    record["down_speed"] = get_int(speed, "down_speed")
+    _append_device_source(record, "device_speeds")
+
+
 def _merge_reserved_device(
     records: dict[str, dict[str, JsonValue]],
     mac: str,
@@ -4359,6 +4395,8 @@ def _capability_category(name: str) -> str:
         "address_reservations": "clients",
         "fast_roaming": "wireless",
         "beamforming": "wireless",
+        "traffic": "clients",
+        "blocked_clients": "clients",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",

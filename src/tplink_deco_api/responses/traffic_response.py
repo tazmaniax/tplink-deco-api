@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
+from .._json import (  # noqa: TC001 - FastAPI resolves these annotations at runtime.
+    JsonObject,
+    JsonValue,
+)
 from .response_dto import ResponseDto
 
 
@@ -17,6 +20,7 @@ class TrafficResponse(ResponseDto):
     device_count: int
     aggregate_speed: JsonObject
     status: str
+    provenance: JsonValue
     unavailable_sections: list[JsonObject]
     observed_at_epoch_seconds: float
     router_contacted: bool

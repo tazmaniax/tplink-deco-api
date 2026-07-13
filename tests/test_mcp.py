@@ -463,7 +463,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 16
+    assert coverage["unified_semantic_surface"]["capability_count"] == 18
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -1615,6 +1615,9 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
         (AddressReservation("AA:BB:CC:DD:EE:04", "192.0.2.40"),),
         64,
     )
+    client.get_traffic_statistics.return_value = {
+        "client_list_speed": [{"mac": "AA:BB:CC:DD:EE:01", "up_speed": 50, "down_speed": 100}]
+    }
     capability = {
         "capability": "clients",
         "schema_version": 1,
@@ -1673,6 +1676,8 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
     assert records["AA:BB:CC:DD:EE:01"]["prioritized"] is True
     assert records["AA:BB:CC:DD:EE:03"]["blocked"] is True
     assert records["AA:BB:CC:DD:EE:03"]["access_status"] == "blocked"
+    assert records["AA:BB:CC:DD:EE:01"]["up_speed"] == 50
+    assert records["AA:BB:CC:DD:EE:01"]["down_speed"] == 100
     assert records["AA:BB:CC:DD:EE:04"]["reserved"] is True
     assert records["AA:BB:CC:DD:EE:04"]["reservation_ip"] == "192.0.2.40"
     assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
@@ -1694,6 +1699,7 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
 
     service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
+    client.get_device_list.return_value = [_p9_controller()]
     client.get_traffic_statistics.return_value = {
         "client_list_speed": [
             {"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20},
@@ -1714,6 +1720,7 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
     }
     assert traffic["aggregate_speed"] == {"up_speed": 40, "down_speed": 60}
     assert traffic["status"] == "available"
+    assert traffic["provenance"]["source_interface"] == "http_luci"
     assert traffic["unavailable_sections"] == []
 
 
