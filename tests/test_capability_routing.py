@@ -16,6 +16,7 @@ from tplink_deco_api import (
     ApiResponse,
     AuthenticationError,
     Device,
+    SpeedTest,
     TransportError,
     get_capability_route,
     get_mutation_capability_route,
@@ -26,6 +27,7 @@ from tplink_deco_api.responses import (
     CapabilitiesResponse,
     CapabilityResponse,
     ClientsResponse,
+    CloudResponse,
     ConfigurationResponse,
     DhcpConfigurationResponse,
     IptvConfigurationResponse,
@@ -88,6 +90,16 @@ def _internet_payload() -> JsonObject:
     return {"ipv4": ip_status, "ipv6": ip_status, "link_status": "up"}
 
 
+def _speed_test_payload() -> JsonObject:
+    return {
+        "down_speed": 100,
+        "up_speed": 20,
+        "status": "idle",
+        "ever_tested": True,
+        "last_speed_test_time": 123,
+    }
+
+
 def test_capability_registry_contains_only_read_fallbacks() -> None:
     assert [route.name for route in CAPABILITY_ROUTES] == [
         "mesh_nodes",
@@ -98,6 +110,8 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "beamforming",
         "traffic",
         "blocked_clients",
+        "speed_test",
+        "ddns",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -109,9 +123,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "sip_alg",
         "mac_clone",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:8])
-    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[8:])
-    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[8:])
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:10])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[10:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[10:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -153,7 +167,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 18
+    assert len(result["routes"]) == 20
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -435,6 +449,60 @@ def test_blocked_client_capability_normalizes_equivalent_http_and_tmp_contracts(
     tmp_client.request_read_json.assert_called_once_with(0x4018, None)
 
 
+def test_speed_test_and_ddns_capabilities_preserve_equivalent_contracts() -> None:
+    raw_speed_test = _speed_test_payload()
+    raw_ddns: JsonObject = {
+        "ap_changed": False,
+        "ddns_enable": True,
+        "ddns_info": {"ddns_status": True, "domain_name": "example.tplinkdns.com"},
+    }
+    http_service = DecoService(replace(_config(), allow_sensitive_reads=True))
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.get_speed_test.return_value = SpeedTest.from_api(raw_speed_test)
+    http_client.call.return_value = ApiResponse.from_api({"error_code": 0, "result": raw_ddns})
+
+    with mock.patch.object(http_service, "_get_client", return_value=http_client):
+        http_speed_test = http_service.read_capability("speed_test")
+        http_ddns = http_service.read_capability("ddns")
+
+    tmp_service = DecoService(
+        replace(
+            _config(),
+            allow_sensitive_reads=True,
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": raw_speed_test},
+        {"error_code": 0, "result": raw_ddns},
+    ]
+
+    with (
+        mock.patch.object(
+            tmp_service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_speed_test = tmp_service.read_capability("speed_test")
+        tmp_ddns = tmp_service.read_capability("ddns")
+
+    assert http_speed_test["data"] == tmp_speed_test["data"] == raw_speed_test
+    assert http_ddns["data"] == tmp_ddns["data"] == raw_ddns
+    assert tmp_speed_test["provenance"]["fallback_used"] is True
+    assert tmp_ddns["provenance"]["fallback_used"] is True
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x4010, None),
+        mock.call(0x40D0, None),
+    ]
+
+
 def test_secret_capability_requires_one_logical_gate_before_transport_selection() -> None:
     service = DecoService(_config())
 
@@ -583,6 +651,7 @@ def test_network_status_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"device_list": [_device_payload()]}},
         {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": _speed_test_payload()},
     ]
 
     with (
@@ -601,13 +670,14 @@ def test_network_status_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
         "error_type": "TransportError",
     }
     assert status["client_count_status"] == "gated"
+    assert status["speed_test"] == _speed_test_payload()
     assert status["unavailable_sections"] == [
         {
             "section": section,
             "status": "unavailable",
             "error_type": "SourceUnavailable",
         }
-        for section in ("performance", "firmware", "speed_test")
+        for section in ("performance", "firmware")
     ]
     http_client.get_internet_status.assert_not_called()
     http_client.get_performance.assert_not_called()
@@ -626,10 +696,10 @@ def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None
     http_client.get_device_list.return_value = [_p9_device()]
     http_client.get_internet_status.side_effect = TransportError("HTTP unavailable")
     tmp_client = mock.Mock()
-    tmp_client.request_read_json.return_value = {
-        "error_code": 0,
-        "result": _internet_payload(),
-    }
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": _speed_test_payload()},
+    ]
 
     with (
         mock.patch.object(service, "_get_client", return_value=http_client),
@@ -645,11 +715,56 @@ def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None
     assert {item["section"] for item in status["unavailable_sections"]} == {
         "performance",
         "firmware",
-        "speed_test",
     }
     http_client.get_performance.assert_not_called()
     http_client.get_speed_test.assert_not_called()
-    tmp_client.request_read_json.assert_called_once_with(0x400C, None)
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400C, None),
+        mock.call(0x4010, None),
+    ]
+
+
+def test_cloud_state_uses_tmp_ddns_and_marks_http_manager_unavailable() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    ddns: JsonObject = {
+        "ap_changed": False,
+        "ddns_enable": True,
+        "ddns_info": {"ddns_status": True, "domain_name": "example.tplinkdns.com"},
+    }
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": ddns},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        state = service.cloud_state()
+
+    assert_response_contract(CloudResponse, state)
+    assert state["status"] == "partial"
+    assert state["ddns"] == ddns
+    assert state["manager"] is None
+    assert state["provenance"]["source_interface"] == "tmp_appv2"
+    assert state["unavailable_sections"] == [
+        {
+            "section": "manager",
+            "status": "unavailable",
+            "error_type": "SourceUnavailable",
+        }
+    ]
+    http_client.call.assert_not_called()
 
 
 def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
@@ -1358,7 +1473,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 18
+    assert capabilities["supported_count"] == 20
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1434,7 +1549,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 18
+    assert capabilities["unknown_count"] == 20
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 

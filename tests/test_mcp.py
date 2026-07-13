@@ -463,7 +463,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 18
+    assert coverage["unified_semantic_surface"]["capability_count"] == 20
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -2072,23 +2072,30 @@ def test_mcp_service_cloud_state_requires_sensitive_gate() -> None:
         DecoService(_config()).cloud_state()
 
     service = DecoService(_config(allow_sensitive_reads=True))
-    responses = [
-        ApiResponse.from_api({"error_code": 0, "result": {"enabled": True}}),
-        ApiResponse.from_api({"error_code": 0, "result": {"permissions": ["owner"]}}),
-    ]
-    with mock.patch.object(service, "read_endpoint", side_effect=responses) as read_endpoint:
+    service._device_cache = (_p9_controller(),)
+    client = mock.Mock()
+    ddns = {
+        "ap_changed": False,
+        "ddns_enable": True,
+        "ddns_info": {"ddns_status": True, "domain_name": "example.tplinkdns.com"},
+    }
+    client.call.return_value = ApiResponse.from_api({"error_code": 0, "result": ddns})
+    manager = ApiResponse.from_api({"error_code": 0, "result": {"permissions": ["owner"]}})
+    with (
+        mock.patch.object(service, "_get_client", return_value=client),
+        mock.patch.object(service, "read_endpoint", return_value=manager) as read_endpoint,
+    ):
         state = service.cloud_state()
 
     assert_response_contract(CloudResponse, state)
 
-    assert state == {
-        "ddns": {"enabled": True},
-        "manager": {"permissions": ["owner"]},
-    }
-    assert [call.args[0] for call in read_endpoint.call_args_list] == [
-        "admin.cloud.ddns.get",
-        "admin.cloud.manager.get",
-    ]
+    assert state["schema_version"] == 1
+    assert state["status"] == "available"
+    assert state["ddns"] == ddns
+    assert state["manager"] == {"permissions": ["owner"]}
+    assert state["provenance"]["source_interface"] == "http_luci"
+    assert state["unavailable_sections"] == []
+    read_endpoint.assert_called_once_with("admin.cloud.manager.get")
 
 
 def test_mcp_service_client_overview_covers_confirmed_client_data() -> None:

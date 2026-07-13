@@ -52,13 +52,16 @@ transport, compatibility evidence and a conservative mutation workflow.
   HTTP capability attempt, while keeping unmatched models fail-closed
 * added validated traffic and blocked-client HTTP-to-TMP fallback while keeping
   every compound device response bound to one selected interface
+* added schema-equivalent speed-test and DDNS HTTP-to-TMP fallback, making the
+  latest speed-test result available in TMP-backed status and returning explicit
+  cloud-manager unavailability when DDNS selects TMP
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
 * promoted ten positively evidenced TMP-only network datasets into default
   protocol-neutral MCP resources and REST routes without enabling diagnostics
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
-* added eight bounded, positively evidenced read-only fallback contracts while
+* added ten bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
   matrices to an independently enabled diagnostic surface

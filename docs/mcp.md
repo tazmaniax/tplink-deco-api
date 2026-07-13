@@ -217,7 +217,7 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current eight HTTP-primary overlap routes,
+bootstrap now follows that policy; the current ten HTTP-primary overlap routes,
 ten TMP-only network routes and directly implemented canonical resources remain
 a transitional subset of the wider design.
 
@@ -298,6 +298,14 @@ absent and are listed in `unavailable_sections` with
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
 
+`deco_get_cloud_state` returns `schema_version`, `status`, `ddns`, `manager`,
+`provenance`, `unavailable_sections`, `observed_at_epoch_seconds`,
+`router_contacted` and `mutation_invoked`. DDNS has an evidence-backed
+HTTP-to-TMP fallback. If TMP supplies DDNS, `manager` is `null` and its HTTP-only
+absence is recorded in `unavailable_sections`. `deco://status` reads speed-test
+state from the same interface selected for the compound response, so a TMP-only
+startup retains the last speed-test result.
+
 Protocol and evidence resources are diagnostic-only:
 
 | Diagnostic resource | Contents |
@@ -326,7 +334,7 @@ agent never supplies a live model or protocol.
 | `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
 | `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
 | `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
-| `deco_get_cloud_state` | Return opted-in DDNS and cloud-manager state. |
+| `deco_get_cloud_state` | Return opted-in DDNS through schema-equivalent HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 
 The legacy compound reads `deco_get_router_profile`,
 `deco_get_network_overview`, `deco_get_mesh_overview`,

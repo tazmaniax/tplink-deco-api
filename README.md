@@ -95,7 +95,7 @@ parameters or for actions:
 |---|---|
 | `deco_get_capability` | Resolve and read one semantic capability with provenance and bounded fallback. |
 | `deco_get_wlan_state` | Read WLAN state with passwords omitted unless explicitly requested and permitted. |
-| `deco_get_cloud_state` | Read opted-in DDNS and cloud-manager state. |
+| `deco_get_cloud_state` | Read opted-in DDNS with HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 | `deco_plan_mutation` | Preflight one semantic mutation and, when eligible, issue a short-lived one-shot plan. |
 | `deco_execute_mutation` | Consume an eligible plan with exact confirmation, verification and rollback controls. |
 

@@ -481,7 +481,17 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             mlo={},
             features={},
         ),
-        "cloud_state": CloudResponse(ddns=None, manager=None),
+        "cloud_state": CloudResponse(
+            schema_version=1,
+            status="available",
+            ddns=None,
+            manager=None,
+            provenance={},
+            unavailable_sections=[],
+            observed_at_epoch_seconds=123.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
         "semantic_mutations": MutationsResponse(
             schema_version=1,
             resolution_status="resolved",

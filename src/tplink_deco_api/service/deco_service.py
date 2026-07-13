@@ -63,6 +63,7 @@ from ..models import (
     Device,
     InternetStatus,
     NodeClientList,
+    SpeedTest,
 )
 from ..mutation_planner import build_mutation_plan
 from ..tmp_client import DecoTmpClient
@@ -102,7 +103,6 @@ if TYPE_CHECKING:
         EndpointObservation,
         IpInfo,
         MutationPlan,
-        SpeedTest,
         TmpOpcodeSpec,
         WlanBand,
         WlanConfig,
@@ -850,7 +850,7 @@ class DecoService:
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("firmware", exc))
                 try:
-                    speed_test = _speed_test_view(client.get_speed_test())
+                    speed_test = self._read_resource_capability("speed_test", context)
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("speed_test", exc))
                 if self._config.allow_sensitive_reads:
@@ -867,9 +867,12 @@ class DecoService:
                 (
                     _source_unavailable("performance"),
                     _source_unavailable("firmware"),
-                    _source_unavailable("speed_test"),
                 )
             )
+            try:
+                speed_test = self._read_resource_capability("speed_test", context)
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("speed_test", exc))
             if self._config.allow_sensitive_reads:
                 try:
                     client_count = len(
@@ -1526,6 +1529,13 @@ class DecoService:
                         "Failed to read HTTP capability: blocked clients result is not an object"
                     )
                 return normalize_blocked_clients(result)
+            if name == "speed_test":
+                return _speed_test_view(client.get_speed_test())
+            if name == "ddns":
+                result = client.call(get_endpoint("admin.cloud.ddns.get")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError("Failed to read HTTP capability: DDNS result is not an object")
+                return dict(result)
         raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
 
     def _read_tmp_capability(self, name: str) -> JsonValue:
@@ -1538,6 +1548,8 @@ class DecoService:
             "beamforming": 0x421B,
             "traffic": 0x4014,
             "blocked_clients": 0x4018,
+            "speed_test": 0x4010,
+            "ddns": 0x40D0,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1573,6 +1585,10 @@ class DecoService:
             return normalize_client_traffic(result)
         if name == "blocked_clients":
             return normalize_blocked_clients(result)
+        if name == "speed_test":
+            return _speed_test_view(SpeedTest.from_api(result))
+        if name == "ddns":
+            return dict(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -3031,9 +3047,27 @@ class DecoService:
             raise PermissionError(
                 "Failed to read cloud state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
+        capability = self.read_capability("ddns")
+        ddns, provenance = _capability_resource_parts(capability, "DDNS")
+        unavailable_sections: list[dict[str, JsonValue]] = []
+        manager: JsonValue = None
+        if _json_string(provenance, "source_interface") == "http_luci":
+            try:
+                manager = self.read_endpoint("admin.cloud.manager.get").result
+            except _LIVE_READ_ERRORS as exc:
+                unavailable_sections.append(_configuration_error("manager", exc))
+        else:
+            unavailable_sections.append(_source_unavailable("manager"))
         return {
-            "ddns": self.read_endpoint("admin.cloud.ddns.get").result,
-            "manager": self.read_endpoint("admin.cloud.manager.get").result,
+            "schema_version": 1,
+            "status": "available" if not unavailable_sections else "partial",
+            "ddns": dict(ddns),
+            "manager": manager,
+            "provenance": dict(provenance),
+            "unavailable_sections": unavailable_sections,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
         }
 
     def client_overview(self) -> dict[str, JsonValue]:
@@ -4397,6 +4431,8 @@ def _capability_category(name: str) -> str:
         "beamforming": "wireless",
         "traffic": "clients",
         "blocked_clients": "clients",
+        "speed_test": "network",
+        "ddns": "network",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",
