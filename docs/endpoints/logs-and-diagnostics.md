@@ -81,6 +81,28 @@ returned as `{ name, value }`.
 > `totalNum`, `currentIndex`, `logList`) and `remove` operations used by the
 > in-UI log viewer.
 
+### Mutation-validation use
+
+System logs can provide one evidence stream when validating an HTTP/LuCI or
+TMP/AppV2 operation in a controlled environment. A validation harness should
+capture baseline mesh health, topology, performance and relevant configuration;
+record the operation and its exact time; execute only one operation; prepare and
+read a bounded log snapshot at a recorded level; and repeat the health and
+configuration reads both immediately and after a delay. This can reveal
+correlated process failures, restarts, node disconnections, backhaul changes or
+configuration reloads that immediate field-equality verification would miss.
+
+Logs are supporting evidence, not proof of safety or causation. An absence of
+matching entries does not establish that an operation was harmless, and delayed
+or unlogged effects remain possible. The `feedback_log` read response does not
+report the level used to prepare its snapshot, so the harness must retain that
+request metadata separately. If an operation disrupts HTTP access, the
+post-operation snapshot may be unavailable; independently collected remote
+syslog could reduce that blind spot only after its configuration mutation has
+been separately validated. Raw log values may contain sensitive information and
+must remain behind the sensitive and bulk-secret read gates, with redaction or
+controlled retention appropriate to the test environment.
+
 Separately, the Deco Android 3.10.215 app maps feedback-bundle creation to
 TMP/AppV2 opcode `0x422E` and then downloads `feedback.log` from the controller
 on port 30000. That bundle build remains a mutation and is not used for
