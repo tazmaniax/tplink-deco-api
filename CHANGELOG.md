@@ -42,6 +42,8 @@ transport, compatibility evidence and a conservative mutation workflow.
   execution
 * detected the connected controller and selected an evidence-backed HTTP/LuCI or
   TMP/AppV2 route without requiring agents to choose a model or transport
+* added a gated, pinned-host-key TMP device-list bootstrap so controller identity
+  and mesh inventory can resolve when HTTP is unavailable at cold start
 * added six bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
@@ -129,7 +131,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 454 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 461 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

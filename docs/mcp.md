@@ -216,8 +216,10 @@ Future resource and transport work must follow the
 It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
-datasets that would otherwise force a dual-interface fetch. The current six
-HTTP-primary fallback routes are a transitional subset of that design.
+datasets that would otherwise force a dual-interface fetch. Cold-start identity
+bootstrap now follows that policy; the current six HTTP-primary capability
+routes and directly implemented canonical resources remain a transitional
+subset of the wider design.
 
 ## Resources
 
@@ -232,7 +234,7 @@ devices, traffic and address reservations additionally require
 | `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `tmp_writes_hard_disabled`, `tmp_transport_status`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
-| `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
@@ -335,6 +337,11 @@ stronger typed SDK façade. TMP fallback requires its ordinary read gate, pinned
 host key and credentials; secret logical capabilities also require the single
 sensitive-read gate before either transport is selected. Errors include only
 the failed interface and exception type in successful fallback provenance.
+When HTTP identity discovery fails with an eligible transport or invalid-shape
+error, the resolver may bootstrap from read-only TMP opcode `0x400F`. HTTP
+authentication failures never trigger that fallback, host-key mismatches fail
+closed, and an unknown model is cached only for identity reporting rather than
+authorizing P9-specific reads.
 Mutations are never retried or routed automatically. Executable semantic
 mutation routes are fixed to HTTP for beamforming, fast roaming and time
 settings. TMP/AppV2 writes have no server route, including monthly report.

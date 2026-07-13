@@ -72,6 +72,7 @@ from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
+from ._device_inventory_resolution import _DeviceInventoryResolution
 from ._pending_mutation_plan import _PendingMutationPlan
 
 if TYPE_CHECKING:
@@ -186,6 +187,7 @@ class DecoService:
         self._client: DecoClient | None = None
         self._tmp_client: DecoTmpClient | None = None
         self._device_cache: tuple[Device, ...] | None = None
+        self._device_resolution: _DeviceInventoryResolution | None = None
         self._pending_mutation_plans: dict[str, _PendingMutationPlan] = {}
         self._http_mutation_latched = False
         self._tmp_mutation_latched = False
@@ -197,6 +199,7 @@ class DecoService:
             client, self._client = self._client, None
             tmp_client, self._tmp_client = self._tmp_client, None
             self._device_cache = None
+            self._device_resolution = None
             self._pending_mutation_plans.clear()
             try:
                 if client is not None:
@@ -223,9 +226,18 @@ class DecoService:
         router_contacted = False
         with self._lock:
             if refresh or self._device_cache is None:
-                self._device_cache = tuple(self._get_client().get_device_list())
+                resolution = self._resolve_device_inventory()
+                self._device_cache = resolution.devices
+                self._device_resolution = resolution
                 router_contacted = True
             devices = self._device_cache
+            resolution = self._device_resolution or _DeviceInventoryResolution(
+                devices=devices,
+                source_interface="http_luci",
+                source_operation="admin.device.device_list.read",
+                attempts=(),
+                fallback_used=False,
+            )
         controller = _controller_device(devices)
         profile_match = _profile_match(controller)
         return {
@@ -235,13 +247,91 @@ class DecoService:
             "nodes": [_device_view(device) for device in devices],
             "node_count": len(devices),
             "mixed_model_mesh": len({device.device_model for device in devices}) > 1,
-            "identity_source": "admin.device.device_list.read",
+            "identity_source": resolution.source_operation,
+            "identity_interface": resolution.source_interface,
+            "identity_attempts": [dict(attempt) for attempt in resolution.attempts],
+            "fallback_used": resolution.fallback_used,
             "profile_match": profile_match,
             "profile_name": "P9" if profile_match in {"exact", "model_only"} else None,
             "cached": not router_contacted,
             "router_contacted": router_contacted,
             "mutation_invoked": False,
         }
+
+    def _resolve_device_inventory(self) -> _DeviceInventoryResolution:
+        route = get_capability_route("mesh_nodes")
+        attempts: list[JsonObject] = []
+        try:
+            devices = self._read_http_device_inventory()
+        except (TransportError, ValueError) as primary_error:
+            attempts.append(
+                {
+                    "interface": route.primary_interface,
+                    "operation": route.primary_operation,
+                    "status": "error",
+                    "error_type": type(primary_error).__name__,
+                }
+            )
+            if not self._tmp_identity_bootstrap_available():
+                raise
+            try:
+                devices = self._read_tmp_device_inventory()
+            except (DecoError, OSError, TimeoutError, ValueError) as fallback_error:
+                raise fallback_error from primary_error
+            if route.fallback_interface is None:
+                raise ValueError(
+                    "Failed to resolve controller identity: fallback is missing"
+                ) from primary_error
+            attempts.append(
+                {
+                    "interface": route.fallback_interface,
+                    "operation": route.fallback_operation,
+                    "status": "ok",
+                }
+            )
+            return _DeviceInventoryResolution(
+                devices=devices,
+                source_interface=route.fallback_interface,
+                source_operation=route.fallback_operation,
+                attempts=tuple(attempts),
+                fallback_used=True,
+            )
+        attempts.append(
+            {
+                "interface": route.primary_interface,
+                "operation": route.primary_operation,
+                "status": "ok",
+            }
+        )
+        return _DeviceInventoryResolution(
+            devices=devices,
+            source_interface=route.primary_interface,
+            source_operation=route.primary_operation,
+            attempts=tuple(attempts),
+            fallback_used=False,
+        )
+
+    def _read_http_device_inventory(self) -> tuple[Device, ...]:
+        devices = tuple(self._get_client().get_device_list())
+        _validate_device_inventory(devices)
+        return devices
+
+    def _read_tmp_device_inventory(self) -> tuple[Device, ...]:
+        payload = self.tmp_read(0x400F)
+        result = payload.get("result")
+        if not isinstance(result, Mapping):
+            raise ValueError("Failed to resolve controller identity: TMP result is not an object")
+        devices = tuple(Device.from_api(row) for row in _mapping_rows(result, "device_list"))
+        _validate_device_inventory(devices)
+        return devices
+
+    def _tmp_identity_bootstrap_available(self) -> bool:
+        return (
+            self._config.allow_tmp_reads
+            and bool(self._config.tp_link_id)
+            and bool(self._config.password)
+            and bool(self._config.tmp_host_key_sha256)
+        )
 
     def capabilities(self) -> dict[str, JsonValue]:
         """Return semantic read capabilities for the connected controller."""
@@ -1096,7 +1186,25 @@ class DecoService:
             raise PermissionError(
                 "Failed to read capability: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
-        self.device_inventory()
+        inventory = self.device_inventory()
+        if name == "mesh_nodes":
+            identity_attempts = [
+                dict(item) for item in _json_rows(inventory.get("identity_attempts"))
+            ]
+            if not identity_attempts:
+                identity_attempts.append(
+                    {
+                        "interface": "http_luci",
+                        "operation": route.primary_operation,
+                        "status": "ok",
+                    }
+                )
+            return _capability_response(
+                route,
+                inventory["nodes"],
+                identity_attempts,
+                fallback_used=get_bool(inventory, "fallback_used"),
+            )
         attempts: list[dict[str, JsonValue]] = []
         try:
             data = self._read_http_capability(name)
@@ -3877,6 +3985,14 @@ def _controller_device(devices: tuple[Device, ...]) -> Device:
     if not devices:
         raise ValueError("Failed to resolve controller identity: device list is empty")
     return next((device for device in devices if device.role == "master"), devices[0])
+
+
+def _validate_device_inventory(devices: tuple[Device, ...]) -> None:
+    controller = _controller_device(devices)
+    if not controller.mac or not controller.device_model.strip():
+        raise ValueError(
+            "Failed to resolve controller identity: controller model and MAC are required"
+        )
 
 
 def _profile_match(controller: Device) -> str:

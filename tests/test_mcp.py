@@ -1939,6 +1939,7 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     service = DecoService(_config(allow_sensitive_reads=True))
     controller = Device.from_api(
         {
+            "mac": "AA:BB:CC:DD:EE:FF",
             "device_model": "P9",
             "role": "master",
             "hardware_ver": "2.0",

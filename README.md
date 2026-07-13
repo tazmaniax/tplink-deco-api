@@ -31,7 +31,8 @@ developers and contributors.
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
   Pydantic dependency in the base SDK.
-- Automatic controller identification and evidence-based capability routing.
+- Automatic controller identification over HTTP or gated TMP/AppV2 bootstrap,
+  followed by evidence-based capability routing.
 - Normalized network status, configuration, mesh, devices, traffic,
   reservations, logs, capabilities and mutation inventory.
 - Local HTTP/LuCI support using TP-Link's RSA/AES owner session.
@@ -203,6 +204,12 @@ Other models can use generic routes immediately where their firmware matches,
 but unobserved results are reported as unknown rather than silently treated as
 unsupported. Compatibility evidence can be extended with the bounded probes in
 `examples/`.
+
+If HTTP is unavailable during initial identity discovery, an explicitly enabled
+TMP/AppV2 session can resolve the mesh through the read-only device-list
+contract. This requires configured TMP credentials and a pinned host key.
+Unknown models may report their identity but do not inherit P9-specific TMP
+capability evidence.
 
 See:
 

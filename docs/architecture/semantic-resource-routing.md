@@ -180,8 +180,14 @@ claim.
 
 ## Current implementation gap
 
-The current registry has six HTTP-primary, TMP-fallback read contracts and
-obtains controller identity through HTTP before considering TMP. Most canonical
-resources still call HTTP directly, and the positively observed TMP-only
-datasets remain diagnostic. Future routing work must migrate these paths toward
-this policy without weakening existing mutation or sensitivity controls.
+Controller identity now resolves from cached state, HTTP discovery, or the
+gated, pinned-host-key TMP device-list bootstrap. The bootstrap records both
+attempts, validates the controller shape before caching it, permits unknown-model
+identity reporting, and does not authorize P9-specific reads for an unmatched
+profile.
+
+The current registry still has only six HTTP-primary, TMP-fallback read
+contracts. Most canonical resources call HTTP directly, and the positively
+observed TMP-only datasets remain diagnostic. Future routing work must migrate
+these paths toward this policy without weakening existing mutation or
+sensitivity controls.

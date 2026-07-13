@@ -13,6 +13,7 @@ from tplink_deco_api import (
     HTTP_NOOP_CONFIRMATIONS,
     MUTATION_CAPABILITY_ROUTES,
     ApiResponse,
+    AuthenticationError,
     Device,
     TransportError,
     get_capability_route,
@@ -45,16 +46,18 @@ def _config() -> ServerConfig:
 
 
 def _p9_device() -> Device:
-    return Device.from_api(
-        {
-            "mac": "AA:BB:CC:DD:EE:FF",
-            "device_ip": "192.0.2.1",
-            "device_model": "P9",
-            "role": "master",
-            "hardware_ver": "2.0",
-            "software_ver": "1.3.0 Build 20250804 Rel. 58832",
-        }
-    )
+    return Device.from_api(_device_payload())
+
+
+def _device_payload(*, model: str = "P9") -> dict[str, str]:
+    return {
+        "mac": "AA:BB:CC:DD:EE:FF",
+        "device_ip": "192.0.2.1",
+        "device_model": model,
+        "role": "master",
+        "hardware_ver": "2.0",
+        "software_ver": "1.3.0 Build 20250804 Rel. 58832",
+    }
 
 
 def test_capability_registry_contains_only_read_fallbacks() -> None:
@@ -302,6 +305,15 @@ def test_connected_resources_distinguish_mesh_devices_and_reservations() -> None
     assert_response_contract(MeshResponse, cached)
     assert mesh["controller"]["model"] == "P9"
     assert mesh["profile_match"] == "exact"
+    assert mesh["identity_interface"] == "http_luci"
+    assert mesh["fallback_used"] is False
+    assert mesh["identity_attempts"] == [
+        {
+            "interface": "http_luci",
+            "operation": "admin.device.device_list.read",
+            "status": "ok",
+        }
+    ]
     assert mesh["router_contacted"] is True
     assert cached["cached"] is True
     client.get_device_list.assert_called_once_with()
@@ -310,6 +322,208 @@ def test_connected_resources_distinguish_mesh_devices_and_reservations() -> None
         service.client_devices_resource()
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
         service.address_reservations_resource()
+
+
+def test_device_inventory_bootstraps_through_tmp_when_http_is_unavailable() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"device_list": [_device_payload()]},
+    }
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        mesh = service.device_inventory()
+        cached = service.device_inventory()
+        capability = service.read_capability("mesh_nodes")
+
+    assert_response_contract(MeshResponse, mesh)
+    assert mesh["controller"]["model"] == "P9"
+    assert mesh["identity_source"] == "0x400F"
+    assert mesh["identity_interface"] == "tmp_appv2"
+    assert mesh["fallback_used"] is True
+    assert mesh["identity_attempts"] == [
+        {
+            "interface": "http_luci",
+            "operation": "admin.device.device_list.read",
+            "status": "error",
+            "error_type": "TransportError",
+        },
+        {
+            "interface": "tmp_appv2",
+            "operation": "0x400F",
+            "status": "ok",
+        },
+    ]
+    assert cached["cached"] is True
+    assert capability["data"] == mesh["nodes"]
+    assert capability["provenance"]["source_interface"] == "tmp_appv2"
+    assert capability["provenance"]["fallback_used"] is True
+    http_client.get_device_list.assert_called_once_with()
+    tmp_client.request_read_json.assert_called_once_with(0x400F, None)
+
+
+def test_capability_fallback_works_after_tmp_cold_start_bootstrap() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    http_client.get_beamforming.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": {"enable": True}},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        result = service.read_capability("beamforming")
+
+    assert result["data"] == {"enabled": True}
+    assert result["provenance"]["source_interface"] == "tmp_appv2"
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x421B, None),
+    ]
+
+
+def test_tmp_identity_bootstrap_requires_its_ordinary_read_gate() -> None:
+    service = DecoService(_config())
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(TransportError, match="HTTP unavailable"),
+    ):
+        service.device_inventory()
+
+    get_tmp_client.assert_not_called()
+
+
+def test_tmp_identity_bootstrap_fails_closed_on_host_key_error() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(
+            service,
+            "_get_tmp_client",
+            side_effect=TransportError(
+                "Failed to open TMP SSH: host-key fingerprint does not match"
+            ),
+        ),
+        pytest.raises(TransportError, match="host-key fingerprint does not match"),
+    ):
+        service.device_inventory()
+
+    assert service.public_status()["identity_resolved"] is False
+
+
+def test_tmp_identity_bootstrap_rejects_an_invalid_controller_shape() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"device_list": [{"role": "master"}]},
+    }
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="controller model and MAC are required"),
+    ):
+        service.device_inventory()
+
+    assert service.public_status()["identity_resolved"] is False
+
+
+def test_tmp_identity_bootstrap_reports_unknown_model_without_authorizing_reads() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    http_client.get_beamforming.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"device_list": [_device_payload(model="X50")]},
+    }
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        mesh = service.device_inventory()
+        with pytest.raises(TransportError, match="HTTP unavailable"):
+            service.read_capability("beamforming")
+
+    assert mesh["controller"]["model"] == "X50"
+    assert mesh["profile_match"] == "unknown"
+    tmp_client.request_read_json.assert_called_once_with(0x400F, None)
+
+
+def test_http_authentication_failure_does_not_fall_back_to_tmp_identity() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+
+    with (
+        mock.patch.object(
+            service,
+            "_get_client",
+            side_effect=AuthenticationError("Failed to login: invalid password"),
+        ),
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(AuthenticationError, match="invalid password"),
+    ):
+        service.device_inventory()
+
+    get_tmp_client.assert_not_called()
 
 
 def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
