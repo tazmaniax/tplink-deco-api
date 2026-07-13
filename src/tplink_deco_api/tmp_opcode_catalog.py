@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         TmpAppContractProvenance,
         TmpAppContractStatus,
         TmpP9MutationObservation,
+        TmpP9MutationSafetyStatus,
         TmpP9Observation,
     )
 
@@ -512,7 +513,7 @@ def _load_p9_mutation_observations() -> dict[int, JsonObject]:
         .read_text(encoding="utf-8")
     )
     data = loads(payload)
-    if get_int(data, "schema_version") != 1:
+    if get_int(data, "schema_version") != 2:
         raise ValueError("Failed to load TMP mutation compatibility: unsupported schema version")
     records = data.get("observations")
     if not isinstance(records, (list, tuple)):
@@ -520,6 +521,7 @@ def _load_p9_mutation_observations() -> dict[int, JsonObject]:
     observations: dict[int, JsonObject] = {}
     valid_statuses = {
         "verified_noop",
+        "same_value_immediate_verification_passed",
         "write_rejected",
         "rollback_confirmed",
         "rollback_unconfirmed",
@@ -530,10 +532,12 @@ def _load_p9_mutation_observations() -> dict[int, JsonObject]:
             continue
         code = get_int(item, "code", -1)
         status = get_str(item, "status")
+        safety_status = get_str(item, "safety_status")
         if (
             code not in registry_names
             or _safety(code, registry_names[code]) != "mutation"
             or status not in valid_statuses
+            or safety_status != "safety_not_established"
         ):
             raise ValueError("Failed to load TMP mutation compatibility: invalid observation")
         observations[code] = cast("JsonObject", item)
@@ -730,6 +734,14 @@ TMP_OPCODE_CATALOG: tuple[TmpOpcodeSpec, ...] = tuple(
             cast(
                 "TmpP9MutationObservation",
                 get_str(_P9_MUTATION_OBSERVATIONS[code], "status"),
+            )
+            if code in _P9_MUTATION_OBSERVATIONS
+            else "untested"
+        ),
+        p9_mutation_safety_status=(
+            cast(
+                "TmpP9MutationSafetyStatus",
+                get_str(_P9_MUTATION_OBSERVATIONS[code], "safety_status"),
             )
             if code in _P9_MUTATION_OBSERVATIONS
             else "untested"

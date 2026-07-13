@@ -164,7 +164,8 @@ separate concerns:
   private response values.
 - Sensitive reads, bulk secret reads and binary content each require their own
   opt-in gate.
-- HTTP and TMP mutation paths require explicit gates and model evidence.
+- HTTP mutation paths require explicit gates and model evidence. Deployed MCP,
+  REST and service paths hard-disable every TMP write.
 - Destructive and firmware-internal operations have additional independent
   gates.
 - Semantic mutations follow discover → plan → authorize → execute. Plans expire
@@ -189,8 +190,11 @@ against both local interfaces:
 - 59 data-returning HTTP reads have positive P9 evidence.
 - 55 data-returning TMP/AppV2 reads have positive P9 evidence.
 - All 246 conservatively classified TMP reads have a recorded P9 observation.
-- Controlled current-value no-op evidence exists for address reservation, time
-  settings, beamforming, 802.11r and monthly-report setters.
+- Controlled current-value no-op evidence exists for HTTP address reservation,
+  time settings, beamforming and 802.11r setters. Three TMP same-value writes
+  passed immediate post-read verification, but operational safety was not
+  established. A later P9 mesh incident is temporally associated with aggregate
+  TMP activity but unattributed; causality is undetermined.
 
 Other models can use generic routes immediately where their firmware matches,
 but unobserved results are reported as unknown rather than silently treated as

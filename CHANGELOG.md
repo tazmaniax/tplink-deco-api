@@ -82,11 +82,18 @@ transport, compatibility evidence and a conservative mutation workflow.
 * required immediate post-read verification and a defined rollback contract for
   eligible executions
 * added independent gates for ordinary mutations, destructive operations,
-  firmware-internal calls, HTTP no-op verification and TMP no-op verification
+  firmware-internal calls and HTTP no-op verification
 * recorded controlled P9 current-value no-op evidence for address reservation,
   time settings, beamforming, 802.11r and monthly-report setters
 * kept desired state changes execution-ineligible because current live P9 write
   evidence is limited to unchanged-value verification requests
+* hard-disabled TMP writes in MCP, REST and the deployed service because the
+  earlier same-value results established only immediate field equality, not
+  operational safety; a later P9 mesh incident is recorded as temporally
+  associated with aggregate TMP activity but unattributed, with causality
+  undetermined
+* retained TMP write harnesses only for source-checkout lab validation with an
+  explicit lab gate, exact confirmation and exact live controller identity
 
 ### Security and deployment
 

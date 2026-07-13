@@ -58,7 +58,6 @@ _MUTATING_TOOL_NAMES: frozenset[str] = frozenset(
         "deco_invoke_mutation",
         "deco_verify_p9_http_noop",
         "deco_verify_setting_noop",
-        "deco_verify_tmp_ieee80211r_noop",
     }
 )
 _STATEFUL_TOOL_NAMES: frozenset[str] = frozenset({"deco_plan_mutation"})
@@ -358,11 +357,6 @@ def create_server(
                 limit=limit,
             )
         )
-
-    @server.tool()
-    def deco_verify_tmp_ieee80211r_noop(confirmation: str) -> str:
-        """Repeat the verified 802.11r current-value no-op under three runtime gates."""
-        return _json_text(service.verify_tmp_ieee80211r_noop(confirmation))
 
     @server.tool()
     def deco_verify_p9_http_noop(operation: str, confirmation: str) -> str:

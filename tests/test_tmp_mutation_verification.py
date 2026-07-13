@@ -7,7 +7,7 @@ import pytest
 from tplink_deco_api import build_tmp_mutation_verification_queue
 
 
-def test_queue_omits_already_verified_noops() -> None:
+def test_queue_omits_operations_without_established_safety_by_default() -> None:
     queue = build_tmp_mutation_verification_queue(limit=None)
 
     assert queue == ()
@@ -30,11 +30,12 @@ def test_complete_queue_retains_deferred_and_destructive_evidence() -> None:
         "destructive_excluded": 71,
         "evidence_blocked": 193,
         "high_risk_deferred": 81,
-        "verified_noop": 3,
+        "safety_not_established": 3,
     }
-    verified = next(candidate for candidate in queue if candidate.plan.code == 0x4209)
-    assert verified.tier == "verified_noop"
-    assert not verified.verification_candidate
+    limited = next(candidate for candidate in queue if candidate.plan.code == 0x4209)
+    assert limited.tier == "safety_not_established"
+    assert "insufficient_operational_safety_evidence" in limited.risk_flags
+    assert not limited.verification_candidate
     set_dispatched = next(candidate for candidate in queue if candidate.plan.code == 0x4097)
     assert set_dispatched.tier == "high_risk_deferred"
     assert "signed_app_set_dispatched_side_effect" in set_dispatched.risk_flags

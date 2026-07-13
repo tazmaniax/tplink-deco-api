@@ -1,6 +1,9 @@
 {
-  "schema_version": 19,
+  "schema_version": 20,
   "observed_at": "2026-07-11",
+  "superseded": true,
+  "superseded_reason": "Server-side TMP writes were hard-disabled because immediate same-value verification did not establish operational safety. A later P9 mesh incident is temporally associated with aggregate TMP activity but unattributed; causality is undetermined.",
+  "incident_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
   "model": "P9",
   "transport": "tmp_appv2_over_ssh",
   "tool_count": 43,
@@ -188,6 +191,7 @@
     "mutation_invoked": false
   },
   "scoped_mcp_noop_surface": {
+    "current_status": "removed_and_hard_disabled",
     "tool": "deco_verify_tmp_ieee80211r_noop",
     "operation_code": 16905,
     "execution_scope": "verified_current_value_noop_only",

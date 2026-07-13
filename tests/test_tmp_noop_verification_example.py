@@ -14,6 +14,14 @@ from tplink_deco_api import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _lab_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DECO_TMP_LAB_ALLOW_WRITES", "1")
+    monkeypatch.setenv("DECO_TMP_LAB_TARGET_MODEL", "P9")
+    monkeypatch.setenv("DECO_TMP_LAB_TARGET_FIRMWARE", "test-firmware")
+    monkeypatch.setenv("DECO_TMP_LAB_TARGET_MAC", "AA:BB:CC:DD:EE:FF")
+
+
 def _result(status: str = "verified_noop") -> TmpNoopVerificationResult:
     return TmpNoopVerificationResult(
         status=status,
@@ -71,6 +79,7 @@ def test_example_writes_owner_only_value_free_result(
     verify.assert_called_once_with(
         client.__enter__.return_value,
         TMP_IEEE80211R_NOOP_CONFIRMATION,
+        target=mock.ANY,
         progress=example._progress,
     )
     assert json.loads(output.read_text())["verified_noop"] is True

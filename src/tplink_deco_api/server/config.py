@@ -149,6 +149,11 @@ class ServerConfig:
 
     def validate_server(self) -> None:
         """Reject unsafe or incomplete transport configuration."""
+        if self.allow_tmp_noop_verification:
+            raise ValueError(
+                "Failed to configure server: TMP writes are hard-disabled; "
+                "DECO_ALLOW_TMP_NOOP_VERIFICATION is no longer supported"
+            )
         if not self.rest_prefix.startswith("/") or self.rest_prefix.endswith("/"):
             raise ValueError(
                 "Failed to configure server: DECO_REST_PREFIX must start with / and not end with /"
@@ -213,6 +218,8 @@ class ServerConfig:
             "allow_tmp_reads": self.allow_tmp_reads,
             "allow_unverified_tmp_reads": self.allow_unverified_tmp_reads,
             "allow_tmp_noop_verification": self.allow_tmp_noop_verification,
+            "tmp_writes_hard_disabled": True,
+            "tmp_transport_status": "experimental",
             "allow_http_noop_verification": self.allow_http_noop_verification,
             "expose_diagnostic_tools": self.expose_diagnostic_tools,
             "expose_raw_mutation_tools": self.expose_raw_mutation_tools,

@@ -111,6 +111,9 @@ payload = status.to_dict()
 Real state changes are not currently execution-eligible. Only fixed,
 current-value no-op verification routes can produce executable plans, and only
 when their server-side gates and exact P9 evidence are present.
+All TMP/AppV2 writes are hard-disabled in the shared service, so REST cannot
+create or execute a TMP-backed mutation plan. TMP reads remain experimental and
+opt-in.
 
 Assess an intent without creating a plan:
 

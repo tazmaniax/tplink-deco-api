@@ -8,8 +8,16 @@ import pytest
 
 from tplink_deco_api import (
     TMP_BEAMFORMING_NOOP_CONFIRMATION,
-    verify_tmp_beamforming_noop,
 )
+from tplink_deco_api.tmp_beamforming_noop_verification import verify_tmp_beamforming_noop
+
+
+@pytest.fixture(autouse=True)
+def _authorize_lab_target(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "tplink_deco_api.tmp_boolean_noop_verification.verify_tmp_lab_target",
+        mock.Mock(),
+    )
 
 
 def _read(enable: bool) -> dict[str, object]:

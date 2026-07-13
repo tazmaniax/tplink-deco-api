@@ -1,14 +1,22 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "model": "P9",
   "tested_mutation_count": 3,
   "value_free": true,
+  "incident_context": {
+    "activity_scope": "aggregate_tmp_activity",
+    "association": "temporally_associated_unattributed",
+    "causality": "undetermined",
+    "observed_at": "2026-07-12",
+    "reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md"
+  },
   "observations": [
     {
       "code": 16905,
       "hex_code": "0x4209",
       "name": "TMP_APPV2_OP_11R_SET",
-      "status": "verified_noop",
+      "status": "same_value_immediate_verification_passed",
+      "safety_status": "safety_not_established",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"
@@ -30,7 +38,8 @@
       "code": 16924,
       "hex_code": "0x421C",
       "name": "TMP_APPV2_OP_BEAMFORMING_SET",
-      "status": "verified_noop",
+      "status": "same_value_immediate_verification_passed",
+      "safety_status": "safety_not_established",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"
@@ -52,7 +61,8 @@
       "code": 16931,
       "hex_code": "0x4223",
       "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
-      "status": "verified_noop",
+      "status": "same_value_immediate_verification_passed",
+      "safety_status": "safety_not_established",
       "firmware_error_code": 0,
       "parameter_keys": [
         "enable"

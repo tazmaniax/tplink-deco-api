@@ -171,11 +171,16 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         and operation.p9_mutation_state_unchanged is True
         and operation.p9_mutation_parameter_keys == operation.app_candidate_parameter_keys
     )
-    warnings = (
-        ["P9 mutation verified only as a current-value no-op"]
-        if operation.p9_mutation_observation == "verified_noop"
-        else ["P9 mutation opcode has not been tested"]
-    )
+    if operation.p9_mutation_observation == "verified_noop":
+        warnings = ["P9 mutation was observed only as a current-value write"]
+    elif operation.p9_mutation_observation == "same_value_immediate_verification_passed":
+        warnings = [
+            "P9 mutation passed immediate current-value verification only; operational safety "
+            "is not established"
+        ]
+    else:
+        warnings = ["P9 mutation opcode has not been tested"]
+    warnings.append("server-side TMP mutation execution is hard-disabled")
     if parameter_contract == "unknown":
         warnings.append("mutation parameter contract is unknown")
     else:
@@ -225,6 +230,7 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         parameter_contract_evidence=parameter_contract_evidence,
         p9_parameter_contract_verified=p9_parameter_contract_verified,
         p9_mutation_observation=operation.p9_mutation_observation,
+        p9_mutation_safety_status=operation.p9_mutation_safety_status,
         p9_mutation_firmware_error_code=operation.p9_mutation_firmware_error_code,
         p9_mutation_parameter_keys=operation.p9_mutation_parameter_keys,
         p9_mutation_state_unchanged=operation.p9_mutation_state_unchanged,
@@ -241,7 +247,7 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         app_call_site_count=operation.app_call_site_count,
         app_contract_sha256=operation.app_contract_sha256,
         evidence=(
-            "value_free_p9_live_noop_and_signed_deco_android_static_contracts"
+            "value_free_p9_live_write_and_signed_deco_android_static_contracts"
             if operation.p9_mutation_observation != "untested"
             else "opcode_name_pair_inference_and_signed_deco_android_static_contracts"
         ),

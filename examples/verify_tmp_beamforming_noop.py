@@ -10,12 +10,12 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tplink_deco_api import (
+from tplink_deco_api import DecoTmpClient, TmpSshConfig
+from tplink_deco_api.tmp_beamforming_noop_verification import (
     TMP_BEAMFORMING_NOOP_CONFIRMATION,
-    DecoTmpClient,
-    TmpSshConfig,
     verify_tmp_beamforming_noop,
 )
+from tplink_deco_api.tmp_lab import TmpLabTarget, require_tmp_lab_write_enabled
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -31,6 +31,15 @@ def _arguments(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=os.environ.get("DECO_TMP_HOST_KEY_SHA256", ""),
     )
     parser.add_argument("--confirm", default="")
+    parser.add_argument("--target-model", default=os.environ.get("DECO_TMP_LAB_TARGET_MODEL", ""))
+    parser.add_argument(
+        "--target-firmware-version",
+        default=os.environ.get("DECO_TMP_LAB_TARGET_FIRMWARE", ""),
+    )
+    parser.add_argument(
+        "--target-controller-mac",
+        default=os.environ.get("DECO_TMP_LAB_TARGET_MAC", ""),
+    )
     parser.add_argument("--output", type=Path, required=True)
     return parser.parse_args(argv)
 
@@ -68,6 +77,12 @@ def main(argv: Sequence[str] | None = None) -> None:
         raise PermissionError(
             "Failed to run TMP beamforming no-op verification: exact confirmation is required"
         )
+    require_tmp_lab_write_enabled()
+    target = TmpLabTarget(
+        model=_required(args.target_model, "target model"),
+        firmware_version=_required(args.target_firmware_version, "target firmware version"),
+        controller_mac=_required(args.target_controller_mac, "target controller MAC"),
+    )
     password = _password()
     config = TmpSshConfig(
         host=args.host,
@@ -82,6 +97,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         result = verify_tmp_beamforming_noop(
             client,
             args.confirm,
+            target=target,
             progress=_progress,
         )
     args.output.parent.mkdir(parents=True, exist_ok=True)

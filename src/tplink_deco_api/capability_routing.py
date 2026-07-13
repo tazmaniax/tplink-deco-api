@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from .http_noop_verification import HTTP_NOOP_CONFIRMATIONS
 from .models import CapabilityRoute, MutationCapabilityRoute
-from .tmp_monthly_report_noop_verification import TMP_MONTHLY_REPORT_NOOP_CONFIRMATION
 
 CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
     CapabilityRoute(
@@ -118,20 +117,6 @@ MUTATION_CAPABILITY_ROUTES: tuple[MutationCapabilityRoute, ...] = (
             "DECO_ALLOW_HTTP_NOOP_VERIFICATION",
         ),
         evidence="p9_live_verified_http_noop",
-    ),
-    MutationCapabilityRoute(
-        name="monthly_report",
-        description="Verify the current monthly-report state with an immediate TMP no-op",
-        interface="tmp_appv2",
-        operation="0x4223",
-        preflight_operation="0x4222",
-        confirmation=TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
-        required_environment_gates=(
-            "DECO_ALLOW_MUTATIONS",
-            "DECO_ALLOW_TMP_READS",
-            "DECO_ALLOW_TMP_NOOP_VERIFICATION",
-        ),
-        evidence="p9_live_verified_tmp_noop",
     ),
 )
 
