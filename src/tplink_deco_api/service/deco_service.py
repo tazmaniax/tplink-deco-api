@@ -541,6 +541,39 @@ class DecoService:
             "mutation_invoked": False,
         }
 
+    def system_log_page_resource(
+        self,
+        index: int,
+        limit: int = 100,
+    ) -> dict[str, JsonValue]:
+        """Return one explicitly enabled page of secret system-log content."""
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read system log: DECO_ALLOW_SENSITIVE_READS=1 is required"
+            )
+        if not self._config.allow_bulk_secret_reads:
+            raise PermissionError(
+                "Failed to read system log: DECO_ALLOW_BULK_SECRET_READS=1 is required"
+            )
+        if index < 0:
+            raise ValueError("Failed to read system log: index must be non-negative")
+        if not 1 <= limit <= 100:
+            raise ValueError("Failed to read system log: limit must be between 1 and 100")
+        with self._lock:
+            page = self._get_client().get_system_log(index=index, limit=limit)
+        return {
+            "schema_version": 1,
+            "current_index": page.current_index,
+            "total_pages": page.total_pages,
+            "page_size": limit,
+            "entries": [entry.to_dict() for entry in page.entries],
+            "entry_count": len(page.entries),
+            "log_contents_included": True,
+            "source_interface": "http_luci",
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
     def network_status_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live health summary without client identities or secrets."""
         inventory = self.device_inventory(refresh=True)

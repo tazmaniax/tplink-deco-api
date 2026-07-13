@@ -457,6 +457,9 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
 
     tool_names = {tool.name for tool in await server.list_tools()}
     resource_uris = {str(resource.uri) for resource in await server.list_resources()}
+    resource_templates = {
+        str(template.uriTemplate) for template in await server.list_resource_templates()
+    }
 
     assert tool_names == {
         "deco_get_capability",
@@ -480,6 +483,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://capabilities",
         "deco://mutations",
     }
+    assert resource_templates == {"deco://logs/{index}"}
 
     tools = {tool.name: tool for tool in await server.list_tools()}
     assert tools["deco_get_capability"].annotations.readOnlyHint is True

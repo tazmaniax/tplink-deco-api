@@ -2249,13 +2249,20 @@
       "schema_sha256": ""
     },
     {
-      "availability": "rejected",
-      "error_code": 1,
+      "availability": "supported",
+      "error_code": null,
       "http_status": null,
       "name": "admin.log_export.feedback_log.read",
-      "returned_data": null,
-      "schema_paths": [],
-      "schema_sha256": ""
+      "returned_data": true,
+      "schema_paths": [
+        "$.currentIndex:integer",
+        "$.logList:array",
+        "$.logList[].content:string",
+        "$.logList[]:object",
+        "$.totalNum:integer",
+        "$:object"
+      ],
+      "schema_sha256": "06d02ccb6a34b80a0e5adf09d6ebe18bfa62ddf763a3a5a781a1d81c0a6a0de0"
     },
     {
       "availability": "not_found",

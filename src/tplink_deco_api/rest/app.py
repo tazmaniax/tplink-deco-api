@@ -55,6 +55,7 @@ from ..responses import (
     MutationsResponse,
     NetworkStatusResponse,
     ServiceStatusResponse,
+    SystemLogPageResponse,
     TrafficResponse,
     WlanResponse,
 )
@@ -302,6 +303,18 @@ def _create_rest_router(
     def log_types() -> dict[str, JsonValue]:
         """Return available log categories without reading log contents."""
         return service.logs_resource()
+
+    @router.get(
+        "/logs/{index}",
+        response_model=SystemLogPageResponse,
+        operation_id="getSystemLogPage",
+    )
+    def system_log_page(
+        index: int,
+        limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    ) -> dict[str, JsonValue]:
+        """Return one gated page of secret system-log content."""
+        return service.system_log_page_resource(index, limit)
 
     @router.get(
         "/capabilities",

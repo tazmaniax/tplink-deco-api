@@ -32,6 +32,8 @@ from .operation_compatibility import OperationCompatibility
 from .performance import Performance
 from .signal_level import SignalLevel
 from .speed_test import SpeedTest
+from .system_log_entry import SystemLogEntry
+from .system_log_page import SystemLogPage
 from .time_settings import TimeSettings
 from .tmp_mutation_plan import TmpMutationPlan
 from .tmp_mutation_verification_candidate import TmpMutationVerificationCandidate
@@ -85,6 +87,8 @@ __all__ = [
     "Performance",
     "SignalLevel",
     "SpeedTest",
+    "SystemLogEntry",
+    "SystemLogPage",
     "TimeSettings",
     "TmpMutationPlan",
     "TmpMutationVerificationCandidate",

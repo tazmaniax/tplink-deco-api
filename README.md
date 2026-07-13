@@ -64,10 +64,13 @@ Resources are the canonical read-only state views:
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
 | `deco://logs` | Available log categories without log contents. |
+| `deco://logs/{index}` | One gated 100-entry page of system-log content. |
 | `deco://capabilities` | Reads available for the connected controller. |
 | `deco://mutations` | Known mutation intents, evidence and eligibility. |
 
-Tools are reserved for parameterized reads or actions:
+Read-only resource templates provide bounded pagination without introducing a
+duplicate tool. Tools are reserved for semantic reads that require richer
+parameters or for actions:
 
 | Tool | Behaviour |
 |---|---|
@@ -187,7 +190,7 @@ default tools or require callers to supply a model name.
 The P9 is currently the reference implementation because it has been exercised
 against both local interfaces:
 
-- 59 data-returning HTTP reads have positive P9 evidence.
+- 60 HTTP reads have positive P9 evidence, including 32 that returned data.
 - 55 data-returning TMP/AppV2 reads have positive P9 evidence.
 - All 246 conservatively classified TMP reads have a recorded P9 observation.
 - Controlled current-value no-op evidence exists for HTTP address reservation,

@@ -133,6 +133,9 @@ def test_catalog_includes_p9_web_asset_contracts() -> None:
     assert reboot.contract_source == "firmware_asset"
     assert flow_control.required_params == ("enable_flow_control",)
     assert flow_control.contract_source == "firmware_asset"
+    system_log = get_endpoint("admin.log_export.feedback_log.read")
+    assert system_log.required_params == ("index", "limit")
+    assert system_log.contract_source == "firmware_asset"
     assert "ACS_Password" in cwmp.optional_params
     assert cwmp.sensitivity == "secret"
     assert get_endpoint("locale.list.read").response_kind == "list"

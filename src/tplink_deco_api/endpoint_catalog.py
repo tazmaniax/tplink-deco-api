@@ -187,6 +187,7 @@ _PARAMETER_CONTRACTS: dict[tuple[str, str, str], _ParameterContract] = {
         ("hw_id", "oem_id", "device_model"),
         (),
     ),
+    ("admin/log_export", "feedback_log", "read"): (("index", "limit"), ()),
     ("admin/syslog", "mail", "write"): (
         ("from", "password", "smtp_server", "port", "to"),
         ("auth", "auto_mail", "auto_mail_type", "every_day_time", "every_hours", "mail_again"),
@@ -230,6 +231,7 @@ _FIRMWARE_ASSET_CONTRACTS: frozenset[tuple[str, str, str]] = frozenset(
         ("admin/device", "system", "reboot"),
         ("admin/cloud", "firmware", "upload"),
         ("admin/firmware", "config_multipart", "backup"),
+        ("admin/log_export", "feedback_log", "read"),
         ("admin/syslog", "mail", "write"),
         ("admin/cwmp", "cwmp_info", "write"),
     }

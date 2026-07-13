@@ -38,6 +38,7 @@ from tplink_deco_api.responses import (
     NetworkStatusResponse,
     ResponseDto,
     ServiceStatusResponse,
+    SystemLogPageResponse,
     TrafficResponse,
     WlanResponse,
 )
@@ -290,6 +291,18 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             router_contacted=True,
             mutation_invoked=False,
         ),
+        "system_log_page_resource": SystemLogPageResponse(
+            schema_version=1,
+            current_index=2,
+            total_pages=4,
+            page_size=100,
+            entries=[],
+            entry_count=0,
+            log_contents_included=True,
+            source_interface="http_luci",
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
         "capabilities": CapabilitiesResponse(
             schema_version=1,
             resolution_status="resolved",
@@ -379,6 +392,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/traffic", "get"): "getTraffic",
         ("/api/v1/address-reservations", "get"): "getAddressReservations",
         ("/api/v1/log-types", "get"): "getLogTypes",
+        ("/api/v1/logs/{index}", "get"): "getSystemLogPage",
         ("/api/v1/capabilities", "get"): "getCapabilities",
         ("/api/v1/capabilities/{name}", "get"): "getCapability",
         ("/api/v1/wlan", "get"): "getWlan",
@@ -399,6 +413,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/traffic", "get"): "TrafficResponse",
         ("/api/v1/address-reservations", "get"): "CapabilityResponse",
         ("/api/v1/log-types", "get"): "LogTypesResponse",
+        ("/api/v1/logs/{index}", "get"): "SystemLogPageResponse",
         ("/api/v1/capabilities", "get"): "CapabilitiesResponse",
         ("/api/v1/capabilities/{name}", "get"): "CapabilityResponse",
         ("/api/v1/wlan", "get"): "WlanResponse",
@@ -530,6 +545,7 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
             "/api/v1/address-reservations",
         ),
         ("logs_resource", "deco://logs", "/api/v1/log-types"),
+        ("system_log_page_resource", "deco://logs/2", "/api/v1/logs/2"),
         ("capabilities", "deco://capabilities", "/api/v1/capabilities"),
         ("semantic_mutations", "deco://mutations", "/api/v1/mutations"),
     )
@@ -578,6 +594,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
         "traffic_resource",
         "address_reservations_resource",
         "logs_resource",
+        "system_log_page_resource",
         "capabilities",
         "read_capability",
         "wlan_state",
@@ -600,6 +617,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
                 client.get("/api/v1/traffic", headers=_AUTH),
                 client.get("/api/v1/address-reservations", headers=_AUTH),
                 client.get("/api/v1/log-types", headers=_AUTH),
+                client.get("/api/v1/logs/2", headers=_AUTH),
                 client.get("/api/v1/capabilities", headers=_AUTH),
                 client.get("/api/v1/capabilities/beamforming", headers=_AUTH),
                 client.get("/api/v1/wlan?include_passwords=true", headers=_AUTH),
@@ -614,6 +632,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
     patched["client_devices_resource"].assert_called_once_with("blocked")
     patched["read_capability"].assert_called_once_with("beamforming")
     patched["wlan_state"].assert_called_once_with(include_passwords=True)
+    patched["system_log_page_resource"].assert_called_once_with(2, 100)
 
 
 def test_rest_mutation_catalog_and_noncreating_preflight() -> None:

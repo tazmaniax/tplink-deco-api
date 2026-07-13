@@ -63,6 +63,10 @@ Web-UI log export + feedback bundle. Log levels (`types` → read):
   HTTP attachment: `Content-Disposition: attachment; filename="log-<YYYY-MM-DD>.log"`,
   `Content-Type: text/plain`. See
   [plaintext endpoints](../protocol/transport-and-dispatch.md#plaintext-endpoints).
+- **`feedback_log` (read)** — accepts `params` `{ index, limit }` and returns
+  `currentIndex`, `totalNum` and `logList`. The P9 web UI uses zero-based page
+  indexes with a limit of 100; each observed entry contained `content`, while
+  other firmware assets also declare `time`, `level` and `type` fields.
 - **`feedback_log` (build)** — collects the log and encrypts it into a bundle
   with a key derived from the AP SSID (default `TP-LINK`), producing a
   `feedback.log` file. The app side exposes only `feedback_log` / `build`.
@@ -70,6 +74,15 @@ Web-UI log export + feedback bundle. Log levels (`types` → read):
 > The web side also has internal `read` (paginated lines: `content`,
 > `totalNum`, `currentIndex`, `logList`) and `remove` operations used by the
 > in-UI log viewer.
+
+The Deco Android 3.10.215 app maps the build operation to TMP/AppV2 opcode
+`0x422E` and then downloads the bundle from the controller on port 30000. That
+build remains a mutation and is not used for semantic log reads. A value-free
+comparison of the same app recovered 596 named operational opcodes; together
+with the four protocol/token opcodes, all 600 were already present in the SDK
+catalogue, so this app version introduced no missing TMP operation names.
+The value-free controller and app evidence is retained in
+[`p9-system-log-compatibility.json`](../api-responses/p9-system-log-compatibility.json).
 
 The P9 `mail` model exposes SMTP credentials and is therefore classified
 `secret`. Its fields are `from`, `auth`, `password`, `smtp_server`, `port`,

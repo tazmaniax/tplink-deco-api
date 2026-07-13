@@ -33,6 +33,8 @@ transport, compatibility evidence and a conservative mutation workflow.
 * exposed 13 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
   log categories, capabilities and mutations
+* added a gated `deco://logs/{index}` resource template for bounded system-log
+  pagination without duplicating the read as a tool
 * kept the default tool surface to five parameterized or action-oriented tools
   for capability reads, WLAN state, cloud state, mutation planning and mutation
   execution
@@ -51,18 +53,22 @@ transport, compatibility evidence and a conservative mutation workflow.
   reads, binary responses, multipart backup contracts and server-side logout
   handling
 * added typed models for reservations, generic responses, compatibility evidence,
-  capabilities, routes, mutation plans and verification results
+  capabilities, routes, system-log pages, mutation plans and verification results
+* recovered and live-validated the P9 web firmware's read-only system-log
+  pagination contract without preparing or restarting log export
 * added a stream-based, CRC-checked TMP/AppV2 implementation and an SSH adapter
   with mandatory host-key pinning
 * recovered and classified a 600-operation TMP/AppV2 catalogue from signed Deco
   Android applications while keeping the public generic TMP API read-only
+* confirmed against Deco Android 3.10.215 that the existing TMP catalogue had no
+  missing named opcodes and kept feedback-log bundle creation classified as a mutation
 
 ### Model compatibility and discovery
 
 * added model and firmware compatibility profiles so catalogue presence is not
   mistaken for confirmed support
-* recorded positive P9 evidence for 59 data-returning HTTP reads and 55
-  data-returning TMP/AppV2 reads
+* recorded positive P9 evidence for 60 HTTP reads, including 32 data-returning
+  reads, and 55 data-returning TMP/AppV2 reads
 * recorded a P9 outcome for all 246 conservatively classified TMP reads and
   inventoried all 348 TMP writes
 * added sanitized, value-free P9 compatibility manifests and live-audit records

@@ -37,6 +37,8 @@ from tplink_deco_api import (
     OperationCompatibility,
     Performance,
     SpeedTest,
+    SystemLogEntry,
+    SystemLogPage,
     TimeSettings,
     TransportError,
     WanDetails,
@@ -57,6 +59,7 @@ from tplink_deco_api.responses import (
     LogTypesResponse,
     NetworkStatusResponse,
     ServiceStatusResponse,
+    SystemLogPageResponse,
     TrafficResponse,
     WlanResponse,
 )
@@ -303,12 +306,12 @@ def test_mcp_service_catalog_and_public_status() -> None:
     assert status["authenticated"] is False
     assert isinstance(status["catalogued_operations"], int)
     assert profile["firmware_version"] == "1.3.0 Build 20250804 Rel. 58832"
-    assert len(profile["supported_reads"]) == 59
+    assert len(profile["supported_reads"]) == 60
     assert profile["read_observation_counts"] == {
         "invalid_response": 1,
         "not_found": 100,
-        "rejected": 53,
-        "supported": 59,
+        "rejected": 52,
+        "supported": 60,
         "transport_error": 6,
     }
     assert len(profile["mutation_candidates"]) == 23
@@ -352,7 +355,7 @@ def test_mcp_service_catalog_and_public_status() -> None:
     assert "beamforming" in str(profile["mutation_evidence"])
     assert "802.11r" in str(profile["mutation_evidence"])
     assert "time-settings" in str(profile["mutation_evidence"])
-    assert profile["model_compatibility"]["summary"]["returned_data"] == 31
+    assert profile["model_compatibility"]["summary"]["returned_data"] == 32
     assert profile["sensitive_schema_observation"] == {
         "observed_at": "2026-07-10T22:46:56.546969+00:00",
         "endpoint_count": 55,
@@ -468,14 +471,14 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert coverage["http"]["p9_observation_counts"] == {
         "invalid_response": 1,
         "not_found": 100,
-        "rejected": 53,
-        "supported": 59,
+        "rejected": 52,
+        "supported": 60,
         "transport_error": 6,
     }
-    assert coverage["http"]["returned_data_count"] == 31
+    assert coverage["http"]["returned_data_count"] == 32
     assert coverage["http"]["accepted_empty_count"] == 28
-    assert coverage["http"]["supported_individual_callable_count"] == 59
-    assert coverage["http"]["supported_batch_json_count"] == 59
+    assert coverage["http"]["supported_individual_callable_count"] == 60
+    assert coverage["http"]["supported_batch_json_count"] == 60
     assert coverage["http"]["supported_without_call_path"] == []
     assert coverage["http"]["untested_binary_count"] == 0
     assert coverage["http"]["untested_binary_operations"] == []
@@ -1722,6 +1725,92 @@ def test_mcp_logs_resource_excludes_log_contents() -> None:
     ]
     assert logs["log_contents_included"] is False
     assert logs["unavailable_sections"] == []
+
+
+def test_mcp_system_log_pages_require_both_secret_read_gates() -> None:
+    disabled = DecoService(_config())
+    sensitive_only = DecoService(_config(allow_sensitive_reads=True))
+
+    with (
+        mock.patch.object(disabled, "_get_client") as disabled_client,
+        pytest.raises(PermissionError, match="DECO_ALLOW_SENSITIVE_READS"),
+    ):
+        disabled.system_log_page_resource(0)
+    with (
+        mock.patch.object(sensitive_only, "_get_client") as sensitive_client,
+        pytest.raises(PermissionError, match="DECO_ALLOW_BULK_SECRET_READS"),
+    ):
+        sensitive_only.system_log_page_resource(0)
+
+    disabled_client.assert_not_called()
+    sensitive_client.assert_not_called()
+
+
+def test_mcp_system_log_page_returns_typed_http_data() -> None:
+    service = DecoService(_config(allow_sensitive_reads=True, allow_bulk_secret_reads=True))
+    client = mock.Mock()
+    client.get_system_log.return_value = SystemLogPage(
+        current_index=2,
+        total_pages=4,
+        entries=(SystemLogEntry(content="message", level="INFO"),),
+    )
+
+    with mock.patch.object(service, "_get_client", return_value=client):
+        page = service.system_log_page_resource(2, 50)
+
+    assert_response_contract(SystemLogPageResponse, page)
+    assert page == {
+        "schema_version": 1,
+        "current_index": 2,
+        "total_pages": 4,
+        "page_size": 50,
+        "entries": [{"content": "message", "time": "", "level": "INFO", "type": ""}],
+        "entry_count": 1,
+        "log_contents_included": True,
+        "source_interface": "http_luci",
+        "router_contacted": True,
+        "mutation_invoked": False,
+    }
+    client.get_system_log.assert_called_once_with(index=2, limit=50)
+
+
+@pytest.mark.parametrize(("index", "limit"), ((-1, 100), (0, 0), (0, 101)))
+def test_mcp_system_log_page_validates_before_router_contact(
+    index: int,
+    limit: int,
+) -> None:
+    service = DecoService(_config(allow_sensitive_reads=True, allow_bulk_secret_reads=True))
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        pytest.raises(ValueError, match="Failed to read system log"),
+    ):
+        service.system_log_page_resource(index, limit)
+
+    get_client.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_mcp_system_log_resource_template_reads_one_page() -> None:
+    service = mock.create_autospec(DecoService, instance=True)
+    service.system_log_page_resource.return_value = {
+        "schema_version": 1,
+        "current_index": 2,
+        "total_pages": 4,
+        "page_size": 100,
+        "entries": [],
+        "entry_count": 0,
+        "log_contents_included": True,
+        "source_interface": "http_luci",
+        "router_contacted": True,
+        "mutation_invoked": False,
+    }
+    server = create_server(_config(), service)
+
+    result = await server.read_resource("deco://logs/2")
+
+    assert '"current_index": 2' in str(result)
+    service.system_log_page_resource.assert_called_once_with(2)
 
 
 def test_mcp_configuration_resource_includes_gated_nickname() -> None:

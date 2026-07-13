@@ -24,12 +24,12 @@ def test_p9_profile_covers_every_catalogued_operation() -> None:
     assert summary["availability"] == {
         "invalid_response": 1,
         "not_found": 100,
-        "rejected": 53,
-        "supported": 63,
+        "rejected": 52,
+        "supported": 64,
         "transport_error": 6,
         "untested": 347,
     }
-    assert summary["returned_data"] == 31
+    assert summary["returned_data"] == 32
     assert summary["accepted_empty"] == 28
     assert summary["asset_present"] == 94
     assert summary["mutation_tested"] == 4

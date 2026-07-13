@@ -29,6 +29,7 @@ from tplink_deco_api import (
     NodeClientList,
     Performance,
     SpeedTest,
+    SystemLogPage,
     TransportError,
     WlanConfig,
     get_endpoint,
@@ -855,6 +856,46 @@ def test_p9_getters_use_observed_operation_aliases_and_default_time_shape() -> N
             },
         ),
     ]
+
+
+def test_get_system_log_uses_firmware_pagination_contract() -> None:
+    client = DecoClient("192.0.2.1", "admin", "secret")
+    result = {
+        "currentIndex": 1,
+        "totalNum": 3,
+        "logList": [{"content": "message", "time": "now", "level": "INFO", "type": "system"}],
+    }
+
+    with mock.patch.object(client, "request", return_value=result) as request:
+        page = client.get_system_log(index=1, limit=25)
+
+    assert isinstance(page, SystemLogPage)
+    assert page.current_index == 1
+    assert page.total_pages == 3
+    assert page.entries[0].to_dict() == {
+        "content": "message",
+        "time": "now",
+        "level": "INFO",
+        "type": "system",
+    }
+    request.assert_called_once_with(
+        "admin/log_export",
+        "feedback_log",
+        {"operation": "read", "params": {"index": 1, "limit": 25}},
+    )
+
+
+@pytest.mark.parametrize(("index", "limit"), ((-1, 100), (0, 0), (0, 101)))
+def test_get_system_log_rejects_invalid_pagination(index: int, limit: int) -> None:
+    client = DecoClient("192.0.2.1", "admin", "secret")
+
+    with (
+        mock.patch.object(client, "request") as request,
+        pytest.raises(ValueError, match="Failed to read system log"),
+    ):
+        client.get_system_log(index=index, limit=limit)
+
+    request.assert_not_called()
 
 
 def test_request_propagates_api_error() -> None:

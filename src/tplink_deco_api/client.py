@@ -42,6 +42,7 @@ from .models import (
     NodeClientList,
     Performance,
     SpeedTest,
+    SystemLogPage,
     TimeSettings,
     WanInfo,
     WirelessPower,
@@ -644,6 +645,22 @@ class DecoClient:
         """Return the list of log categories available for export."""
         items = self.request_list("admin/log_export", "types", {"operation": "read"})
         return [LogType.from_api(item) for item in items]
+
+    def get_system_log(self, index: int = 0, limit: int = 100) -> SystemLogPage:
+        """Return one page of system logs without preparing or restarting logging."""
+        if index < 0:
+            raise ValueError("Failed to read system log: index must be non-negative")
+        if not 1 <= limit <= 100:
+            raise ValueError("Failed to read system log: limit must be between 1 and 100")
+        result = self.request(
+            "admin/log_export",
+            "feedback_log",
+            {
+                "operation": "read",
+                "params": {"index": index, "limit": limit},
+            },
+        )
+        return SystemLogPage.from_api(result)
 
     def _require_auth(self) -> SessionContext:
         if self._session is None or not self._session.is_authenticated():
