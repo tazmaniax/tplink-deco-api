@@ -65,18 +65,9 @@ from ..models import (
     NodeClientList,
 )
 from ..mutation_planner import build_mutation_plan
-from ..tmp_beamforming_noop_verification import TMP_BEAMFORMING_NOOP_CONFIRMATION
 from ..tmp_client import DecoTmpClient
-from ..tmp_monthly_report_noop_verification import (
-    TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
-    verify_tmp_monthly_report_noop,
-)
 from ..tmp_mutation_planner import build_tmp_mutation_plan
 from ..tmp_mutation_verification import build_tmp_mutation_verification_queue
-from ..tmp_noop_verification import (
-    TMP_IEEE80211R_NOOP_CONFIRMATION,
-    verify_tmp_ieee80211r_noop,
-)
 from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
@@ -316,6 +307,7 @@ class DecoService:
                 "internal": self._config.allow_internal,
                 "http_noop": self._config.allow_http_noop_verification,
                 "tmp_noop": self._config.allow_tmp_noop_verification,
+                "tmp_writes_hard_disabled": True,
             },
             "router_contacted": inventory["router_contacted"],
             "mutation_invoked": False,
@@ -350,13 +342,18 @@ class DecoService:
             else ()
         )
         scopes = {compatibility.mutation_test_scope for compatibility in compatibilities}
-        validation_status = (
-            "general_verified"
-            if "general" in scopes
-            else "noop_verified"
-            if "noop_only" in scopes or route is not None
-            else "unverified"
-        )
+        tmp_safety_not_established = name == "monthly_report" and profile_match in {
+            "exact",
+            "model_only",
+        }
+        if tmp_safety_not_established:
+            validation_status = "safety_not_established"
+        elif "general" in scopes:
+            validation_status = "general_verified"
+        elif "noop_only" in scopes or route is not None:
+            validation_status = "noop_verified"
+        else:
+            validation_status = "unverified"
         gates = list(route.required_environment_gates) if route is not None else []
         gate_status = {gate: self._mutation_gate_enabled(gate) for gate in gates}
         exact_route = route is not None and profile_match == "exact"
@@ -377,6 +374,11 @@ class DecoService:
         blockers.extend(
             f"{gate} is disabled" for gate, enabled in gate_status.items() if not enabled
         )
+        if tmp_safety_not_established:
+            blockers.append(
+                "TMP current-value write passed immediate verification only; operational "
+                "safety is not established"
+            )
         required = sorted({key for endpoint in endpoints for key in endpoint.required_params})
         optional = sorted({key for endpoint in endpoints for key in endpoint.optional_params})
         if name == "monthly_report":
@@ -1008,14 +1010,11 @@ class DecoService:
             raise PermissionError(
                 "Failed to verify setting no-op: exact per-call confirmation is required"
             )
-        if route.interface == "http_luci":
-            evidence = self.verify_p9_http_noop(route.operation, confirmation)
-        elif name == "monthly_report":
-            evidence = self._verify_tmp_monthly_report_noop(confirmation)
-        else:
+        if route.interface != "http_luci":
             raise PermissionError(
                 f"Failed to verify setting no-op: no executor for capability {name!r}"
             )
+        evidence = self.verify_p9_http_noop(route.operation, confirmation)
         evidence.update(
             {
                 "capability": route.name,
@@ -1033,7 +1032,7 @@ class DecoService:
             "DECO_ALLOW_MUTATIONS": self._config.allow_mutations,
             "DECO_ALLOW_HTTP_NOOP_VERIFICATION": (self._config.allow_http_noop_verification),
             "DECO_ALLOW_TMP_READS": self._config.allow_tmp_reads,
-            "DECO_ALLOW_TMP_NOOP_VERIFICATION": (self._config.allow_tmp_noop_verification),
+            "DECO_ALLOW_TMP_NOOP_VERIFICATION": False,
         }
         return states[gate]
 
@@ -1249,104 +1248,17 @@ class DecoService:
         }
 
     def verify_tmp_ieee80211r_noop(self, confirmation: str) -> dict[str, JsonValue]:
-        """Run the P9-verified current-value 802.11r no-op behind independent gates."""
-        if confirmation != TMP_IEEE80211R_NOOP_CONFIRMATION:
-            raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: exact per-call confirmation is required"
-            )
-        if not self._config.allow_mutations:
-            raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_MUTATIONS is disabled"
-            )
-        if not self._config.allow_tmp_reads:
-            raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_TMP_READS is disabled"
-            )
-        if not self._config.allow_tmp_noop_verification:
-            raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: DECO_ALLOW_TMP_NOOP_VERIFICATION is disabled"
-            )
-        plan = build_tmp_mutation_plan(0x4209)
-        if not plan.complete_safety_contract or plan.p9_mutation_observation != "verified_noop":
-            raise PermissionError(
-                "Failed to verify TMP 802.11r no-op: P9 safety evidence is incomplete"
-            )
-        self._require_exact_p9_profile("verify TMP 802.11r no-op")
-        with self._lock:
-            if self._tmp_mutation_latched:
-                raise PermissionError(
-                    "Failed to verify TMP 802.11r no-op: safety latch requires server restart"
-                )
-            result = verify_tmp_ieee80211r_noop(
-                self._get_tmp_client(),
-                confirmation,
-            )
-            if not result.verified_noop:
-                self._tmp_mutation_latched = True
-        evidence = result.to_dict()
-        evidence.update(
-            {
-                "model": "P9",
-                "execution_scope": "verified_current_value_noop_only",
-                "runtime_gates": [
-                    "DECO_ALLOW_MUTATIONS",
-                    "DECO_ALLOW_TMP_READS",
-                    "DECO_ALLOW_TMP_NOOP_VERIFICATION",
-                ],
-                "generic_tmp_mutation_supported": False,
-                "requires_attention": not result.verified_noop,
-            }
+        """Reject TMP writes from the deployed service regardless of runtime gates."""
+        raise PermissionError(
+            "Failed to verify TMP 802.11r write: server-side TMP writes are hard-disabled; "
+            "use the source-checkout lab harness in an isolated environment"
         )
-        return evidence
 
     def _verify_tmp_monthly_report_noop(self, confirmation: str) -> dict[str, JsonValue]:
-        if confirmation != TMP_MONTHLY_REPORT_NOOP_CONFIRMATION:
-            raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: exact per-call confirmation is required"
-            )
-        if not self._config.allow_mutations:
-            raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: DECO_ALLOW_MUTATIONS is disabled"
-            )
-        if not self._config.allow_tmp_reads:
-            raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: DECO_ALLOW_TMP_READS is disabled"
-            )
-        if not self._config.allow_tmp_noop_verification:
-            raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: "
-                "DECO_ALLOW_TMP_NOOP_VERIFICATION is disabled"
-            )
-        plan = build_tmp_mutation_plan(0x4223)
-        if not plan.complete_safety_contract or plan.p9_mutation_observation != "verified_noop":
-            raise PermissionError(
-                "Failed to verify TMP monthly-report no-op: P9 safety evidence is incomplete"
-            )
-        self._require_exact_p9_profile("verify TMP monthly-report no-op")
-        with self._lock:
-            if self._tmp_mutation_latched:
-                raise PermissionError(
-                    "Failed to verify TMP monthly-report no-op: "
-                    "safety latch requires server restart"
-                )
-            result = verify_tmp_monthly_report_noop(self._get_tmp_client(), confirmation)
-            if not result.verified_noop:
-                self._tmp_mutation_latched = True
-        evidence = result.to_dict()
-        evidence.update(
-            {
-                "model": "P9",
-                "execution_scope": "verified_current_value_noop_only",
-                "runtime_gates": [
-                    "DECO_ALLOW_MUTATIONS",
-                    "DECO_ALLOW_TMP_READS",
-                    "DECO_ALLOW_TMP_NOOP_VERIFICATION",
-                ],
-                "generic_tmp_mutation_supported": False,
-                "requires_attention": not result.verified_noop,
-            }
+        raise PermissionError(
+            "Failed to verify TMP monthly-report write: server-side TMP writes are "
+            "hard-disabled; use the source-checkout lab harness in an isolated environment"
         )
-        return evidence
 
     def verify_p9_http_noop(
         self,
@@ -1685,13 +1597,11 @@ class DecoService:
                 "tunnel_destination": "127.0.0.1:20002",
                 "protocol_implemented": True,
                 "read_only_session_implemented": True,
-                "scoped_noop_verification_implemented": True,
-                "scoped_noop_runtime_gate_enabled": (
-                    self._config.allow_mutations
-                    and self._config.allow_tmp_reads
-                    and self._config.allow_tmp_noop_verification
-                    and not self._tmp_mutation_latched
-                ),
+                "experimental": True,
+                "scoped_noop_verification_implemented": False,
+                "scoped_noop_runtime_gate_enabled": False,
+                "server_writes_hard_disabled": True,
+                "source_checkout_lab_harness_available": True,
                 "generic_mutation_implemented": False,
                 "ssh_adapter_implemented": True,
                 "generic_call_supported": False,
@@ -1702,8 +1612,10 @@ class DecoService:
                     opcode.p9_opcode_tested for opcode in TMP_OPCODE_CATALOG
                 ),
                 "evidence": (
-                    "P9 SSH/TMP authentication, complete read audit, and one scoped "
-                    "current-value no-op on 2026-07-11; tmpkit Deco transport source"
+                    "P9 SSH/TMP authentication and read audit; three current-value writes "
+                    "passed immediate verification but did not establish operational safety; "
+                    "a later incident is temporally associated with aggregate TMP activity "
+                    "but unattributed"
                 ),
             },
         }
@@ -1989,10 +1901,9 @@ class DecoService:
                     "scoped_noop_runtime_gate_enabled": tmp_mutations[
                         "scoped_noop_runtime_gate_enabled"
                     ],
-                    "scoped_noop_executors": [
-                        "verify_setting_noop",
-                        "verify_tmp_ieee80211r_noop",
-                    ],
+                    "scoped_noop_executors": [],
+                    "server_write_policy": "hard_disabled",
+                    "source_checkout_lab_harness_available": True,
                     "verification_candidate_count": tmp_verification_queue[
                         "verification_candidate_count"
                     ],
@@ -2010,7 +1921,8 @@ class DecoService:
                 "http_generic_noop_only_execution_absent": True,
                 "http_scoped_noop_execution_exposed": True,
                 "tmp_generic_mutation_execution_absent": True,
-                "tmp_scoped_noop_execution_exposed": True,
+                "tmp_scoped_noop_execution_exposed": False,
+                "tmp_server_writes_hard_disabled": True,
             },
             "unresolved_summary": {
                 "http_binary_reads_untested": len(http_untested),
@@ -2050,7 +1962,8 @@ class DecoService:
                 {
                     "id": "p9_tmp_beamforming_noop_verification",
                     "artifact": "docs/api-responses/p9-tmp-beamforming-noop.json",
-                    "outcome": "verified_current_value_noop",
+                    "outcome": "same_value_immediate_verification_passed",
+                    "safety_status": "safety_not_established",
                     "operation_code": 0x421C,
                     "mutation_request_count": 1,
                     "state_unchanged": True,
@@ -2060,7 +1973,8 @@ class DecoService:
                 {
                     "id": "p9_tmp_monthly_report_noop_verification",
                     "artifact": "docs/api-responses/p9-tmp-monthly-report-noop.json",
-                    "outcome": "verified_current_value_noop",
+                    "outcome": "same_value_immediate_verification_passed",
+                    "safety_status": "safety_not_established",
                     "operation_code": 0x4223,
                     "mutation_request_count": 1,
                     "state_unchanged": True,
@@ -2107,12 +2021,12 @@ class DecoService:
                     "surface": "tmp_mutations",
                     "count": (len(tmp_write_operations) - tmp_mutation_tested_count),
                     "gap": (
-                        "345 mutations untested; three no-ops verified without proving "
-                        "state-changing scope"
+                        "345 mutations untested; three same-value writes passed immediate "
+                        "verification but did not establish operational safety"
                     ),
                     "next_action": (
-                        "retain all other writes planning-only until stronger contract "
-                        "or safety evidence exists"
+                        "keep server writes hard-disabled; use only the isolated source-checkout "
+                        "lab harness for future controlled validation"
                     ),
                 },
             ],
@@ -2164,9 +2078,19 @@ class DecoService:
             "source_scope": (
                 "signed Deco Android apps 1.10.5 and 3.10.215; tmpkit tested only "
                 "on X5000; this project tested the original 74 reads and two "
-                "protocol operations plus three exact current-value no-ops on P9; "
+                "protocol operations plus three current-value writes on P9; the writes passed "
+                "immediate verification but operational safety is not established; a later "
+                "incident is temporally associated with aggregate TMP activity but unattributed; "
+                "server writes are hard-disabled; "
                 f"{untested_read_count} reads remain untested"
             ),
+            "incident_context": {
+                "activity_scope": "aggregate_tmp_activity",
+                "association": "temporally_associated_unattributed",
+                "causality": "undetermined",
+                "observed_at": "2026-07-12",
+                "reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
+            },
             "catalogued_opcode_count": len(TMP_OPCODE_CATALOG),
             "safety_counts": dict(sorted(all_safety.items())),
             "category_counts": dict(sorted(all_categories.items())),
@@ -2176,17 +2100,11 @@ class DecoService:
         }
 
     def p9_tmp_mutation_inventory(self) -> dict[str, JsonValue]:
-        """Return TMP mutation evidence and its narrowly scoped no-op executor."""
+        """Return TMP mutation evidence without exposing a server executor."""
         plans = tuple(
             build_tmp_mutation_plan(opcode.code)
             for opcode in TMP_OPCODE_CATALOG
             if opcode.safety in {"mutation", "destructive"}
-        )
-        scoped_noop_gate_enabled = (
-            self._config.allow_mutations
-            and self._config.allow_tmp_reads
-            and self._config.allow_tmp_noop_verification
-            and not self._tmp_mutation_latched
         )
         plan_payloads: list[dict[str, JsonValue]] = []
         for plan in plans:
@@ -2194,18 +2112,18 @@ class DecoService:
             if plan.code == 0x4209:
                 payload.update(
                     {
-                        "scoped_executor": "verify_tmp_ieee80211r_noop",
-                        "scoped_execution_supported": True,
-                        "runtime_gate_enabled": scoped_noop_gate_enabled,
-                        "execution_eligible": scoped_noop_gate_enabled,
+                        "verification_harness": "examples/verify_tmp_ieee80211r_noop.py",
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
+                        "scoped_execution_supported": False,
+                        "runtime_gate_enabled": False,
+                        "execution_eligible": False,
                     }
                 )
             elif plan.code == 0x421C:
                 payload.update(
                     {
                         "verification_harness": "examples/verify_tmp_beamforming_noop.py",
-                        "verification_harness_scope": "current_value_noop_only",
-                        "verification_confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
                         "live_verification_invoked": plan.p9_opcode_tested,
                         "scoped_execution_supported": False,
                         "runtime_gate_enabled": False,
@@ -2216,14 +2134,11 @@ class DecoService:
                 payload.update(
                     {
                         "verification_harness": ("examples/verify_tmp_monthly_report_noop.py"),
-                        "verification_harness_scope": "current_value_noop_only",
-                        "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
                         "live_verification_invoked": plan.p9_opcode_tested,
-                        "scoped_executor": "verify_setting_noop",
-                        "scoped_capability": "monthly_report",
-                        "scoped_execution_supported": True,
-                        "runtime_gate_enabled": scoped_noop_gate_enabled,
-                        "execution_eligible": scoped_noop_gate_enabled,
+                        "scoped_execution_supported": False,
+                        "runtime_gate_enabled": False,
+                        "execution_eligible": False,
                     }
                 )
             plan_payloads.append(payload)
@@ -2297,50 +2212,35 @@ class DecoService:
             ),
             "mutation_tested_count": sum(plan.p9_opcode_tested for plan in plans),
             "complete_safety_contract_count": sum(plan.complete_safety_contract for plan in plans),
-            "execution_eligible_count": 2 * int(scoped_noop_gate_enabled),
-            "execution_available": True,
+            "execution_eligible_count": 0,
+            "execution_available": False,
             "generic_execution_available": False,
-            "scoped_noop_executor_count": 2,
-            "scoped_noop_runtime_gate_enabled": scoped_noop_gate_enabled,
-            "scoped_noop_operations": [
+            "scoped_noop_executor_count": 0,
+            "scoped_noop_runtime_gate_enabled": False,
+            "scoped_noop_operations": [],
+            "server_write_policy": "hard_disabled",
+            "tmp_transport_status": "experimental",
+            "lab_write_environment_gate": "DECO_TMP_LAB_ALLOW_WRITES",
+            "prepared_verification_harness_count": 3,
+            "prepared_verification_harnesses": [
                 {
                     "code": 0x4209,
                     "hex_code": "0x4209",
                     "name": "TMP_APPV2_OP_11R_SET",
-                    "executor": "verify_tmp_ieee80211r_noop",
-                    "execution_scope": "verified_current_value_noop_only",
-                    "confirmation": TMP_IEEE80211R_NOOP_CONFIRMATION,
-                    "required_environment_gates": [
-                        "DECO_ALLOW_MUTATIONS",
-                        "DECO_ALLOW_TMP_READS",
-                        "DECO_ALLOW_TMP_NOOP_VERIFICATION",
-                    ],
+                    "harness": "examples/verify_tmp_ieee80211r_noop.py",
+                    "scope": "isolated_source_checkout_lab_only",
+                    "exact_confirmation_required": True,
+                    "live_target_binding_required": True,
+                    "execution_available": False,
                 },
-                {
-                    "code": 0x4223,
-                    "hex_code": "0x4223",
-                    "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
-                    "executor": "verify_setting_noop",
-                    "capability": "monthly_report",
-                    "execution_scope": "verified_current_value_noop_only",
-                    "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
-                    "required_environment_gates": [
-                        "DECO_ALLOW_MUTATIONS",
-                        "DECO_ALLOW_TMP_READS",
-                        "DECO_ALLOW_TMP_NOOP_VERIFICATION",
-                    ],
-                },
-            ],
-            "prepared_verification_harness_count": 2,
-            "prepared_verification_harnesses": [
                 {
                     "code": 0x421C,
                     "hex_code": "0x421C",
                     "name": "TMP_APPV2_OP_BEAMFORMING_SET",
                     "harness": "examples/verify_tmp_beamforming_noop.py",
-                    "scope": "current_value_noop_only",
+                    "scope": "isolated_source_checkout_lab_only",
                     "exact_confirmation_required": True,
-                    "confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
+                    "live_target_binding_required": True,
                     "live_invoked": True,
                     "execution_available": False,
                 },
@@ -2349,19 +2249,20 @@ class DecoService:
                     "hex_code": "0x4223",
                     "name": "TMP_APPV2_OP_MONTHLY_REPORT_MGR_SET",
                     "harness": "examples/verify_tmp_monthly_report_noop.py",
-                    "scope": "current_value_noop_only",
+                    "scope": "isolated_source_checkout_lab_only",
                     "exact_confirmation_required": True,
-                    "confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+                    "live_target_binding_required": True,
                     "live_invoked": True,
-                    "execution_available": True,
-                    "executor": "verify_setting_noop",
-                    "capability": "monthly_report",
+                    "execution_available": False,
                 },
             ],
             "evidence": (
                 "opcode name-pair inference, P9 read observations, and signed "
                 "Deco Android 1.10.5 plus 3.10.215 static request contracts; "
-                "three value-free P9 current-value no-op verifications"
+                "three value-free P9 current-value writes passed immediate verification but "
+                "did not establish operational safety; the later incident is associated only "
+                "with aggregate TMP activity and remains unattributed; "
+                "server execution is hard-disabled"
             ),
             "plans": plan_payloads,
         }
@@ -2394,12 +2295,23 @@ class DecoService:
         candidate_payloads: list[dict[str, JsonValue]] = []
         for candidate in selected:
             payload = candidate.to_dict()
-            if candidate.plan.code == 0x421C:
+            if candidate.plan.code == 0x4209:
+                payload.update(
+                    {
+                        "verification_harness": "examples/verify_tmp_ieee80211r_noop.py",
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
+                        "live_target_binding_required": True,
+                        "lab_write_environment_gate": "DECO_TMP_LAB_ALLOW_WRITES",
+                        "execution_available": False,
+                    }
+                )
+            elif candidate.plan.code == 0x421C:
                 payload.update(
                     {
                         "verification_harness": "examples/verify_tmp_beamforming_noop.py",
-                        "verification_harness_scope": "current_value_noop_only",
-                        "verification_confirmation": TMP_BEAMFORMING_NOOP_CONFIRMATION,
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
+                        "live_target_binding_required": True,
+                        "lab_write_environment_gate": "DECO_TMP_LAB_ALLOW_WRITES",
                         "live_invoked": candidate.plan.p9_opcode_tested,
                         "execution_available": False,
                     }
@@ -2408,12 +2320,11 @@ class DecoService:
                 payload.update(
                     {
                         "verification_harness": ("examples/verify_tmp_monthly_report_noop.py"),
-                        "verification_harness_scope": "current_value_noop_only",
-                        "verification_confirmation": TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+                        "verification_harness_scope": "isolated_source_checkout_lab_only",
+                        "live_target_binding_required": True,
+                        "lab_write_environment_gate": "DECO_TMP_LAB_ALLOW_WRITES",
                         "live_invoked": candidate.plan.p9_opcode_tested,
-                        "execution_available": True,
-                        "executor": "verify_setting_noop",
-                        "capability": "monthly_report",
+                        "execution_available": False,
                     }
                 )
             candidate_payloads.append(payload)
@@ -2445,6 +2356,8 @@ class DecoService:
             "mutation_invoked": False,
             "execution_eligible_count": 0,
             "execution_available": False,
+            "server_write_policy": "hard_disabled",
+            "lab_write_environment_gate": "DECO_TMP_LAB_ALLOW_WRITES",
             "candidates": candidate_payloads,
         }
 

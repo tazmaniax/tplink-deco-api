@@ -48,7 +48,6 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_TMP_HOST_KEY_SHA256` | — | Required pinned SSH host-key fingerprint for authenticated TMP connections. |
 | `DECO_ALLOW_TMP_READS` | off | Permit TMP reads that have positive P9 evidence. |
 | `DECO_ALLOW_UNVERIFIED_TMP_READS` | off | Additionally permit read-only opcodes not yet tested on the P9. |
-| `DECO_ALLOW_TMP_NOOP_VERIFICATION` | off | Permit P9-verified TMP current-value no-ops; also requires the ordinary mutation and TMP-read gates. |
 | `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS` | off | Register protocol-specific catalogue, raw read, discovery and mutation-analysis tools and resources. This changes discoverability only and is not a mutation authorization gate. |
 | `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS` | off | Register the raw endpoint mutation executor independently of diagnostics. All ordinary risk gates, model evidence and confirmations still apply. |
 
@@ -82,7 +81,6 @@ codex mcp add tplink-deco \
   --env DECO_TMP_HOST_KEY_SHA256='SHA256:TpmUAt8R9aKgOoas0FlZybt0YeLufHW3+JIEffm2/Ts' \
   --env DECO_ALLOW_TMP_READS=1 \
   --env DECO_ALLOW_UNVERIFIED_TMP_READS=0 \
-  --env DECO_ALLOW_TMP_NOOP_VERIFICATION=0 \
   --env DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=0 \
   --env DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=0 \
   -- /opt/homebrew/bin/op run -- \
@@ -222,7 +220,7 @@ devices, traffic and address reservations additionally require
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
-| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
+| `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `tmp_writes_hard_disabled`, `tmp_transport_status`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
 | `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
@@ -323,9 +321,9 @@ stronger typed SDK façade. TMP fallback requires its ordinary read gate, pinned
 host key and credentials; secret logical capabilities also require the single
 sensitive-read gate before either transport is selected. Errors include only
 the failed interface and exception type in successful fallback provenance.
-Mutations are never retried or routed automatically. Each semantic mutation
-route is fixed to one live-verified implementation before execution: HTTP for
-beamforming, fast roaming and time settings, and TMP/AppV2 for monthly report.
+Mutations are never retried or routed automatically. Executable semantic
+mutation routes are fixed to HTTP for beamforming, fast roaming and time
+settings. TMP/AppV2 writes have no server route, including monthly report.
 
 This first registry intentionally covers only overlaps with demonstrated
 normalization equivalence. Protocol-unique datasets remain on the diagnostic
@@ -352,7 +350,6 @@ confirmations still apply independently.
 | `deco_p9_access_coverage` | Explain all P9 read call paths, mutation evidence and remaining implementation or verification gaps offline. |
 | `deco_plan_tmp_mutation` | Build one non-executable TMP preflight, verification and rollback plan offline. |
 | `deco_p9_tmp_mutation_verification_queue` | Rank bounded TMP verification candidates offline; sensitive, deferred and destructive tiers require separate query opt-ins. |
-| `deco_verify_tmp_ieee80211r_noop` | Repeat only the P9-verified `0x4208` current-state read, `0x4209` same-value write and immediate `0x4208` verification; requires three runtime gates and exact per-call confirmation. |
 | `deco_verify_p9_http_noop` | Repeat one of the three P9-verified HTTP setting no-ops using only live current values; requires the mutation and dedicated HTTP-no-op gates plus exact operation-specific confirmation. |
 | `deco_tmp_host_key` | Read the TMP SSH fingerprint without authentication or a TMP payload. |
 | `deco_tmp_read` | Invoke a gated read-only opcode; rejected P9 operations fail closed and untested reads require a second gate. |
@@ -796,9 +793,8 @@ source or response values were retained. A subsequent value-free pass tried all
 this P9 build. The exact request contract remains unresolved because neither
 signed app contains a call site.
 
-`deco_plan_tmp_mutation` remains offline only, while
-`deco_p9_tmp_mutation_inventory` reports both offline evidence and the one
-narrowly scoped MCP no-op path. They cover all 348 writes:
+`deco_plan_tmp_mutation` and `deco_p9_tmp_mutation_inventory` remain offline
+analysis only. They cover all 348 writes:
 277 ordinary mutations and 71 conservatively destructive operations. Opcode-name
 relationships provide 222 candidate preflight/verification reads, 70 of which
 returned data on this P9, and 188 candidate rollback relationships. Eighty-one
@@ -812,34 +808,29 @@ with candidate top-level keys, 27 send null payloads and 14 retain model-only
 evidence. Thirty-three write declarations still have no app call site.
 Candidate keys are a
 conservative union of serialized model fields and can include response-only or
-conditionally omitted fields; they are not an executable JSON schema. One
-explicitly authorized current-value no-op has now exercised `11R_SET` (`0x4209`)
-with the boolean returned by `11R_GET` (`0x4208`). The P9 returned firmware
-`error_code=0`, and an immediate post-read matched the preflight state, so no
-rollback was needed. This verifies only the `enable` key and same-value behavior;
-it does not authorize or prove a state-changing write. The value-free evidence
-is in [`p9-tmp-ieee80211r-noop.json`](api-responses/p9-tmp-ieee80211r-noop.json).
-The other 345 mutation candidates remain untested. No generic TMP mutation
-tool is exposed.
+conditionally omitted fields; they are not an executable JSON schema.
 
-The unified `deco_verify_setting_noop` tool exposes the verified monthly-report
-TMP no-op as capability `monthly_report`; the protocol-specific
-`deco_verify_tmp_ieee80211r_noop` remains available only on the diagnostic
-surface. Both remain disabled unless `DECO_ALLOW_MUTATIONS=1`,
-`DECO_ALLOW_TMP_READS=1` and `DECO_ALLOW_TMP_NOOP_VERIFICATION=1` are all
-set before server startup. Each call must repeat its exact confirmation. The
-tools obtain the current boolean, send only that same value, immediately verify
-it and restore the preflight value if verification fails. They return
-value-free evidence and never accept a desired setting value. Calls are
-serialized, and any result other than `verified_noop` trips a process-lifetime
-safety latch that rejects further attempts until the MCP server is restarted.
-Enabling or disabling either setting remains unsupported.
+Three separately authorized P9 runs sent the current value for `11R_SET`
+(`0x4209`), `BEAMFORMING_SET` (`0x421C`) and `MONTHLY_REPORT_MGR_SET`
+(`0x4223`). Each setter returned firmware error code zero and its immediate
+post-read matched. Those immediate observations are retained as
+`same_value_immediate_verification_passed`, while all three safety statuses are
+`safety_not_established`. A later mesh incident is temporally associated with
+aggregate TMP activity but is not attributed to these writes or any other
+opcode; causality is undetermined. The incident and containment decision are
+recorded in
+[`2026-07-12-p9-tmp-topology-loss.md`](incidents/2026-07-12-p9-tmp-topology-loss.md).
+
+MCP, REST and the deployed service hard-disable every TMP write. There is no
+`DECO_ALLOW_TMP_WRITES` or server TMP no-op gate, and enabling the retired
+`DECO_ALLOW_TMP_NOOP_VERIFICATION` setting is a configuration error. The TMP
+diagnostic surface exposes catalogues, plans and read operations only.
 
 `deco_p9_tmp_mutation_verification_queue` converts that inventory into seven
 agent-readable tiers without opening either router transport. `11R_SET`,
 `BEAMFORMING_SET` and `MONTHLY_REPORT_MGR_SET` are retained in the
-`verified_noop` tier and omitted from the default future-work queue. The
-default non-secret view is now empty. Eighty-one
+`safety_not_established` tier and are not eligible for server execution.
+The default non-secret future-work view is empty. Eighty-one
 active-workflow or connectivity-changing operations are
 deferred, 193 are blocked by missing preflight, rollback, key-level parameter,
 or preflight/schema key-coverage evidence, and all 71 destructive operations are excluded. Sensitive, deferred
@@ -847,27 +838,22 @@ and destructive tiers require explicit query flags. Every returned candidate
 states that per-operation authorization is required, `router_contacted=false`,
 `mutation_invoked=false` and `execution_eligible=false`.
 
-`BEAMFORMING_SET` (`0x421C`) has an operation-specific harness at
-`examples/verify_tmp_beamforming_noop.py`.
-It can send only the boolean returned by `BEAMFORMING_GET` (`0x421B`), verifies
-the same read immediately, restores the preflight value on mismatch, writes an
-owner-only value-free artifact, and refuses to connect without its exact
-per-operation confirmation. Its authorized P9 run returned firmware
-`error_code=0`; the immediate post-read matched, so rollback was unnecessary.
-It remains `execution_eligible=false` and absent from MCP execution tools.
+The three operation-specific source-checkout harnesses remain available only
+for future controlled-environment investigation. Before any credentials or TMP
+session are opened, each requires `DECO_TMP_LAB_ALLOW_WRITES=1`, its exact
+per-operation confirmation, and exact expected model, firmware and controller
+MAC arguments that must match live opcode `0x400F` identity. They are not MCP,
+REST or installed-service write paths and must not be used on a production mesh.
 
-`MONTHLY_REPORT_MGR_SET` (`0x4223`) has the same bounded boolean shape and a
-prepared harness at `examples/verify_tmp_monthly_report_noop.py`. Its authorized
-P9 run produced the same verified-no-op result and it remains absent from MCP
-execution. `QOS_MODE_SET` was removed from the
+`QOS_MODE_SET` was removed from the
 verification queue because the signed setter candidate keys are
 `custom_detail,qos_mode`, while the P9 preflight schema contains only
 `custom_detail`. The queue now requires live preflight schemas to cover every
 candidate setter key before proposing a same-value or round-trip verification.
 Of 67 mutations with both a data-returning P9 preflight and static setter keys,
 19 have full top-level key coverage and 48 are blocked by at least one missing
-candidate key. Risk, sensitivity and rollback checks reduce those 19 to the two
-verification candidates above.
+candidate key. Risk, sensitivity, rollback and incident evidence still leave
+all TMP writes execution-ineligible.
 
 The risk audit defers every secret candidate. IPv4 and IPv6 setters are marked
 as connectivity changes; IPv6 firewall writes are both connectivity and

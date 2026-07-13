@@ -11,7 +11,6 @@ from tplink_deco_api import (
     CAPABILITY_ROUTES,
     HTTP_NOOP_CONFIRMATIONS,
     MUTATION_CAPABILITY_ROUTES,
-    TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
     Device,
     TransportError,
     get_capability_route,
@@ -69,14 +68,14 @@ def test_mutation_capability_registry_has_fixed_routes_without_fallback() -> Non
         "beamforming",
         "fast_roaming",
         "time_settings",
-        "monthly_report",
     ]
     assert all(route.to_dict()["fallback_policy"] == "none" for route in MUTATION_CAPABILITY_ROUTES)
     assert all(
         route.to_dict()["automatic_fallback"] is False for route in MUTATION_CAPABILITY_ROUTES
     )
     assert get_mutation_capability_route("beamforming").interface == "http_luci"
-    assert get_mutation_capability_route("monthly_report").operation == "0x4223"
+    with pytest.raises(KeyError, match="Unknown Deco mutation capability"):
+        get_mutation_capability_route("monthly_report")
 
     with pytest.raises(KeyError, match="Unknown Deco mutation capability"):
         get_mutation_capability_route("unknown")
@@ -97,7 +96,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
     assert len(result["routes"]) == 6
-    assert len(result["mutation_routes"]) == 4
+    assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
 
@@ -110,17 +109,15 @@ def test_capability_mutation_plan_is_offline_and_protocol_fixed() -> None:
         mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
     ):
         http_plan = service.plan_capability_mutation("beamforming")
-        tmp_plan = service.plan_capability_mutation("monthly_report")
+        with pytest.raises(ValueError, match="unknown capability"):
+            service.plan_capability_mutation("monthly_report")
 
     get_client.assert_not_called()
     get_tmp_client.assert_not_called()
     assert http_plan["interface"] == "http_luci"
     assert http_plan["operation"] == "admin.wireless.beamforming.write"
     assert http_plan["confirmation"] == HTTP_NOOP_CONFIRMATIONS[http_plan["operation"]]
-    assert tmp_plan["interface"] == "tmp_appv2"
-    assert tmp_plan["operation"] == "0x4223"
-    assert tmp_plan["confirmation"] == TMP_MONTHLY_REPORT_NOOP_CONFIRMATION
-    assert http_plan["fallback_policy"] == tmp_plan["fallback_policy"] == "none"
+    assert http_plan["fallback_policy"] == "none"
     assert http_plan["router_contacted"] is False
     assert http_plan["mutation_invoked"] is False
 
@@ -158,7 +155,7 @@ def test_unified_http_noop_uses_fixed_route_without_fallback() -> None:
     assert evidence["fallback_used"] is False
 
 
-def test_unified_monthly_report_noop_uses_tmp_current_value() -> None:
+def test_unified_monthly_report_write_has_no_server_executor() -> None:
     config = replace(
         _config(),
         allow_mutations=True,
@@ -166,26 +163,13 @@ def test_unified_monthly_report_noop_uses_tmp_current_value() -> None:
         allow_tmp_noop_verification=True,
     )
     service = DecoService(config)
-    service._device_cache = (_p9_device(),)
-    client = mock.Mock()
-    client.request_read_json.side_effect = [
-        {"error_code": 0, "result": {"enable": True}},
-        {"error_code": 0, "result": {"enable": True}},
-    ]
-    client._request_mutation_json.return_value = {"error_code": 0}
+    with (
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(ValueError, match="unknown capability"),
+    ):
+        service.verify_setting_noop("monthly_report", "ignored")
 
-    with mock.patch.object(service, "_get_tmp_client", return_value=client):
-        evidence = service.verify_setting_noop(
-            "monthly_report",
-            TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
-        )
-
-    assert evidence["status"] == "verified_noop"
-    assert evidence["selected_interface"] == "tmp_appv2"
-    assert evidence["selected_operation"] == "0x4223"
-    assert evidence["fallback_used"] is False
-    assert client.request_read_json.call_args_list == [mock.call(0x4222), mock.call(0x4222)]
-    client._request_mutation_json.assert_called_once_with(0x4223, {"enable": True})
+    get_tmp_client.assert_not_called()
 
 
 def test_capability_read_prefers_http_and_returns_provenance() -> None:
@@ -330,6 +314,12 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     assert beamforming["plan_operation"] == "plan_mutation"
     assert beamforming["execute_operation"] == "execute_mutation"
     assert service.semantic_mutation("beamforming") == beamforming
+    monthly_report = next(
+        item for item in mutations["mutations"] if item["name"] == "monthly_report"
+    )
+    assert monthly_report["validation_status"] == "safety_not_established"
+    assert monthly_report["execution_status"] == "blocked"
+    assert monthly_report["execute_operation"] is None
     reservation = next(
         item for item in mutations["mutations"] if item["name"] == "address_reservation_modify"
     )
@@ -476,11 +466,12 @@ async def test_diagnostic_server_retains_protocol_specific_tools() -> None:
     tools = {tool.name: tool for tool in await server.list_tools()}
     tool_names = set(tools)
 
-    assert len(tool_names) == 48
+    assert len(tool_names) == 47
     assert "deco_get_capability" in tool_names
     assert "deco_verify_setting_noop" in tool_names
     assert "deco_read_endpoint" in tool_names
     assert "deco_tmp_read" in tool_names
+    assert "deco_verify_tmp_ieee80211r_noop" not in tool_names
     assert "deco_invoke_mutation" not in tool_names
     assert all(tool.annotations is not None for tool in tools.values())
     assert tools["deco_get_mesh_overview"].annotations.readOnlyHint is True

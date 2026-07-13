@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from .exceptions import DecoError
 from .models import TmpNoopVerificationResult
+from .tmp_lab import TmpLabTarget, verify_tmp_lab_target
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -27,10 +28,12 @@ def _verify_tmp_boolean_noop(
     read_name: str,
     write_opcode: int,
     write_name: str,
+    target: TmpLabTarget | None,
     progress: Callable[[str], None] | None = None,
 ) -> TmpNoopVerificationResult:
     if confirmation != expected_confirmation:
         raise PermissionError(f"Failed to verify {label}: confirmation does not match exact scope")
+    verify_tmp_lab_target(client, target)
     _progress(progress, "preflight")
     before = _read_enable(client, read_opcode, label)
     _progress(progress, "write")

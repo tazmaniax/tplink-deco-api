@@ -21,6 +21,7 @@ from tplink_deco_api.exceptions import (
     IdempotencyInProgressError,
 )
 from tplink_deco_api.mcp.server import create_server
+from tplink_deco_api.models import Device
 from tplink_deco_api.rest import create_http_application
 from tplink_deco_api.rest._in_memory_idempotency_store import _InMemoryIdempotencyStore
 from tplink_deco_api.rest.request_capacity_middleware import RequestCapacityMiddleware
@@ -325,6 +326,39 @@ def test_rest_plan_creation_rejects_blockers_and_returns_created_plan() -> None:
     assert accepted.status_code == 201
     assert accepted.json()["plan_id"] == "plan-1"
     assert accepted.headers["location"] == "/router/v1/mutation-plans/plan-1"
+
+
+def test_rest_cannot_create_a_tmp_mutation_plan() -> None:
+    application = create_http_application(_config(allow_mutations=True, allow_tmp_reads=True))
+    service = application.state.deco_service
+    service._device_cache = (
+        Device.from_api(
+            {
+                "mac": "AA:BB:CC:DD:EE:FF",
+                "device_ip": "192.0.2.1",
+                "device_model": "P9",
+                "role": "master",
+                "hardware_ver": "2.0",
+                "software_ver": "1.3.0 Build 20250804 Rel. 58832",
+            }
+        ),
+    )
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        TestClient(application) as client,
+    ):
+        response = client.post(
+            "/api/v1/mutation-plans",
+            headers=_AUTH,
+            json={"name": "monthly_report", "mode": "verify_current_value_noop"},
+        )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "mutation_ineligible"
+    get_client.assert_not_called()
+    get_tmp_client.assert_not_called()
 
 
 def test_rest_execution_is_synchronous_and_process_idempotent() -> None:
