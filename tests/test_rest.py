@@ -486,6 +486,12 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
     }.issubset(schema["components"]["schemas"]["NetworkStatusResponse"]["required"])
     created_response = schema["paths"]["/api/v1/mutation-plans"]["post"]["responses"]["201"]
     assert created_response["headers"]["Location"]["schema"] == {"type": "string"}
+    log_parameters = schema["paths"]["/api/v1/logs/{index}"]["get"]["parameters"]
+    assert next(item for item in log_parameters if item["name"] == "index")["schema"] == {
+        "minimum": 0,
+        "title": "Index",
+        "type": "integer",
+    }
 
 
 def test_response_dtos_are_frozen_protocol_neutral_mappings() -> None:

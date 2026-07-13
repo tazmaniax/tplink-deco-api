@@ -13,6 +13,8 @@ transport, compatibility evidence and a conservative mutation workflow.
   lifespan across both protocol adapters
 * added semantic status, configuration, mesh, client, traffic, reservation,
   log-type, capability, WLAN, cloud and mutation resources
+* added gated, bounded system-log pagination at `/api/v1/logs/{index}` without
+  implicitly preparing or replacing the router's current log snapshot
 * published named OpenAPI response schemas from frozen protocol-neutral
   dataclasses shared with MCP, without adding Pydantic to the base SDK
 * replaced finite firmware JSON shapes with one canonical recursive SDK type
@@ -32,7 +34,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
 * exposed 13 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  log categories, capabilities and mutations
+  log levels, capabilities and mutations
 * added a gated `deco://logs/{index}` resource template for bounded system-log
   pagination without duplicating the read as a tool
 * kept the default tool surface to five parameterized or action-oriented tools
@@ -127,7 +129,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 436 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 454 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

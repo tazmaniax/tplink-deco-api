@@ -12,6 +12,7 @@ from fastapi import (
     FastAPI,
     Header,
     HTTPException,
+    Path,
     Query,
     Request,
     Response,
@@ -310,7 +311,7 @@ def _create_rest_router(
         operation_id="getSystemLogPage",
     )
     def system_log_page(
-        index: int,
+        index: Annotated[int, Path(ge=0)],
         limit: Annotated[int, Query(ge=1, le=100)] = 100,
     ) -> dict[str, JsonValue]:
         """Return one gated page from the prepared system-log snapshot."""
