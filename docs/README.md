@@ -45,9 +45,10 @@ batching live in the protocol pages.
 | [`architecture/semantic-resource-routing.md`](./architecture/semantic-resource-routing.md) | Required source selection, fallback, resource boundaries and provenance policy |
 
 The default MCP surface is protocol-neutral: agents see five semantic tools and
-13 resources covering MCP state, live network status, sanitized configuration,
+16 resources covering MCP state, live network status, sanitized configuration,
 mesh nodes, normalized and filtered network-device views, traffic, address
-reservations, log categories, capabilities and mutations. The server resolves
+reservations, IPv6 configuration/firewall/clients, log categories, capabilities
+and mutations. The server resolves
 the connected controller and chooses HTTP/LuCI or TMP/AppV2; agents never supply
 a live model or protocol. Set
 `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` to add the protocol-specific catalogue and

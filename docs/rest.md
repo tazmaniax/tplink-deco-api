@@ -70,6 +70,9 @@ a trusted network without TLS.
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
+| `GET` | `/api/v1/network/ipv6` | Normalized IPv6 WAN and LAN configuration. |
+| `GET` | `/api/v1/network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
+| `GET` | `/api/v1/clients/ipv6` | IPv6 client and neighbor inventory. |
 | `GET` | `/api/v1/log-types` | Available levels and snapshot-preparation metadata without log contents. |
 | `GET` | `/api/v1/logs/{index}?limit=100` | One gated page from the currently prepared secret system-log snapshot. |
 | `GET` | `/api/v1/capabilities` | Read capability inventory and support evidence. |
@@ -86,6 +89,10 @@ interface. If HTTP is unavailable at cold start and gated TMP routing is
 eligible, they return the validated TMP-backed subset with provenance and
 explicit unavailable-section evidence instead of mixing values from both
 interfaces.
+The IPv6 configuration, firewall and client routes are positively evidenced
+TMP-only semantic reads. They require the TMP and sensitive-read gates, but do
+not require diagnostic tools to be exposed. TMP remains disconnected until one
+of these routes is actually read.
 
 ## Response contracts
 

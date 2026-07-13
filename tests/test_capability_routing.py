@@ -27,6 +27,9 @@ from tplink_deco_api.responses import (
     CapabilityResponse,
     ClientsResponse,
     ConfigurationResponse,
+    Ipv6ConfigurationResponse,
+    Ipv6DevicesResponse,
+    Ipv6FirewallResponse,
     MeshResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
@@ -86,8 +89,13 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "address_reservations",
         "fast_roaming",
         "beamforming",
+        "ipv6_configuration",
+        "ipv6_firewall",
+        "ipv6_clients",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES)
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:6])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[6:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[6:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -129,10 +137,14 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 6
+    assert len(result["routes"]) == 9
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
+    assert result["routes"][0]["primary_configured"] is True
+    assert result["routes"][0]["primary_connected"] is False
+    assert result["routes"][-1]["primary_configured"] is False
+    assert result["routes"][-1]["primary_gate_enabled"] is False
 
 
 def test_capability_mutation_plan_is_offline_and_protocol_fixed() -> None:
@@ -619,6 +631,207 @@ def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> N
     http_client.get_address_reservations.assert_not_called()
 
 
+def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {
+            "error_code": 0,
+            "result": {
+                "enable_ipv6": True,
+                "wan": {
+                    "dial_type": "dynamic_ipv6",
+                    "enable_auto_dns": True,
+                    "enable_prefix_delegation": True,
+                    "get_addr_type": "slaac",
+                    "ip_info": {
+                        "ip": "2001:db8::10",
+                        "dns1": "2001:4860:4860::8888",
+                        "dns2": "2001:4860:4860::8844",
+                    },
+                },
+                "lan": {
+                    "assigned_type": "nd_proxy",
+                    "ip": "2001:db8:1::1",
+                    "prefix": "64",
+                },
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "firewall_list": [{"name": "HTTPS", "port": "443", "protocol": "TCP"}],
+                "firewall_list_limit": 32,
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "client_list": [
+                    {
+                        "mac": "aa-bb-cc-dd-ee-01",
+                        "ip": "2001:db8:1::10",
+                        "name": "VGVzdCBkZXZpY2U=",
+                        "client_type": "computer",
+                    }
+                ]
+            },
+        },
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        configuration = service.ipv6_configuration_resource()
+        firewall = service.ipv6_firewall_resource()
+        devices = service.ipv6_devices_resource()
+
+    assert_response_contract(Ipv6ConfigurationResponse, configuration)
+    assert_response_contract(Ipv6FirewallResponse, firewall)
+    assert_response_contract(Ipv6DevicesResponse, devices)
+    assert configuration["enabled"] is True
+    assert configuration["wan"] == {
+        "dial_type": "dynamic_ipv6",
+        "automatic_dns": True,
+        "prefix_delegation": True,
+        "address_type": "slaac",
+        "ip": "2001:db8::10",
+        "dns_servers": ["2001:4860:4860::8888", "2001:4860:4860::8844"],
+    }
+    assert firewall["rules"] == [{"name": "HTTPS", "port": "443", "protocol": "TCP"}]
+    assert firewall["rule_count"] == 1
+    assert firewall["rule_limit"] == 32
+    assert devices["devices"] == [
+        {
+            "mac": "AA:BB:CC:DD:EE:01",
+            "ip": "2001:db8:1::10",
+            "name": "Test device",
+            "client_type": "computer",
+        }
+    ]
+    assert all(
+        result["provenance"]["source_interface"] == "tmp_appv2"
+        for result in (configuration, firewall, devices)
+    )
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x4006, None),
+        mock.call(0x4230, None),
+        mock.call(0x4234, None),
+    ]
+    http_client.get_device_list.assert_called_once_with()
+
+
+def test_ipv6_semantic_resources_enforce_gates_before_transport() -> None:
+    sensitive_disabled = DecoService(
+        replace(
+            _config(),
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_disabled = DecoService(replace(_config(), allow_sensitive_reads=True))
+
+    for service, message in (
+        (sensitive_disabled, "ALLOW_SENSITIVE_READS"),
+        (tmp_disabled, "ALLOW_TMP_READS"),
+    ):
+        with (
+            mock.patch.object(service, "_get_client") as get_client,
+            mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+            pytest.raises(PermissionError, match=message),
+        ):
+            service.ipv6_configuration_resource()
+        get_client.assert_not_called()
+        get_tmp_client.assert_not_called()
+
+
+def test_ipv6_semantic_resource_requires_exact_model_evidence() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [Device.from_api(_device_payload(model="X50"))]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(PermissionError, match="exact compatibility evidence"),
+    ):
+        service.ipv6_configuration_resource()
+
+    get_tmp_client.assert_not_called()
+
+
+def test_ipv6_semantic_resource_supports_tmp_identity_cold_start() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": {"firewall_list": [], "firewall_list_limit": 32}},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        firewall = service.ipv6_firewall_resource()
+
+    assert_response_contract(Ipv6FirewallResponse, firewall)
+    assert firewall["rules"] == []
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x4230, None),
+    ]
+
+
+def test_ipv6_semantic_resource_rejects_contract_drift() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"firewall_list": "invalid", "firewall_list_limit": 32},
+    }
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="firewall_list is not an array"),
+    ):
+        service.ipv6_firewall_resource()
+
+
 def test_tmp_identity_bootstrap_requires_its_ordinary_read_gate() -> None:
     service = DecoService(_config())
     http_client = mock.Mock()
@@ -749,9 +962,15 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 6
+    assert capabilities["supported_count"] == 9
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
+    ipv6_clients = next(
+        item for item in capabilities["capabilities"] if item["name"] == "ipv6_clients"
+    )
+    assert ipv6_clients["source_configured"] is False
+    assert ipv6_clients["source_connected"] is False
+    assert ipv6_clients["runtime_gate_enabled"] is False
     assert mutations["candidate_count"] == 22
     beamforming = next(item for item in mutations["mutations"] if item["name"] == "beamforming")
     assert beamforming["validation_status"] == "noop_verified"
@@ -819,7 +1038,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 6
+    assert capabilities["unknown_count"] == 9
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -925,8 +1144,11 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://devices/active",
         "deco://devices/inactive",
         "deco://devices/blocked",
+        "deco://devices/ipv6",
         "deco://traffic",
         "deco://address-reservations",
+        "deco://network/ipv6",
+        "deco://network/ipv6/firewall",
         "deco://logs",
         "deco://capabilities",
         "deco://mutations",

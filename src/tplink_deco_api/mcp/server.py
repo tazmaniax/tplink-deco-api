@@ -44,8 +44,11 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://devices/active",
         "deco://devices/inactive",
         "deco://devices/blocked",
+        "deco://devices/ipv6",
         "deco://traffic",
         "deco://address-reservations",
+        "deco://network/ipv6",
+        "deco://network/ipv6/firewall",
         "deco://logs",
         "deco://capabilities",
         "deco://mutations",
@@ -223,6 +226,21 @@ def create_server(
     def address_reservations_resource() -> str:
         """Return the gated live address-reservation table."""
         return _json_text(service.address_reservations_resource())
+
+    @server.resource("deco://network/ipv6")
+    def ipv6_configuration_resource() -> str:
+        """Return the gated semantic IPv6 WAN and LAN configuration."""
+        return _json_text(service.ipv6_configuration_resource())
+
+    @server.resource("deco://network/ipv6/firewall")
+    def ipv6_firewall_resource() -> str:
+        """Return the gated semantic IPv6 inbound-firewall rules."""
+        return _json_text(service.ipv6_firewall_resource())
+
+    @server.resource("deco://devices/ipv6")
+    def ipv6_devices_resource() -> str:
+        """Return the gated semantic IPv6 client and neighbor inventory."""
+        return _json_text(service.ipv6_devices_resource())
 
     @server.resource("deco://logs")
     def logs_resource() -> str:

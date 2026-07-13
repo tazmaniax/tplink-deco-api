@@ -26,7 +26,7 @@ developers and contributors.
 
 ## What it provides
 
-- A small, protocol-neutral default MCP surface: 13 resources and five tools.
+- A small, protocol-neutral default MCP surface: 16 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
@@ -64,6 +64,9 @@ Resources are the canonical read-only state views:
 | `deco://devices/blocked` | Devices present in the block list. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
+| `deco://network/ipv6` | IPv6 WAN and LAN configuration. |
+| `deco://network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
+| `deco://devices/ipv6` | IPv6 client and neighbor inventory. |
 | `deco://logs` | Available log levels and snapshot-preparation metadata without log contents. |
 | `deco://logs/{index}` | One gated 100-entry page from the currently prepared system-log snapshot. |
 | `deco://capabilities` | Reads available for the connected controller. |
@@ -73,6 +76,8 @@ Mesh, status, configuration, devices and reservations select their interface
 inside the service. HTTP supplies the richer response when available; an
 eligible TMP cold start returns the validated subset with provenance and
 explicit unavailable fields, without merging live data from both transports.
+The three IPv6 resources use positively evidenced TMP-only routes and remain
+lazy: startup validates configuration but opens TMP only when one is read.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

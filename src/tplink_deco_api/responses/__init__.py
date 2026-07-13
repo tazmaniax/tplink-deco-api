@@ -7,6 +7,9 @@ from .capability_response import CapabilityResponse
 from .clients_response import ClientsResponse
 from .cloud_response import CloudResponse
 from .configuration_response import ConfigurationResponse
+from .ipv6_configuration_response import Ipv6ConfigurationResponse
+from .ipv6_devices_response import Ipv6DevicesResponse
+from .ipv6_firewall_response import Ipv6FirewallResponse
 from .log_types_response import LogTypesResponse
 from .mesh_response import MeshResponse
 from .mutation_execution_response import MutationExecutionResponse
@@ -28,6 +31,9 @@ __all__ = [
     "ClientsResponse",
     "CloudResponse",
     "ConfigurationResponse",
+    "Ipv6ConfigurationResponse",
+    "Ipv6DevicesResponse",
+    "Ipv6FirewallResponse",
     "LogTypesResponse",
     "MeshResponse",
     "MutationExecutionResponse",

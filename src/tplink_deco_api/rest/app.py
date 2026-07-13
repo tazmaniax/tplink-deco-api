@@ -46,6 +46,9 @@ from ..responses import (
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
+    Ipv6ConfigurationResponse,
+    Ipv6DevicesResponse,
+    Ipv6FirewallResponse,
     LogTypesResponse,
     MeshResponse,
     MutationExecutionResponse,
@@ -299,6 +302,33 @@ def _create_rest_router(
     def address_reservations() -> dict[str, JsonValue]:
         """Return the live address-reservation table."""
         return service.address_reservations_resource()
+
+    @router.get(
+        "/network/ipv6",
+        response_model=Ipv6ConfigurationResponse,
+        operation_id="getIpv6Configuration",
+    )
+    def ipv6_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 WAN and LAN configuration."""
+        return service.ipv6_configuration_resource()
+
+    @router.get(
+        "/network/ipv6/firewall",
+        response_model=Ipv6FirewallResponse,
+        operation_id="getIpv6Firewall",
+    )
+    def ipv6_firewall() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 inbound-firewall table."""
+        return service.ipv6_firewall_resource()
+
+    @router.get(
+        "/clients/ipv6",
+        response_model=Ipv6DevicesResponse,
+        operation_id="getIpv6Clients",
+    )
+    def ipv6_clients() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 client and neighbor inventory."""
+        return service.ipv6_devices_resource()
 
     @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:

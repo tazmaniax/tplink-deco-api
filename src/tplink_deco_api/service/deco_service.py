@@ -73,6 +73,11 @@ from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
 from ._device_inventory_resolution import _DeviceInventoryResolution
+from ._ipv6_normalization import (
+    normalize_ipv6_clients,
+    normalize_ipv6_configuration,
+    normalize_ipv6_firewall,
+)
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
 
@@ -335,6 +340,23 @@ class DecoService:
             and bool(self._config.tmp_host_key_sha256)
         )
 
+    def _interface_configured(self, interface: CapabilityInterface) -> bool:
+        if interface == "http_luci":
+            return bool(self._config.password)
+        return bool(
+            self._config.tp_link_id and self._config.password and self._config.tmp_host_key_sha256
+        )
+
+    def _interface_connected(self, interface: CapabilityInterface) -> bool:
+        if interface == "http_luci":
+            return self._client is not None and self._client.is_authenticated()
+        return self._tmp_client is not None and self._tmp_client.connected
+
+    def _capability_gate_enabled(self, route: CapabilityRoute) -> bool:
+        return (route.primary_interface != "tmp_appv2" or self._config.allow_tmp_reads) and (
+            route.sensitivity != "secret" or self._config.allow_sensitive_reads
+        )
+
     def capabilities(self) -> dict[str, JsonValue]:
         """Return semantic read capabilities for the connected controller."""
         inventory = self.device_inventory()
@@ -352,6 +374,9 @@ class DecoService:
                     "sensitivity": route.sensitivity,
                     "support_status": support_status,
                     "readable": True,
+                    "source_configured": self._interface_configured(route.primary_interface),
+                    "source_connected": self._interface_connected(route.primary_interface),
+                    "runtime_gate_enabled": self._capability_gate_enabled(route),
                     "mutable": bool(related_mutations),
                     "read_operation": "get_capability",
                     "related_mutations": related_mutations,
@@ -507,6 +532,48 @@ class DecoService:
         result = self.read_capability("address_reservations")
         result["router_contacted"] = True
         return result
+
+    def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 WAN and LAN configuration."""
+        capability = self.read_capability("ipv6_configuration")
+        data, provenance = _capability_resource_parts(capability, "IPv6 configuration")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": dict(provenance),
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def ipv6_firewall_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 inbound-firewall rule table."""
+        capability = self.read_capability("ipv6_firewall")
+        data, provenance = _capability_resource_parts(capability, "IPv6 firewall")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": dict(provenance),
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def ipv6_devices_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 client and neighbor inventory."""
+        capability = self.read_capability("ipv6_clients")
+        data, provenance = _capability_resource_parts(capability, "IPv6 clients")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": dict(provenance),
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def client_devices_resource(self, view: str = "all") -> dict[str, JsonValue]:
         """Return one normalized live device view from every known client source."""
@@ -993,9 +1060,15 @@ class DecoService:
             "routes": [
                 {
                     **route.to_dict(),
-                    "primary_available": bool(self._config.password),
-                    "fallback_configured": tmp_configured,
-                    "fallback_gate_enabled": self._tmp_fallback_available(route.sensitivity),
+                    "primary_configured": self._interface_configured(route.primary_interface),
+                    "primary_connected": self._interface_connected(route.primary_interface),
+                    "primary_gate_enabled": self._capability_gate_enabled(route),
+                    "primary_available": self._interface_configured(route.primary_interface)
+                    and self._capability_gate_enabled(route),
+                    "fallback_configured": route.fallback_interface == "tmp_appv2"
+                    and tmp_configured,
+                    "fallback_gate_enabled": route.fallback_interface == "tmp_appv2"
+                    and self._tmp_fallback_available(route.sensitivity),
                 }
                 for route in CAPABILITY_ROUTES
             ],
@@ -1275,6 +1348,10 @@ class DecoService:
             raise PermissionError(
                 "Failed to read capability: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
+        if route.primary_interface == "tmp_appv2":
+            if not self._config.allow_tmp_reads:
+                raise PermissionError("Failed to read capability: DECO_ALLOW_TMP_READS is disabled")
+            self._tmp_ssh_config()
         inventory = self.device_inventory()
         if name == "mesh_nodes":
             identity_attempts = [
@@ -1293,6 +1370,22 @@ class DecoService:
                 inventory["nodes"],
                 identity_attempts,
                 fallback_used=get_bool(inventory, "fallback_used"),
+            )
+        if route.primary_interface == "tmp_appv2":
+            if _json_string(inventory, "profile_match") != "exact":
+                raise PermissionError("Failed to read capability: no exact compatibility evidence")
+            data = self._read_tmp_capability(name)
+            return _capability_response(
+                route,
+                data,
+                [
+                    {
+                        "interface": route.primary_interface,
+                        "operation": route.primary_operation,
+                        "status": "ok",
+                    }
+                ],
+                fallback_used=False,
             )
         context = _resource_read_context(inventory)
         if (
@@ -1402,6 +1495,9 @@ class DecoService:
             "address_reservations": 0x40C0,
             "fast_roaming": 0x4208,
             "beamforming": 0x421B,
+            "ipv6_configuration": 0x4006,
+            "ipv6_firewall": 0x4230,
+            "ipv6_clients": 0x4234,
         }
         code = opcodes.get(name)
         if code is None:
@@ -1423,6 +1519,12 @@ class DecoService:
             return _internet_status_view(InternetStatus.from_api(result))
         if name == "address_reservations":
             return _address_reservation_view(AddressReservationTable.from_api(result))
+        if name == "ipv6_configuration":
+            return normalize_ipv6_configuration(result)
+        if name == "ipv6_firewall":
+            return normalize_ipv6_firewall(result)
+        if name == "ipv6_clients":
+            return normalize_ipv6_clients(result)
         return _boolean_setting_view(result)
 
     def _tmp_fallback_available(self, sensitivity: str) -> bool:
@@ -3769,6 +3871,19 @@ def _capability_response(
     }
 
 
+def _capability_resource_parts(
+    capability: Mapping[str, JsonValue],
+    dataset: str,
+) -> tuple[JsonObject, JsonObject]:
+    data = capability.get("data")
+    provenance = capability.get("provenance")
+    if not isinstance(data, Mapping):
+        raise ValueError(f"Failed to read {dataset}: data is not an object")
+    if not isinstance(provenance, Mapping):
+        raise ValueError(f"Failed to read {dataset}: provenance is not an object")
+    return data, provenance
+
+
 def _resource_read_context(
     inventory: Mapping[str, JsonValue],
 ) -> _ResourceReadContext:
@@ -4199,6 +4314,9 @@ def _capability_category(name: str) -> str:
         "address_reservations": "clients",
         "fast_roaming": "wireless",
         "beamforming": "wireless",
+        "ipv6_configuration": "network",
+        "ipv6_firewall": "security",
+        "ipv6_clients": "clients",
     }
     return categories[name]
 
