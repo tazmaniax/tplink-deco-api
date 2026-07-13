@@ -179,6 +179,8 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "address_reservations",
         "fast_roaming",
         "beamforming",
+        "wireless_operation_mode",
+        "wireless_bridge",
         "traffic",
         "blocked_clients",
         "speed_test",
@@ -196,9 +198,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "sip_alg",
         "mac_clone",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:12])
-    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[12:])
-    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[12:])
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:14])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[14:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[14:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -240,7 +242,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 22
+    assert len(result["routes"]) == 24
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -409,6 +411,114 @@ def test_capability_read_does_not_fallback_when_tmp_gate_is_disabled() -> None:
         service.read_capability("beamforming")
 
     get_tmp_client.assert_not_called()
+
+
+def test_wireless_feature_capabilities_normalize_http_and_tmp_contracts() -> None:
+    http_service = DecoService(_config())
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.get_wireless_operation_mode.return_value = {"mode": "router"}
+    http_client.get_bridge_status.return_value = {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
+
+    with (
+        mock.patch.object(http_service, "_get_client", return_value=http_client),
+        mock.patch.object(http_service, "_get_tmp_client") as get_tmp_client,
+    ):
+        http_mode = http_service.read_capability("wireless_operation_mode")
+        http_bridge = http_service.read_capability("wireless_bridge")
+
+    get_tmp_client.assert_not_called()
+    assert http_mode["data"] == {
+        "mode": "router",
+        "supported_modes": [],
+        "unavailable_fields": ["supported_modes"],
+    }
+    assert http_bridge["data"] == {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
+
+    tmp_service = DecoService(
+        replace(
+            _config(),
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {
+            "error_code": 0,
+            "result": {"mode": "router", "modeList": ["router", "access_point"]},
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "location": "living_room",
+                "status": "connected",
+                "support_plc": True,
+            },
+        },
+    ]
+
+    with (
+        mock.patch.object(
+            tmp_service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_mode = tmp_service.read_capability("wireless_operation_mode")
+        tmp_bridge = tmp_service.read_capability("wireless_bridge")
+
+    assert tmp_mode["data"] == {
+        "mode": "router",
+        "supported_modes": ["router", "access_point"],
+        "unavailable_fields": [],
+    }
+    assert tmp_bridge["data"] == http_bridge["data"]
+    assert tmp_mode["provenance"]["fallback_used"] is True
+    assert tmp_bridge["provenance"]["fallback_used"] is True
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x40A0, None),
+        mock.call(0x400A, None),
+    ]
+
+
+def test_wireless_operation_mode_rejects_tmp_contract_drift() -> None:
+    service = DecoService(
+        replace(
+            _config(),
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"mode": "router", "modeList": "router"},
+    }
+
+    with (
+        mock.patch.object(
+            service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="modeList is not an array"),
+    ):
+        service.read_capability("wireless_operation_mode")
 
 
 def test_traffic_capability_normalizes_equivalent_http_and_tmp_contracts() -> None:
@@ -690,6 +800,18 @@ def test_wlan_state_normalizes_tmp_fallback_without_cross_interface_enrichment()
     tmp_client = mock.Mock()
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": _tmp_wlan_payload()},
+        {
+            "error_code": 0,
+            "result": {"mode": "router", "modeList": ["router", "access_point"]},
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "location": "living_room",
+                "status": "connected",
+                "support_plc": True,
+            },
+        },
         {"error_code": 0, "result": {"enable": True}},
         {"error_code": 0, "result": {"enable": False}},
     ]
@@ -705,7 +827,7 @@ def test_wlan_state_normalizes_tmp_fallback_without_cross_interface_enrichment()
         state = service.wlan_state()
 
     assert_response_contract(WlanResponse, state)
-    assert state["status"] == "partial"
+    assert state["status"] == "available"
     assert state["passwords_included"] is False
     assert "secret" not in str(state)
     assert state["bands"]["2.4ghz"]["host"] == {
@@ -717,27 +839,26 @@ def test_wlan_state_normalizes_tmp_fallback_without_cross_interface_enrichment()
         "hidden": False,
     }
     assert state["features"] == {
-        "operation_mode": None,
-        "bridge": None,
+        "operation_mode": {
+            "mode": "router",
+            "supported_modes": ["router", "access_point"],
+            "unavailable_fields": [],
+        },
+        "bridge": {
+            "location": "living_room",
+            "status": "connected",
+            "support_plc": True,
+        },
         "fast_roaming": {"enabled": True},
         "beamforming": {"enabled": False},
     }
     assert state["provenance"]["source_interface"] == "tmp_appv2"
     assert state["provenance"]["fallback_used"] is True
-    assert state["unavailable_sections"] == [
-        {
-            "section": "features.operation_mode",
-            "status": "unavailable",
-            "error_type": "SourceUnavailable",
-        },
-        {
-            "section": "features.bridge",
-            "status": "unavailable",
-            "error_type": "SourceUnavailable",
-        },
-    ]
+    assert state["unavailable_sections"] == []
     assert tmp_client.request_read_json.call_args_list == [
         mock.call(0x4009, None),
+        mock.call(0x40A0, None),
+        mock.call(0x400A, None),
         mock.call(0x4208, None),
         mock.call(0x421B, None),
     ]
@@ -1059,6 +1180,18 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"device_list": [_device_payload()]}},
         {"error_code": 0, "result": _internet_payload()},
+        {
+            "error_code": 0,
+            "result": {"mode": "router", "modeList": ["router", "access_point"]},
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "location": "living_room",
+                "status": "connected",
+                "support_plc": True,
+            },
+        },
         {"error_code": 0, "result": {"enable": True}},
         {"error_code": 0, "result": {"enable": False}},
     ]
@@ -1072,6 +1205,16 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     assert_response_contract(ConfigurationResponse, configuration)
     assert configuration["internet"]["link_status"] == "up"
     assert configuration["wireless_features"] == {
+        "operation_mode": {
+            "mode": "router",
+            "supported_modes": ["router", "access_point"],
+            "unavailable_fields": [],
+        },
+        "bridge": {
+            "location": "living_room",
+            "status": "connected",
+            "support_plc": True,
+        },
         "fast_roaming": {"enabled": True},
         "beamforming": {"enabled": False},
     }
@@ -1082,12 +1225,19 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
         "dhcp",
         "network_features",
         "time_settings",
-        "wireless_operation_mode",
-        "bridge",
     }
     http_client.get_device_mode.assert_not_called()
     http_client.get_internet_status.assert_not_called()
     http_client.get_wireless_operation_mode.assert_not_called()
+    http_client.get_bridge_status.assert_not_called()
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x400C, None),
+        mock.call(0x40A0, None),
+        mock.call(0x400A, None),
+        mock.call(0x4208, None),
+        mock.call(0x421B, None),
+    ]
 
 
 def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> None:
@@ -1751,7 +1901,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 22
+    assert capabilities["supported_count"] == 24
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1827,7 +1977,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 22
+    assert capabilities["unknown_count"] == 24
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 

@@ -217,9 +217,9 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current twelve HTTP-primary overlap routes,
-ten TMP-only network routes and directly implemented canonical resources remain
-a transitional subset of the wider design.
+bootstrap now follows that policy; the current fourteen HTTP-primary overlap
+routes, ten TMP-only network routes and directly implemented canonical resources
+remain a transitional subset of the wider design.
 
 ## Resources
 
@@ -309,8 +309,10 @@ absent and are listed in `unavailable_sections` with
 `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted` and
 `mutation_invoked`. The normalized P9 fallback maps TMP radio `channel`,
 `hwmode` and `htmode` into the same band fields used by HTTP. A TMP response
-includes same-interface fast-roaming and beamforming state while marking
-HTTP-only operation-mode and bridge sections unavailable.
+includes same-interface operation mode, bridge/PLC status, fast-roaming and
+beamforming state. TMP additionally supplies `supported_modes`; HTTP explicitly
+lists that field as unavailable rather than triggering cross-interface
+enrichment.
 
 `deco_get_cloud_state` returns `schema_version`, `status`, `ddns`, `manager`,
 `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`,

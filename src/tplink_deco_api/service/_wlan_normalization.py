@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 from .._json import get_str
@@ -19,6 +19,34 @@ _BAND_KEYS: tuple[str, ...] = (
     "band6",
     "band6_2",
 )
+
+
+def normalize_http_wireless_operation_mode(data: JsonObject) -> dict[str, JsonValue]:
+    """Normalize HTTP operation mode with an explicit supported-mode gap."""
+    return {
+        "mode": _required_string(data, "mode", "HTTP operation mode"),
+        "supported_modes": [],
+        "unavailable_fields": ["supported_modes"],
+    }
+
+
+def normalize_tmp_wireless_operation_mode(data: JsonObject) -> dict[str, JsonValue]:
+    """Normalize TMP operation mode while retaining its supported-mode list."""
+    return {
+        "mode": _required_string(data, "mode", "TMP operation mode"),
+        "supported_modes": list(_required_string_array(data, "modeList", "TMP operation mode")),
+        "unavailable_fields": [],
+    }
+
+
+def normalize_http_wireless_bridge(data: JsonObject) -> dict[str, JsonValue]:
+    """Normalize the HTTP wireless bridge contract."""
+    return _wireless_bridge_view(data, "HTTP wireless bridge")
+
+
+def normalize_tmp_wireless_bridge(data: JsonObject) -> dict[str, JsonValue]:
+    """Normalize the TMP wireless bridge contract."""
+    return _wireless_bridge_view(data, "TMP wireless bridge")
 
 
 def normalize_http_wlan_configuration(
@@ -152,6 +180,37 @@ def _tmp_channel(radio: JsonObject, band_name: str) -> int:
             "Failed to normalize TMP WLAN configuration: "
             f"{band_name}.radio.channel is not numeric or auto"
         ) from exc
+
+
+def _wireless_bridge_view(data: JsonObject, dataset: str) -> dict[str, JsonValue]:
+    return {
+        "location": _required_string(data, "location", dataset),
+        "status": _required_string(data, "status", dataset),
+        "support_plc": _required_bool(data, "support_plc", dataset),
+    }
+
+
+def _required_string(data: JsonObject, key: str, dataset: str) -> str:
+    value = data.get(key)
+    if not isinstance(value, str):
+        raise ValueError(f"Failed to normalize {dataset}: {key} is not a string")
+    return value
+
+
+def _required_string_array(data: JsonObject, key: str, dataset: str) -> tuple[str, ...]:
+    value = data.get(key)
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
+        raise ValueError(f"Failed to normalize {dataset}: {key} is not an array")
+    if any(not isinstance(item, str) for item in value):
+        raise ValueError(f"Failed to normalize {dataset}: {key} contains a non-string")
+    return tuple(item for item in value if isinstance(item, str))
+
+
+def _required_bool(data: JsonObject, key: str, dataset: str) -> bool:
+    value = data.get(key)
+    if not isinstance(value, bool):
+        raise ValueError(f"Failed to normalize {dataset}: {key} is not a boolean")
+    return value
 
 
 def _wlan_band_view(

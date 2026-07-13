@@ -186,7 +186,7 @@ attempts, validates the controller shape before caching it, permits unknown-mode
 identity reporting, and does not authorize P9-specific reads for an unmatched
 profile.
 
-The current registry has twelve HTTP-primary, TMP-fallback read contracts and ten
+The current registry has fourteen HTTP-primary, TMP-fallback read contracts and ten
 TMP-only network contracts. Mesh, network status, configuration, client
 devices, traffic, blocked clients, address reservations, LAN, DHCP, VLAN, port
 forwarding, IPTV, SIP ALG, MAC cloning, IPv6 configuration, IPv6 firewall and
@@ -200,11 +200,12 @@ normalizes HTTP node records and TMP release records into grouped releases,
 while declaring source-specific unavailable fields. The DDNS contract drives
 the cloud tool; when it selects TMP, HTTP-only cloud-manager state is explicitly
 unavailable. WLAN normalizes the P9 HTTP host radio fields and TMP `radio`
-aliases into one contract; a TMP-backed tool response marks HTTP-only operation
-mode and bridge state unavailable without cross-interface enrichment.
+aliases into one contract. Operation mode and bridge/PLC status now follow the
+same selected interface; TMP retains its additional supported-mode list while
+HTTP reports that field as unavailable.
 
 Logs and other datasets without a validated alternative remain HTTP-only.
 Other positively observed TMP-only datasets remain diagnostic until they receive
-dedicated semantic contracts and response models. The 22
+dedicated semantic contracts and response models. The 24
 registered routes and migrated canonical resources are therefore still a subset
 of the wider design.

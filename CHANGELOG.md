@@ -59,13 +59,15 @@ transport, compatibility evidence and a conservative mutation workflow.
   contract with explicit source-unavailable fields and read-only fallback
 * routed the existing WLAN tool through normalized HTTP-to-TMP fallback while
   preserving explicit password inclusion and reporting HTTP-only feature gaps
+* added wireless operation-mode and bridge/PLC HTTP-to-TMP fallback, retaining
+  TMP's supported-mode list and completing TMP-backed WLAN feature state
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
 * promoted ten positively evidenced TMP-only network datasets into default
   protocol-neutral MCP resources and REST routes without enabling diagnostics
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
-* added twelve bounded, positively evidenced read-only fallback contracts while
+* added fourteen bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
   matrices to an independently enabled diagnostic surface

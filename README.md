@@ -83,6 +83,9 @@ Mesh, status, configuration, devices, traffic and reservations select their
 interface inside the service. HTTP supplies the richer response when available;
 an eligible TMP cold start returns the validated subset with provenance and
 explicit unavailable fields, without merging live data from both transports.
+Wireless operation mode and bridge/PLC status use the same semantic source as
+their surrounding WLAN or configuration response, including during TMP-only
+startup.
 Ten network and IPv6 resources use positively evidenced TMP-only routes and
 remain lazy: startup validates configuration but opens TMP only when one is
 read.
@@ -192,7 +195,7 @@ separate concerns:
   gates.
 - Semantic mutations follow discover → plan → authorize → execute. Plans expire
   after five minutes, bind to the resolved controller and are consumed once.
-- Fallback is allowed only for twelve positively evidenced read capabilities.
+- Fallback is allowed only for fourteen positively evidenced read capabilities.
   Mutations never fall back between protocols.
 
 The repository inventories 21 semantic mutation intents, including blocked and

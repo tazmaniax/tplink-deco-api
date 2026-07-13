@@ -96,7 +96,11 @@ from ._network_normalization import (
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
 from ._wlan_normalization import (
+    normalize_http_wireless_bridge,
+    normalize_http_wireless_operation_mode,
     normalize_http_wlan_configuration,
+    normalize_tmp_wireless_bridge,
+    normalize_tmp_wireless_operation_mode,
     normalize_tmp_wlan_configuration,
 )
 
@@ -123,6 +127,12 @@ _P9_BINARY_READ_NAMES: tuple[str, ...] = (
 )
 _TMP_PARAMETER_SOURCE_OPCODES: tuple[int, ...] = (0x4012, 0x4029, 0x4060)
 _TMP_OWNER_PARAMETERIZED_OPCODES: frozenset[int] = frozenset({0x402D, 0x402F, 0x4031})
+_WIRELESS_FEATURE_CAPABILITIES: tuple[tuple[str, str], ...] = (
+    ("operation_mode", "wireless_operation_mode"),
+    ("bridge", "wireless_bridge"),
+    ("fast_roaming", "fast_roaming"),
+    ("beamforming", "beamforming"),
+)
 _SEMANTIC_MUTATION_OPERATIONS: dict[str, tuple[str, ...]] = {
     "wan_mode": ("admin.network.wan_mode.write",),
     "lan_ip": ("admin.network.lan_ip.write",),
@@ -1019,15 +1029,6 @@ class DecoService:
                     }
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("time_settings", exc))
-                try:
-                    sections["wireless_features"] = {
-                        "operation_mode": client.get_wireless_operation_mode(),
-                        "bridge": client.get_bridge_status(),
-                        "fast_roaming": self._read_resource_capability("fast_roaming", context),
-                        "beamforming": self._read_resource_capability("beamforming", context),
-                    }
-                except _LIVE_READ_ERRORS as exc:
-                    errors.append(_configuration_error("wireless_features", exc))
                 if self._config.allow_sensitive_reads:
                     try:
                         nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
@@ -1044,23 +1045,21 @@ class DecoService:
                     "dhcp",
                     "network_features",
                     "time_settings",
-                    "wireless_operation_mode",
-                    "bridge",
                 )
             )
-            wireless_features: dict[str, JsonValue] = {}
-            for capability_name in ("fast_roaming", "beamforming"):
-                try:
-                    wireless_features[capability_name] = self._read_resource_capability(
-                        capability_name, context
-                    )
-                except _LIVE_READ_ERRORS as exc:
-                    errors.append(_configuration_error(capability_name, exc))
-            if wireless_features:
-                sections["wireless_features"] = wireless_features
             if self._config.allow_sensitive_reads:
                 nickname_status = "unavailable"
                 errors.append(_source_unavailable("nickname"))
+        wireless_features: dict[str, JsonValue] = {}
+        for field_name, capability_name in _WIRELESS_FEATURE_CAPABILITIES:
+            try:
+                wireless_features[field_name] = self._read_resource_capability(
+                    capability_name, context
+                )
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error(f"wireless_features.{field_name}", exc))
+        if wireless_features:
+            sections["wireless_features"] = wireless_features
         return {
             "schema_version": 1,
             "controller": inventory["controller"],
@@ -1539,6 +1538,10 @@ class DecoService:
                 return _boolean_setting_view(client.get_fast_roaming())
             if name == "beamforming":
                 return _boolean_setting_view(client.get_beamforming())
+            if name == "wireless_operation_mode":
+                return normalize_http_wireless_operation_mode(client.get_wireless_operation_mode())
+            if name == "wireless_bridge":
+                return normalize_http_wireless_bridge(client.get_bridge_status())
             if name == "traffic":
                 return normalize_client_traffic(client.get_traffic_statistics())
             if name == "blocked_clients":
@@ -1582,6 +1585,8 @@ class DecoService:
             "address_reservations": 0x40C0,
             "fast_roaming": 0x4208,
             "beamforming": 0x421B,
+            "wireless_operation_mode": 0x40A0,
+            "wireless_bridge": 0x400A,
             "traffic": 0x4014,
             "blocked_clients": 0x4018,
             "speed_test": 0x4010,
@@ -1619,6 +1624,10 @@ class DecoService:
             return _internet_status_view(InternetStatus.from_api(result))
         if name == "address_reservations":
             return _address_reservation_view(AddressReservationTable.from_api(result))
+        if name == "wireless_operation_mode":
+            return normalize_tmp_wireless_operation_mode(result)
+        if name == "wireless_bridge":
+            return normalize_tmp_wireless_bridge(result)
         if name == "traffic":
             return normalize_client_traffic(result)
         if name == "blocked_clients":
@@ -3078,37 +3087,14 @@ class DecoService:
         inventory = self.device_inventory()
         context = _capability_read_context(capability, inventory)
         features: dict[str, JsonValue] = {
-            "operation_mode": None,
-            "bridge": None,
-            "fast_roaming": None,
-            "beamforming": None,
+            field_name: None for field_name, _ in _WIRELESS_FEATURE_CAPABILITIES
         }
         unavailable_sections: list[dict[str, JsonValue]] = []
-        if context.interface == "http_luci":
-            with self._lock:
-                client = self._get_client()
-                try:
-                    features["operation_mode"] = client.get_wireless_operation_mode()
-                except _LIVE_READ_ERRORS as exc:
-                    unavailable_sections.append(
-                        _configuration_error("features.operation_mode", exc)
-                    )
-                try:
-                    features["bridge"] = client.get_bridge_status()
-                except _LIVE_READ_ERRORS as exc:
-                    unavailable_sections.append(_configuration_error("features.bridge", exc))
-        else:
-            unavailable_sections.extend(
-                (
-                    _source_unavailable("features.operation_mode"),
-                    _source_unavailable("features.bridge"),
-                )
-            )
-        for name in ("fast_roaming", "beamforming"):
+        for field_name, capability_name in _WIRELESS_FEATURE_CAPABILITIES:
             try:
-                features[name] = self._read_resource_capability(name, context)
+                features[field_name] = self._read_resource_capability(capability_name, context)
             except _LIVE_READ_ERRORS as exc:
-                unavailable_sections.append(_configuration_error(f"features.{name}", exc))
+                unavailable_sections.append(_configuration_error(f"features.{field_name}", exc))
         return {
             "schema_version": 1,
             "status": "available" if not unavailable_sections else "partial",
@@ -4509,6 +4495,8 @@ def _capability_category(name: str) -> str:
         "address_reservations": "clients",
         "fast_roaming": "wireless",
         "beamforming": "wireless",
+        "wireless_operation_mode": "wireless",
+        "wireless_bridge": "wireless",
         "traffic": "clients",
         "blocked_clients": "clients",
         "speed_test": "network",

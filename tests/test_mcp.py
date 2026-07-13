@@ -487,7 +487,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 22
+    assert coverage["unified_semantic_surface"]["capability_count"] == 24
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -1594,7 +1594,11 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
         "enabled",
     )
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
-    client.get_bridge_status.return_value = {"enable": False}
+    client.get_bridge_status.return_value = {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     client.get_fast_roaming.return_value = {"enable": True}
     client.get_beamforming.return_value = {"enable": True}
 
@@ -1605,6 +1609,16 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
 
     assert configuration["controller"]["model"] == "P9"
     assert configuration["operating_mode"]["workmode"] == "router"
+    assert configuration["wireless_features"]["operation_mode"] == {
+        "mode": "host",
+        "supported_modes": [],
+        "unavailable_fields": ["supported_modes"],
+    }
+    assert configuration["wireless_features"]["bridge"] == {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     assert configuration["wireless_features"]["beamforming"] == {"enabled": True}
     assert configuration["network_features"] == {
         "wan_mode": {"mode": "router"},
@@ -2074,7 +2088,11 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
     client = mock.Mock()
     client.get_wlan_config.return_value = config
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
-    client.get_bridge_status.return_value = {"enabled": False}
+    client.get_bridge_status.return_value = {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     client.get_fast_roaming.return_value = {"enabled": True}
     client.get_beamforming.return_value = {"enabled": True}
     with mock.patch.object(service, "_get_client", return_value=client):
@@ -2095,8 +2113,16 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
     assert redacted["provenance"]["source_interface"] == "http_luci"
     assert redacted["unavailable_sections"] == []
     assert redacted["features"] == {
-        "operation_mode": {"mode": "host"},
-        "bridge": {"enabled": False},
+        "operation_mode": {
+            "mode": "host",
+            "supported_modes": [],
+            "unavailable_fields": ["supported_modes"],
+        },
+        "bridge": {
+            "location": "living_room",
+            "status": "connected",
+            "support_plc": True,
+        },
         "fast_roaming": {"enabled": True},
         "beamforming": {"enabled": True},
     }
