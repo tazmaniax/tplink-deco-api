@@ -101,6 +101,46 @@ def _speed_test_payload() -> JsonObject:
     }
 
 
+def _http_firmware_payload() -> JsonObject:
+    common: JsonObject = {
+        "device_model": "P9",
+        "hw_id": "hardware-id",
+        "oem_id": "oem-id",
+        "new_version": "1.4.0 Build 20260701 Rel. 12345",
+        "need_to_download": True,
+        "need_to_upgrade": True,
+        "need_force_upgrade": False,
+        "release_date": "2026-07-01",
+        "file_size": 1024,
+    }
+    return {
+        "fw_list": [
+            {**common, "device_id": "node-b", "software_ver": "1.3.0"},
+            {**common, "device_id": "node-a", "software_ver": "1.3.0"},
+        ]
+    }
+
+
+def _tmp_firmware_payload() -> JsonObject:
+    return {
+        "fw_list": [
+            {
+                "device_model": "P9",
+                "hw_id": "hardware-id",
+                "oem_id": "oem-id",
+                "version": "1.4.0 Build 20260701 Rel. 12345",
+                "device_id_list": ["node-a", "node-b"],
+                "need_to_download": True,
+                "need_to_upgrade": True,
+                "need_force_upgrade": False,
+                "release_date": "2026-07-01",
+                "release_note": "Stability improvements",
+                "file_size": 1024,
+            }
+        ]
+    }
+
+
 def _tmp_wlan_payload() -> JsonObject:
     def band(channel: str) -> JsonObject:
         return {
@@ -142,6 +182,7 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "traffic",
         "blocked_clients",
         "speed_test",
+        "firmware_status",
         "ddns",
         "wlan_state",
         "ipv6_configuration",
@@ -155,9 +196,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "sip_alg",
         "mac_clone",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:11])
-    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[11:])
-    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[11:])
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:12])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[12:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[12:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -199,7 +240,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 21
+    assert len(result["routes"]) == 22
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -535,6 +576,107 @@ def test_speed_test_and_ddns_capabilities_preserve_equivalent_contracts() -> Non
     ]
 
 
+def test_firmware_status_normalizes_http_and_tmp_release_contracts() -> None:
+    http_service = DecoService(_config())
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    http_client.call.return_value = ApiResponse.from_api(
+        {"error_code": 0, "result": _http_firmware_payload()}
+    )
+
+    with mock.patch.object(http_service, "_get_client", return_value=http_client):
+        http_result = http_service.read_capability("firmware_status")
+
+    tmp_service = DecoService(
+        replace(
+            _config(),
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    tmp_service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": _tmp_firmware_payload(),
+    }
+
+    with (
+        mock.patch.object(
+            tmp_service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_result = tmp_service.read_capability("firmware_status")
+
+    http_data = http_result["data"]
+    tmp_data = tmp_result["data"]
+    assert isinstance(http_data, dict)
+    assert isinstance(tmp_data, dict)
+    assert http_data["update_available"] is True
+    assert tmp_data["update_available"] is True
+    assert http_data["release_count"] == tmp_data["release_count"] == 1
+    http_release = http_data["releases"][0]
+    tmp_release = tmp_data["releases"][0]
+    assert isinstance(http_release, dict)
+    assert isinstance(tmp_release, dict)
+    for field in (
+        "device_model",
+        "hardware_id",
+        "oem_id",
+        "latest_version",
+        "device_ids",
+        "need_to_download",
+        "need_to_upgrade",
+        "force_upgrade",
+        "release_date",
+        "file_size_bytes",
+    ):
+        assert http_release[field] == tmp_release[field]
+    assert http_release["current_versions"] == ["1.3.0"]
+    assert http_release["release_note"] is None
+    assert http_data["unavailable_fields"] == ["releases[].release_note"]
+    assert tmp_release["current_versions"] == []
+    assert tmp_release["release_note"] == "Stability improvements"
+    assert tmp_data["unavailable_fields"] == ["releases[].current_versions"]
+    assert tmp_result["provenance"]["fallback_used"] is True
+    tmp_client.request_read_json.assert_called_once_with(0x401C, None)
+
+
+def test_firmware_status_rejects_tmp_contract_drift() -> None:
+    service = DecoService(
+        replace(
+            _config(),
+            allow_tmp_reads=True,
+            tp_link_id="owner@example.com",
+            tmp_host_key_sha256="SHA256:test",
+        )
+    )
+    service._device_cache = (_p9_device(),)
+    payload = _tmp_firmware_payload()
+    rows = payload["fw_list"]
+    assert isinstance(rows, list)
+    row = rows[0]
+    assert isinstance(row, dict)
+    row["device_id_list"] = "node-a"
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": payload}
+
+    with (
+        mock.patch.object(
+            service,
+            "_read_http_capability",
+            side_effect=TransportError("HTTP unavailable"),
+        ),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="device_id_list is not an array"),
+    ):
+        service.read_capability("firmware_status")
+
+
 def test_wlan_state_normalizes_tmp_fallback_without_cross_interface_enrichment() -> None:
     config = replace(
         _config(),
@@ -780,6 +922,7 @@ def test_network_status_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"device_list": [_device_payload()]}},
         {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": _tmp_firmware_payload()},
         {"error_code": 0, "result": _speed_test_payload()},
     ]
 
@@ -799,18 +942,24 @@ def test_network_status_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
         "error_type": "TransportError",
     }
     assert status["client_count_status"] == "gated"
+    assert status["firmware"]["update_available"] is True
     assert status["speed_test"] == _speed_test_payload()
     assert status["unavailable_sections"] == [
         {
-            "section": section,
+            "section": "performance",
             "status": "unavailable",
             "error_type": "SourceUnavailable",
         }
-        for section in ("performance", "firmware")
     ]
     http_client.get_internet_status.assert_not_called()
     http_client.get_performance.assert_not_called()
     http_client.get_speed_test.assert_not_called()
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x400C, None),
+        mock.call(0x401C, None),
+        mock.call(0x4010, None),
+    ]
 
 
 def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None:
@@ -827,6 +976,7 @@ def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None
     tmp_client = mock.Mock()
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": _tmp_firmware_payload()},
         {"error_code": 0, "result": _speed_test_payload()},
     ]
 
@@ -841,14 +991,13 @@ def test_network_status_switches_wholly_to_tmp_after_http_data_failure() -> None
     assert status["provenance"]["source_interface"] == "tmp_appv2"
     assert status["provenance"]["fallback_used"] is True
     assert status["provenance"]["attempts"][0]["status"] == "error"
-    assert {item["section"] for item in status["unavailable_sections"]} == {
-        "performance",
-        "firmware",
-    }
+    assert status["firmware"]["update_available"] is True
+    assert {item["section"] for item in status["unavailable_sections"]} == {"performance"}
     http_client.get_performance.assert_not_called()
     http_client.get_speed_test.assert_not_called()
     assert tmp_client.request_read_json.call_args_list == [
         mock.call(0x400C, None),
+        mock.call(0x401C, None),
         mock.call(0x4010, None),
     ]
 
@@ -1602,7 +1751,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 21
+    assert capabilities["supported_count"] == 22
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1678,7 +1827,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 21
+    assert capabilities["unknown_count"] == 22
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 

@@ -106,6 +106,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_schema_equivalence",
     ),
     CapabilityRoute(
+        name="firmware_status",
+        description="Available firmware releases and affected mesh nodes",
+        sensitivity="private",
+        primary_interface="http_luci",
+        primary_operation="admin.cloud.firmware_status.check",
+        fallback_interface="tmp_appv2",
+        fallback_operation="0x401C",
+        fallback_policy="equivalent_read_only",
+        equivalence_evidence="p9_live_normalized_field_equivalence",
+    ),
+    CapabilityRoute(
         name="ddns",
         description="Cloud-backed dynamic DNS state",
         sensitivity="secret",

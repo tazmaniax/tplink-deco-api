@@ -217,7 +217,7 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current eleven HTTP-primary overlap routes,
+bootstrap now follows that policy; the current twelve HTTP-primary overlap routes,
 ten TMP-only network routes and directly implemented canonical resources remain
 a transitional subset of the wider design.
 
@@ -235,7 +235,7 @@ System-log pages require both the sensitive gate and
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
 | `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `tmp_writes_hard_disabled`, `tmp_transport_status`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
-| `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `provenance`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
+| `deco://status` | Sanitized live health of the internet connection, controller and mesh, including normalized firmware availability; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `provenance`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `provenance`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
@@ -283,6 +283,12 @@ normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
 fallback. `deco://devices` reads blocking, traffic and reservations only from
 the interface selected for its client inventory; a failed enrichment is marked
 unavailable rather than being filled from the other interface.
+The `firmware` status section groups HTTP node records and TMP `0x401C` release
+records by model, hardware identity, target version and release metadata. Each
+release reports affected device IDs and update flags. HTTP supplies
+`current_versions` but not `release_note`; TMP supplies `release_note` but not
+`current_versions`, so `unavailable_fields` identifies the missing field rather
+than implying raw response equivalence.
 Each `deco://devices/ipv6` device contains normalized `mac`, `ip`, decoded
 `name` and `client_type` fields. IPv6 firewall `rules[]` preserve the
 firmware-reported rule objects because the observed P9 table was empty and did

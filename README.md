@@ -55,7 +55,7 @@ Resources are the canonical read-only state views:
 | Resource | Contents |
 |---|---|
 | `deco://mcp` | MCP configuration, connection state and enabled safety gates. |
-| `deco://status` | Overall internet, controller and mesh health. |
+| `deco://status` | Overall internet, controller and mesh health, including normalized firmware availability. |
 | `deco://configuration` | Sanitized network and system configuration. |
 | `deco://mesh` | Controller identity and all Deco nodes. |
 | `deco://devices` | All known client devices with connectivity and access state. |
@@ -192,7 +192,7 @@ separate concerns:
   gates.
 - Semantic mutations follow discover → plan → authorize → execute. Plans expire
   after five minutes, bind to the resolved controller and are consumed once.
-- Fallback is allowed only for six positively evidenced read capabilities.
+- Fallback is allowed only for twelve positively evidenced read capabilities.
   Mutations never fall back between protocols.
 
 The repository inventories 21 semantic mutation intents, including blocked and

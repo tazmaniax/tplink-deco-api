@@ -75,6 +75,10 @@ from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
 from ._client_read_normalization import normalize_blocked_clients, normalize_client_traffic
 from ._device_inventory_resolution import _DeviceInventoryResolution
+from ._firmware_normalization import (
+    normalize_http_firmware_status,
+    normalize_tmp_firmware_status,
+)
 from ._ipv6_normalization import (
     normalize_ipv6_clients,
     normalize_ipv6_configuration,
@@ -848,7 +852,7 @@ class DecoService:
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("performance", exc))
                 try:
-                    firmware = client.call(get_endpoint("admin.cloud.firmware_status.read")).result
+                    firmware = self._read_resource_capability("firmware_status", context)
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("firmware", exc))
                 try:
@@ -865,12 +869,11 @@ class DecoService:
                         client_count_status = "unavailable"
                         errors.append(_configuration_error("client_count", exc))
         else:
-            errors.extend(
-                (
-                    _source_unavailable("performance"),
-                    _source_unavailable("firmware"),
-                )
-            )
+            errors.append(_source_unavailable("performance"))
+            try:
+                firmware = self._read_resource_capability("firmware_status", context)
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("firmware", exc))
             try:
                 speed_test = self._read_resource_capability("speed_test", context)
             except _LIVE_READ_ERRORS as exc:
@@ -1547,6 +1550,13 @@ class DecoService:
                 return normalize_blocked_clients(result)
             if name == "speed_test":
                 return _speed_test_view(client.get_speed_test())
+            if name == "firmware_status":
+                result = client.call(get_endpoint("admin.cloud.firmware_status.check")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError(
+                        "Failed to read HTTP capability: firmware status result is not an object"
+                    )
+                return normalize_http_firmware_status(result)
             if name == "ddns":
                 result = client.call(get_endpoint("admin.cloud.ddns.get")).result
                 if not isinstance(result, Mapping):
@@ -1575,6 +1585,7 @@ class DecoService:
             "traffic": 0x4014,
             "blocked_clients": 0x4018,
             "speed_test": 0x4010,
+            "firmware_status": 0x401C,
             "ddns": 0x40D0,
             "wlan_state": 0x4009,
             "ipv6_configuration": 0x4006,
@@ -1614,6 +1625,8 @@ class DecoService:
             return normalize_blocked_clients(result)
         if name == "speed_test":
             return _speed_test_view(SpeedTest.from_api(result))
+        if name == "firmware_status":
+            return normalize_tmp_firmware_status(result)
         if name == "ddns":
             return dict(result)
         if name == "wlan_state":
@@ -4499,6 +4512,7 @@ def _capability_category(name: str) -> str:
         "traffic": "clients",
         "blocked_clients": "clients",
         "speed_test": "network",
+        "firmware_status": "system",
         "ddns": "network",
         "wlan_state": "wireless",
         "ipv6_configuration": "network",

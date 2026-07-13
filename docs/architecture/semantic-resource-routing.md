@@ -186,7 +186,7 @@ attempts, validates the controller shape before caching it, permits unknown-mode
 identity reporting, and does not authorize P9-specific reads for an unmatched
 profile.
 
-The current registry has eleven HTTP-primary, TMP-fallback read contracts and ten
+The current registry has twelve HTTP-primary, TMP-fallback read contracts and ten
 TMP-only network contracts. Mesh, network status, configuration, client
 devices, traffic, blocked clients, address reservations, LAN, DHCP, VLAN, port
 forwarding, IPTV, SIP ALG, MAC cloning, IPv6 configuration, IPv6 firewall and
@@ -195,7 +195,9 @@ itself to one data-producing interface: HTTP returns the richer documented
 sections, while a TMP cold start returns the validated overlapping sections
 plus explicit `SourceUnavailable` evidence for HTTP-only sections. It does not
 merge live values from both interfaces. The speed-test contract enriches status
-from the interface selected for that compound response. The DDNS contract drives
+from the interface selected for that compound response. Firmware availability
+normalizes HTTP node records and TMP release records into grouped releases,
+while declaring source-specific unavailable fields. The DDNS contract drives
 the cloud tool; when it selects TMP, HTTP-only cloud-manager state is explicitly
 unavailable. WLAN normalizes the P9 HTTP host radio fields and TMP `radio`
 aliases into one contract; a TMP-backed tool response marks HTTP-only operation
@@ -203,6 +205,6 @@ mode and bridge state unavailable without cross-interface enrichment.
 
 Logs and other datasets without a validated alternative remain HTTP-only.
 Other positively observed TMP-only datasets remain diagnostic until they receive
-dedicated semantic contracts and response models. The 21
+dedicated semantic contracts and response models. The 22
 registered routes and migrated canonical resources are therefore still a subset
 of the wider design.

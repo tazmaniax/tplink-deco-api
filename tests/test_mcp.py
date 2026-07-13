@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
@@ -66,6 +67,9 @@ from tplink_deco_api.responses import (
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
 
+if TYPE_CHECKING:
+    from tplink_deco_api._json import JsonObject
+
 
 def _config(**overrides: bool) -> ServerConfig:
     values: dict[str, bool] = {
@@ -104,6 +108,26 @@ def _p9_controller() -> Device:
 
 def _prime_p9_profile(service: DecoService) -> None:
     service._device_cache = (_p9_controller(),)
+
+
+def _http_firmware_payload() -> JsonObject:
+    return {
+        "fw_list": [
+            {
+                "device_model": "P9",
+                "hw_id": "hardware-id",
+                "oem_id": "oem-id",
+                "new_version": "1.4.0 Build 20260701 Rel. 12345",
+                "device_id": "node-a",
+                "software_ver": "1.3.0 Build 20250804 Rel. 58832",
+                "need_to_download": False,
+                "need_to_upgrade": False,
+                "need_force_upgrade": False,
+                "release_date": "2026-07-01",
+                "file_size": 1024,
+            }
+        ]
+    }
 
 
 def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -463,7 +487,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 21
+    assert coverage["unified_semantic_surface"]["capability_count"] == 22
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -1908,7 +1932,7 @@ def test_mcp_network_status_resource_summarizes_health_without_client_identities
     client.get_performance.return_value = Performance(0.95, 0.5)
     client.get_speed_test.return_value = SpeedTest(100, 20, "idle", True, 123)
     client.call.return_value = ApiResponse.from_api(
-        {"error_code": 0, "result": {"update_available": False}}
+        {"error_code": 0, "result": _http_firmware_payload()}
     )
 
     with mock.patch.object(service, "_get_client", return_value=client):
@@ -1969,7 +1993,7 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     client.get_performance.side_effect = TransportError("temporary failure")
     client.get_speed_test.return_value = SpeedTest(100, 20, "idle", True, 123)
     client.call.return_value = ApiResponse.from_api(
-        {"error_code": 0, "result": {"status": "idle", "download_progress": None}}
+        {"error_code": 0, "result": _http_firmware_payload()}
     )
     client.get_client_list.return_value = [mock.Mock(), mock.Mock()]
 
@@ -1979,7 +2003,9 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     assert status["status"] == "degraded"
     assert status["internet"]["link_status"] == "up"
     assert status["performance"] is None
-    assert status["firmware"] == {"status": "idle", "download_progress": None}
+    assert status["firmware"]["update_available"] is False
+    assert status["firmware"]["release_count"] == 1
+    assert status["firmware"]["unavailable_fields"] == ["releases[].release_note"]
     assert status["client_count"] == 2
     assert status["client_count_status"] == "available"
     assert status["unavailable_sections"] == [
