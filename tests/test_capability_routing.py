@@ -45,6 +45,7 @@ from tplink_deco_api.responses import (
     MutationsResponse,
     NetworkStatusResponse,
     PortForwardingResponse,
+    QosResponse,
     SipAlgResponse,
     VlanConfigurationResponse,
     WlanResponse,
@@ -192,6 +193,8 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "ipv6_clients",
         "lan_configuration",
         "dhcp_configuration",
+        "qos_mode",
+        "bandwidth_configuration",
         "vlan_configuration",
         "port_forwarding",
         "iptv_configuration",
@@ -242,7 +245,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 24
+    assert len(result["routes"]) == 26
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -1705,6 +1708,92 @@ def test_network_semantic_resources_normalize_positive_p9_tmp_contracts() -> Non
     http_client.get_device_list.assert_called_once_with()
 
 
+def test_qos_resource_combines_positive_p9_tmp_contracts_after_cold_start() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"device_list": [_device_payload()]}},
+        {"error_code": 0, "result": {"custom_detail": []}},
+        {
+            "error_code": 0,
+            "result": {
+                "has_set_bandwidth": True,
+                "upstream_bandwidth": 20,
+                "upstream_bandwidth_max": 1000,
+                "downstream_bandwidth": 100,
+                "downstream_bandwidth_max": 1000,
+            },
+        },
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        qos = service.qos_resource()
+
+    assert_response_contract(QosResponse, qos)
+    assert qos["mode"] == {"custom_detail": [], "custom_detail_count": 0}
+    assert qos["bandwidth"] == {
+        "has_set_bandwidth": True,
+        "upstream_bandwidth": 20,
+        "upstream_bandwidth_max": 1000,
+        "downstream_bandwidth": 100,
+        "downstream_bandwidth_max": 1000,
+    }
+    assert qos["provenance"]["source_interface"] == "tmp_appv2"
+    assert qos["provenance"]["source_operations"] == ["0x4036", "0x4219"]
+    assert qos["provenance"]["single_source_interface"] is True
+    assert set(qos["provenance"]["capabilities"]) == {
+        "qos_mode",
+        "bandwidth_configuration",
+    }
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x400F, None),
+        mock.call(0x4036, None),
+        mock.call(0x4219, None),
+    ]
+
+
+def test_qos_resource_rejects_bandwidth_contract_drift() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": {"custom_detail": []}},
+        {
+            "error_code": 0,
+            "result": {
+                "has_set_bandwidth": True,
+                "upstream_bandwidth": "20",
+                "upstream_bandwidth_max": 1000,
+                "downstream_bandwidth": 100,
+                "downstream_bandwidth_max": 1000,
+            },
+        },
+    ]
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="upstream_bandwidth is not an integer"),
+    ):
+        service.qos_resource()
+
+
 def test_private_network_semantic_resource_does_not_require_sensitive_gate() -> None:
     config = replace(
         _config(),
@@ -1901,7 +1990,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 24
+    assert capabilities["supported_count"] == 26
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1977,7 +2066,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 24
+    assert capabilities["unknown_count"] == 26
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2091,6 +2180,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://address-reservations",
         "deco://network/lan",
         "deco://network/dhcp",
+        "deco://network/qos",
         "deco://network/vlan",
         "deco://network/port-forwarding",
         "deco://network/iptv",

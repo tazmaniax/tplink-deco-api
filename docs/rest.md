@@ -72,6 +72,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
 | `GET` | `/api/v1/network/lan` | LAN address, subnet, DNS and upstream addresses. |
 | `GET` | `/api/v1/network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `GET` | `/api/v1/network/qos` | QoS mode details and configured bandwidth values. |
 | `GET` | `/api/v1/network/vlan` | Internet VLAN state. |
 | `GET` | `/api/v1/network/port-forwarding` | Port-forwarding rules and capacity. |
 | `GET` | `/api/v1/network/iptv` | IPTV state and mode. |
@@ -103,11 +104,11 @@ cloud response reports the HTTP-only manager section as unavailable.
 WLAN normalizes the common P9 band, host, guest, backhaul and radio fields. A
 TMP-backed response keeps HTTP-only wireless operation mode and bridge state
 unavailable instead of contacting HTTP for enrichment.
-The ten network and IPv6 routes are positively evidenced TMP-only semantic
-reads and do not require diagnostic tools to be exposed. They require the TMP
-gate; LAN, DHCP, port forwarding and the three IPv6 routes also require the
-sensitive-read gate. TMP remains disconnected until one of these routes is
-actually read.
+The eleven network and IPv6 resources are backed by twelve positively evidenced
+TMP-only semantic reads and do not require diagnostic tools to be exposed. They
+require the TMP gate; LAN, DHCP, port forwarding and the three IPv6 resources
+also require the sensitive-read gate. TMP remains disconnected until one of
+these resources is actually read.
 
 ## Response contracts
 

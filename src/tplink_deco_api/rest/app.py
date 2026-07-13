@@ -63,6 +63,7 @@ from ..responses import (
     MutationsResponse,
     NetworkStatusResponse,
     PortForwardingResponse,
+    QosResponse,
     ServiceStatusResponse,
     SipAlgResponse,
     SystemLogPageResponse,
@@ -327,6 +328,15 @@ def _create_rest_router(
     def dhcp_configuration() -> dict[str, JsonValue]:
         """Return the current semantic DHCP configuration."""
         return service.dhcp_configuration_resource()
+
+    @router.get(
+        "/network/qos",
+        response_model=QosResponse,
+        operation_id="getQos",
+    )
+    def qos() -> dict[str, JsonValue]:
+        """Return the current semantic QoS mode and bandwidth configuration."""
+        return service.qos_resource()
 
     @router.get(
         "/network/vlan",

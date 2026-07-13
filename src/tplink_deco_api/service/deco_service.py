@@ -85,11 +85,13 @@ from ._ipv6_normalization import (
     normalize_ipv6_firewall,
 )
 from ._network_normalization import (
+    normalize_bandwidth_configuration,
     normalize_dhcp_configuration,
     normalize_iptv_configuration,
     normalize_lan_configuration,
     normalize_mac_clone,
     normalize_port_forwarding,
+    normalize_qos_mode,
     normalize_sip_alg,
     normalize_vlan_configuration,
 )
@@ -578,6 +580,41 @@ class DecoService:
     def dhcp_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic DHCP configuration."""
         return self._semantic_capability_resource("dhcp_configuration", "DHCP configuration")
+
+    def qos_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic QoS mode and bandwidth configuration."""
+        mode_capability = self.read_capability("qos_mode")
+        bandwidth_capability = self.read_capability("bandwidth_configuration")
+        mode, mode_provenance = _capability_resource_parts(mode_capability, "QoS mode")
+        bandwidth, bandwidth_provenance = _capability_resource_parts(
+            bandwidth_capability,
+            "bandwidth configuration",
+        )
+        mode_interface = _json_string(mode_provenance, "source_interface")
+        bandwidth_interface = _json_string(bandwidth_provenance, "source_interface")
+        if mode_interface != bandwidth_interface:
+            raise ValueError("Failed to read QoS: capability sources do not match")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            "mode": dict(mode),
+            "bandwidth": dict(bandwidth),
+            "provenance": {
+                "source_interface": mode_interface,
+                "source_operations": [
+                    _json_string(mode_provenance, "source_operation"),
+                    _json_string(bandwidth_provenance, "source_operation"),
+                ],
+                "single_source_interface": True,
+                "capabilities": {
+                    "qos_mode": dict(mode_provenance),
+                    "bandwidth_configuration": dict(bandwidth_provenance),
+                },
+            },
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def vlan_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic Internet VLAN state."""
@@ -1598,6 +1635,8 @@ class DecoService:
             "ipv6_clients": 0x4234,
             "lan_configuration": 0x4211,
             "dhcp_configuration": 0x4213,
+            "qos_mode": 0x4036,
+            "bandwidth_configuration": 0x4219,
             "vlan_configuration": 0x420D,
             "port_forwarding": 0x40B0,
             "iptv_configuration": 0x4224,
@@ -1653,6 +1692,10 @@ class DecoService:
             return normalize_lan_configuration(result)
         if name == "dhcp_configuration":
             return normalize_dhcp_configuration(result)
+        if name == "qos_mode":
+            return normalize_qos_mode(result)
+        if name == "bandwidth_configuration":
+            return normalize_bandwidth_configuration(result)
         if name == "vlan_configuration":
             return normalize_vlan_configuration(result)
         if name == "port_forwarding":
@@ -4508,6 +4551,8 @@ def _capability_category(name: str) -> str:
         "ipv6_clients": "clients",
         "lan_configuration": "network",
         "dhcp_configuration": "network",
+        "qos_mode": "qos",
+        "bandwidth_configuration": "qos",
         "vlan_configuration": "network",
         "port_forwarding": "nat",
         "iptv_configuration": "network",

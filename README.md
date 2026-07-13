@@ -26,7 +26,7 @@ developers and contributors.
 
 ## What it provides
 
-- A protocol-neutral default MCP surface: 23 resources and five tools.
+- A protocol-neutral default MCP surface: 24 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
@@ -66,6 +66,7 @@ Resources are the canonical read-only state views:
 | `deco://address-reservations` | DHCP address reservations. |
 | `deco://network/lan` | LAN address, subnet, DNS and upstream addresses. |
 | `deco://network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `deco://network/qos` | QoS mode details and configured bandwidth values. |
 | `deco://network/vlan` | Internet VLAN state. |
 | `deco://network/port-forwarding` | Port-forwarding rules and capacity. |
 | `deco://network/iptv` | IPTV state and mode. |
@@ -86,7 +87,7 @@ explicit unavailable fields, without merging live data from both transports.
 Wireless operation mode and bridge/PLC status use the same semantic source as
 their surrounding WLAN or configuration response, including during TMP-only
 startup.
-Ten network and IPv6 resources use positively evidenced TMP-only routes and
+Eleven network and IPv6 resources use positively evidenced TMP-only routes and
 remain lazy: startup validates configuration but opens TMP only when one is
 read.
 

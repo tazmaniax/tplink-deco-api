@@ -49,6 +49,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://address-reservations",
         "deco://network/lan",
         "deco://network/dhcp",
+        "deco://network/qos",
         "deco://network/vlan",
         "deco://network/port-forwarding",
         "deco://network/iptv",
@@ -243,6 +244,11 @@ def create_server(
     def dhcp_configuration_resource() -> str:
         """Return the gated semantic DHCP configuration."""
         return _json_text(service.dhcp_configuration_resource())
+
+    @server.resource("deco://network/qos")
+    def qos_resource() -> str:
+        """Return the gated semantic QoS mode and bandwidth configuration."""
+        return _json_text(service.qos_resource())
 
     @server.resource("deco://network/vlan")
     def vlan_configuration_resource() -> str:

@@ -32,9 +32,9 @@ transport, compatibility evidence and a conservative mutation workflow.
 ### MCP server
 
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
-* exposed 23 canonical resources for MCP state, network status, configuration,
+* exposed 24 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  LAN/DHCP/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv6
+  LAN/DHCP/QoS/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv6
   configuration/firewall/clients, log levels, capabilities and mutations
 * added a gated `deco://logs/{index}` resource template for bounded system-log
   pagination without duplicating the read as a tool
@@ -63,8 +63,9 @@ transport, compatibility evidence and a conservative mutation workflow.
   TMP's supported-mode list and completing TMP-backed WLAN feature state
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
-* promoted ten positively evidenced TMP-only network datasets into default
-  protocol-neutral MCP resources and REST routes without enabling diagnostics
+* promoted twelve positively evidenced TMP-only network datasets into eleven
+  default protocol-neutral MCP resources and REST routes without enabling
+  diagnostics, combining the QoS mode and bandwidth contracts into one view
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
 * added fourteen bounded, positively evidenced read-only fallback contracts while

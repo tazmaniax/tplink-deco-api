@@ -186,11 +186,12 @@ attempts, validates the controller shape before caching it, permits unknown-mode
 identity reporting, and does not authorize P9-specific reads for an unmatched
 profile.
 
-The current registry has fourteen HTTP-primary, TMP-fallback read contracts and ten
-TMP-only network contracts. Mesh, network status, configuration, client
+The current registry has fourteen HTTP-primary, TMP-fallback read contracts and
+twelve TMP-only network contracts. Mesh, network status, configuration, client
 devices, traffic, blocked clients, address reservations, LAN, DHCP, VLAN, port
-forwarding, IPTV, SIP ALG, MAC cloning, IPv6 configuration, IPv6 firewall and
-IPv6 clients now use the semantic selection boundary. A compound resource binds
+forwarding, IPTV, SIP ALG, MAC cloning, QoS mode and bandwidth configuration,
+IPv6 configuration, IPv6 firewall and IPv6 clients now use the semantic selection
+boundary. A compound resource binds
 itself to one data-producing interface: HTTP returns the richer documented
 sections, while a TMP cold start returns the validated overlapping sections
 plus explicit `SourceUnavailable` evidence for HTTP-only sections. It does not
@@ -206,6 +207,6 @@ HTTP reports that field as unavailable.
 
 Logs and other datasets without a validated alternative remain HTTP-only.
 Other positively observed TMP-only datasets remain diagnostic until they receive
-dedicated semantic contracts and response models. The 24
+dedicated semantic contracts and response models. The 26
 registered routes and migrated canonical resources are therefore still a subset
 of the wider design.

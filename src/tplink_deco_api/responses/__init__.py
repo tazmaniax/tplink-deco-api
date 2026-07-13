@@ -24,6 +24,7 @@ from .mutation_response import MutationResponse
 from .mutations_response import MutationsResponse
 from .network_status_response import NetworkStatusResponse
 from .port_forwarding_response import PortForwardingResponse
+from .qos_response import QosResponse
 from .response_dto import ResponseDto
 from .service_status_response import ServiceStatusResponse
 from .sip_alg_response import SipAlgResponse
@@ -55,6 +56,7 @@ __all__ = [
     "MutationsResponse",
     "NetworkStatusResponse",
     "PortForwardingResponse",
+    "QosResponse",
     "ResponseDto",
     "ServiceStatusResponse",
     "SipAlgResponse",

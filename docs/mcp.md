@@ -218,7 +218,7 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current fourteen HTTP-primary overlap
-routes, ten TMP-only network routes and directly implemented canonical resources
+routes, twelve TMP-only network routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
 ## Resources
@@ -246,6 +246,7 @@ System-log pages require both the sensitive gate and
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
 | `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/dhcp` | Current DHCP pool, gateway, DNS and address usage. | `schema_version`, `status`, `start_ip`, `end_ip`, `gateway`, `dns_servers`, `addresses_in_use`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/qos` | Current QoS mode details and configured bandwidth values. | `schema_version`, `status`, `mode`, `bandwidth`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/vlan` | Current Internet VLAN state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/port-forwarding` | Current port-forwarding rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/iptv` | Current IPTV state and mode. | `schema_version`, `status`, `enabled`, `mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |

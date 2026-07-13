@@ -38,6 +38,48 @@ def normalize_dhcp_configuration(data: JsonObject) -> dict[str, JsonValue]:
     }
 
 
+def normalize_qos_mode(data: JsonObject) -> dict[str, JsonValue]:
+    """Return the firmware-provided QoS mode details without inventing semantics."""
+    custom_detail = data.get("custom_detail")
+    if not isinstance(custom_detail, Sequence) or isinstance(custom_detail, (str, bytes)):
+        raise ValueError("Failed to normalize QoS mode: custom_detail is not an array")
+    return {
+        "custom_detail": list(custom_detail),
+        "custom_detail_count": len(custom_detail),
+    }
+
+
+def normalize_bandwidth_configuration(data: JsonObject) -> dict[str, JsonValue]:
+    """Return the evidenced bandwidth fields while preserving firmware names."""
+    return {
+        "has_set_bandwidth": _required_bool(
+            data,
+            "has_set_bandwidth",
+            "bandwidth configuration",
+        ),
+        "upstream_bandwidth": _required_int(
+            data,
+            "upstream_bandwidth",
+            "bandwidth configuration",
+        ),
+        "upstream_bandwidth_max": _required_int(
+            data,
+            "upstream_bandwidth_max",
+            "bandwidth configuration",
+        ),
+        "downstream_bandwidth": _required_int(
+            data,
+            "downstream_bandwidth",
+            "bandwidth configuration",
+        ),
+        "downstream_bandwidth_max": _required_int(
+            data,
+            "downstream_bandwidth_max",
+            "bandwidth configuration",
+        ),
+    }
+
+
 def normalize_vlan_configuration(data: JsonObject) -> dict[str, JsonValue]:
     """Return canonical Internet VLAN state."""
     vlan = _required_object(data, "vlan", "VLAN configuration")
