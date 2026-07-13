@@ -226,8 +226,13 @@ def create_server(
 
     @server.resource("deco://logs")
     def logs_resource() -> str:
-        """Return available log categories without reading log contents."""
+        """Return available log levels without reading log contents."""
         return _json_text(service.logs_resource())
+
+    @server.resource("deco://logs/{index}")
+    def system_log_page_resource(index: int) -> str:
+        """Return one gated page of system-log entries without preparing a new export."""
+        return _json_text(service.system_log_page_resource(index))
 
     @server.resource("deco://capabilities")
     def capabilities_resource() -> str:

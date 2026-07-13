@@ -12,6 +12,7 @@ from fastapi import (
     FastAPI,
     Header,
     HTTPException,
+    Path,
     Query,
     Request,
     Response,
@@ -55,6 +56,7 @@ from ..responses import (
     MutationsResponse,
     NetworkStatusResponse,
     ServiceStatusResponse,
+    SystemLogPageResponse,
     TrafficResponse,
     WlanResponse,
 )
@@ -300,8 +302,20 @@ def _create_rest_router(
 
     @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:
-        """Return available log categories without reading log contents."""
+        """Return available log levels without reading log contents."""
         return service.logs_resource()
+
+    @router.get(
+        "/logs/{index}",
+        response_model=SystemLogPageResponse,
+        operation_id="getSystemLogPage",
+    )
+    def system_log_page(
+        index: Annotated[int, Path(ge=0)],
+        limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    ) -> dict[str, JsonValue]:
+        """Return one gated page from the prepared system-log snapshot."""
+        return service.system_log_page_resource(index, limit)
 
     @router.get(
         "/capabilities",

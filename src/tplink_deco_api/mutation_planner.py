@@ -32,6 +32,7 @@ _FORM_READ_NAMES: dict[tuple[str, str], str] = {
     ("admin/client", "addr_reservation"): "admin.client.addr_reservation.getlist",
     ("admin/cloud", "nickname"): "admin.cloud.nickname.read",
     ("admin/cloud", "firmware_status"): "admin.cloud.firmware_status.read",
+    ("admin/log_export", "feedback_log"): "admin.log_export.feedback_log.read",
 }
 
 _REVERSIBLE_CONTRACTS: dict[str, tuple[str, str, str]] = {
@@ -86,6 +87,9 @@ _SUCCESS_CONDITIONS: dict[str, str] = {
     "admin.cloud.nickname.write": "nickname equals the requested value",
     "admin.cloud.firmware_status.upgrade": "firmware status enters an upgrade state",
     "admin.cloud.firmware_status.local_upgrade": "firmware status enters an upgrade state",
+    "admin.log_export.feedback_log.build": (
+        "page zero can be read from the newly prepared log snapshot"
+    ),
 }
 
 

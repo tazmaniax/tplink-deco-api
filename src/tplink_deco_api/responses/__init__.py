@@ -18,6 +18,7 @@ from .mutations_response import MutationsResponse
 from .network_status_response import NetworkStatusResponse
 from .response_dto import ResponseDto
 from .service_status_response import ServiceStatusResponse
+from .system_log_page_response import SystemLogPageResponse
 from .traffic_response import TrafficResponse
 from .wlan_response import WlanResponse
 
@@ -38,6 +39,7 @@ __all__ = [
     "NetworkStatusResponse",
     "ResponseDto",
     "ServiceStatusResponse",
+    "SystemLogPageResponse",
     "TrafficResponse",
     "WlanResponse",
 ]

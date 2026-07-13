@@ -25,10 +25,10 @@ def test_complete_http_queue_preserves_evidence_and_risk_reasons() -> None:
         for tier in {candidate.tier for candidate in queue}
     }
 
-    assert len(queue) == 23
+    assert len(queue) == 24
     assert tier_counts == {
         "destructive_excluded": 3,
-        "evidence_blocked": 1,
+        "evidence_blocked": 2,
         "high_risk_deferred": 15,
         "verified_noop": 4,
     }
@@ -65,6 +65,14 @@ def test_complete_http_queue_preserves_evidence_and_risk_reasons() -> None:
     )
     assert nickname.tier == "evidence_blocked"
     assert "parameter_contract_missing" in nickname.blocking_gaps
+    system_log = next(
+        candidate
+        for candidate in queue
+        if candidate.plan.name == "admin.log_export.feedback_log.build"
+    )
+    assert system_log.tier == "evidence_blocked"
+    assert system_log.plan.model_test_scope == "general"
+    assert "rollback_operation_missing" in system_log.blocking_gaps
 
 
 def test_http_queue_filters_are_explicit() -> None:
@@ -77,7 +85,7 @@ def test_http_queue_filters_are_explicit() -> None:
 
     assert len(verified) == 4
     assert all(candidate.tier == "verified_noop" for candidate in verified)
-    assert len(deferred) == 16
+    assert len(deferred) == 17
     assert {candidate.tier for candidate in deferred} == {
         "evidence_blocked",
         "high_risk_deferred",

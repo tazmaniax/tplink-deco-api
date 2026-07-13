@@ -24,15 +24,15 @@ def test_p9_profile_covers_every_catalogued_operation() -> None:
     assert summary["availability"] == {
         "invalid_response": 1,
         "not_found": 100,
-        "rejected": 53,
-        "supported": 63,
+        "rejected": 52,
+        "supported": 65,
         "transport_error": 6,
-        "untested": 347,
+        "untested": 346,
     }
-    assert summary["returned_data"] == 31
+    assert summary["returned_data"] == 32
     assert summary["accepted_empty"] == 28
     assert summary["asset_present"] == 94
-    assert summary["mutation_tested"] == 4
+    assert summary["mutation_tested"] == 5
     assert summary["transport_overrides"] == 1
     assert summary["sensitive_schema_observed"] == 55
     assert summary["bootstrap_observed"] == 4
@@ -86,6 +86,7 @@ def test_p9_profile_distinguishes_live_asset_and_inferred_evidence() -> None:
     beamforming_write = P9_COMPATIBILITY_PROFILE.get("admin.wireless.beamforming.write")
     ieee80211r_write = P9_COMPATIBILITY_PROFILE.get("admin.wireless.ieee80211r.write")
     timesetting_write = P9_COMPATIBILITY_PROFILE.get("admin.device.timesetting.write")
+    system_log_build = P9_COMPATIBILITY_PROFILE.get("admin.log_export.feedback_log.build")
     bootstrap_auth = P9_COMPATIBILITY_PROFILE.get("login.auth.read")
     bootstrap_keys = P9_COMPATIBILITY_PROFILE.get("login.keys.read")
     factory_default = P9_COMPATIBILITY_PROFILE.get("login.check_factory_default.read")
@@ -152,6 +153,12 @@ def test_p9_profile_distinguishes_live_asset_and_inferred_evidence() -> None:
     assert timesetting_write.mutation_test_scope == "noop_only"
     assert "mutation_probe" in timesetting_write.evidence
     assert timesetting_write.verified_callable
+    assert system_log_build.availability == "supported"
+    assert system_log_build.error_code == 0
+    assert system_log_build.mutation_tested
+    assert system_log_build.mutation_test_scope == "general"
+    assert "mutation_probe" in system_log_build.evidence
+    assert system_log_build.verified_callable
     assert bootstrap_auth.availability == "supported"
     assert bootstrap_auth.returned_data is True
     assert "bootstrap_probe" in bootstrap_auth.evidence

@@ -38,7 +38,7 @@ in a committed file or a shell command that may be retained in history.
 | `DECO_REST_PREFIX` | `/api/v1` | REST prefix; must be absolute and have no trailing slash. |
 | `DECO_REST_EXPOSE_DOCS` | off | Expose authenticated `/docs` and `/redoc`; disabled by default. |
 | `DECO_ALLOW_SENSITIVE_READS` | off | Permit reads classified as `secret`. |
-| `DECO_ALLOW_BULK_SECRET_READS` | off | Permit configuration-backup and log downloads; also requires the sensitive-read gate. |
+| `DECO_ALLOW_BULK_SECRET_READS` | off | Permit configuration backups, log downloads and paginated log content; also requires the sensitive-read gate. |
 | `DECO_ALLOW_BINARY_CONTENT` | off | Permit base64 binary content in MCP results; digest-only reads do not require this gate. |
 | `DECO_ALLOW_MUTATIONS` | off | Permit ordinary configuration mutations. |
 | `DECO_ALLOW_HTTP_NOOP_VERIFICATION` | off | Permit only the three P9-verified HTTP setting current-value no-ops; also requires the ordinary mutation gate. |
@@ -224,7 +224,8 @@ HTTP-primary fallback routes are a transitional subset of that design.
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
 devices, traffic and address reservations additionally require
-`DECO_ALLOW_SENSITIVE_READS=1`.
+`DECO_ALLOW_SENSITIVE_READS=1`. System-log pages require both that gate and
+`DECO_ALLOW_BULK_SECRET_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
@@ -238,7 +239,8 @@ devices, traffic and address reservations additionally require
 | `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
 | `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
-| `deco://logs` | Available log categories without reading actual log entries. | `schema_version`, `categories`, `category_count`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
+| `deco://logs` | Available log levels and snapshot-preparation metadata without reading actual log entries. | `schema_version`, `categories`, `category_count`, `selector_field`, `web_ui_default_level`, `all_level`, `preparation_mutation`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
+| `deco://logs/{index}` | One zero-based, 100-entry page from the currently prepared secret system-log snapshot. The firmware does not report which level prepared it. | `schema_version`, `current_index`, `total_pages`, `page_size`, `entries`, `entry_count`, `log_contents_included`, `prepared_level`, `level_reported_by_firmware`, `preparation_mutation`, `source_interface`, `router_contacted`, `mutation_invoked` |
 | `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
 | `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
 
@@ -256,8 +258,9 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `interface`, `connected_node`, `space_id`, `access_host`, `owner_id`,
 `remain_time`, `client_mesh` and `sources`. `status` is the connectivity state
 `active` or `inactive`; blocking is an independent access state. Each
-`device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each
-`categories[]` item contains `name` and `value`. Each `warnings[]` item contains
+`device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
+`categories[]` item contains a firmware level `name` and `value`. Each
+`warnings[]` item contains
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
 
@@ -298,7 +301,7 @@ diagnostic mode for compatibility. They are excluded from the default surface
 because their data is available through the semantic resources: configuration
 contains the detailed network features, normalized device records contain
 topology and blocking state, traffic has its own resource, status contains
-speed-test and firmware state, and logs exposes categories without contents.
+speed-test and firmware state, and logs exposes levels without contents.
 Client-bearing and private overview reads require
 `DECO_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
 
@@ -310,12 +313,15 @@ mesh rather than an open-world target.
 
 The semantic mutation workflow is discover, plan, authorize and execute:
 
-1. Read `deco://mutations`. It includes all 21 known semantic intents, including
+1. Read `deco://mutations`. It includes all 22 known semantic intents, including
    unverified or blocked entries, without exposing duplicate HTTP forms or TMP
    opcodes.
 2. Call `deco_plan_mutation` with a semantic name, `changes_json`, and mode.
-   State-changing mode currently returns blockers because no general-scope P9
-   mutation is verified. `mode="verify_current_value_noop"` accepts no desired
+   State-changing mode currently returns blockers because general semantic
+   execution is not implemented. The verified `system_log_prepare` intent
+   documents the required `level`, but remains unavailable through the default
+   executor; diagnostic raw execution still requires its independent gates and
+   exact reviewed plan hash. `mode="verify_current_value_noop"` accepts no desired
    changes and can issue a plan only for an exact connected P9 profile with all
    required gates enabled.
 3. Review the returned model, scope, gates, blockers and exact confirmation.
@@ -410,8 +416,8 @@ gate.
 ## Complete observed data batches
 
 `deco_get_p9_http_data` selects only read operations marked `supported` by the
-bundled P9 overlay and supported by an implemented HTTP transport. All 59 such
-reads—56 owner-session and three plaintext bootstrap—have an SDK call path.
+bundled P9 overlay and supported by an implemented HTTP transport. All 60 such
+reads—57 owner-session and three plaintext bootstrap—have an SDK call path.
 Pass a controller such as `admin/network` or `login` to keep responses bounded.
 Secret operations are skipped by default; including them
 requires both `include_sensitive=true` and
@@ -439,7 +445,7 @@ attempt all 55 observed JSON datasets. Both HTTP and TMP batch tools report
 
 Use `deco_p9_access_coverage` before selecting a lower-level tool. It derives
 its counts from the bundled catalogues and P9 overlays without opening either
-router transport. The matrix currently proves that all 59 supported HTTP reads,
+router transport. The matrix currently proves that all 60 supported HTTP reads,
 55 data-returning TMP reads and the one TMP binary read have an agent-callable
 path. It separately reports four payload-rejected TMP reads, 186 AppV2-rejected
 TMP reads and zero untested TMP reads. All three bulk-secret HTTP binary
@@ -881,9 +887,9 @@ overlay covers every catalogue operation and reports live availability, whether
 a successful read returned data, web-asset presence, evidence confidence, any
 model transport override, and whether the exact mutation has been tested.
 
-The bundled P9 overlay currently contains 570 operations: 63 supported, 53
+The bundled P9 overlay currently contains 570 operations: 64 supported, 52
 rejected, 100 not found, six transport failures, one invalid response, and 347
-untested. Thirty-one
+untested. Thirty-two
 accepted reads returned data; 28 returned null. Ninety-four
 catalogue operations share one of the 48 forms declared by the web assets.
 Reservation, beamforming, 802.11r and time-settings mutations are marked tested

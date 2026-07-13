@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 dist/
 *.egg-info/
+*.xapk
 /docs/api-responses/*
 !/docs/api-responses/p9-compatibility.json
 !/docs/api-responses/p9-web-assets.json
@@ -21,6 +22,7 @@ dist/
 !/docs/api-responses/p9-mcp-complete-tmp-batch-audit.json
 !/docs/api-responses/p9-multipart-backup-contract.json
 !/docs/api-responses/p9-reservation-modify-noop.json
+!/docs/api-responses/p9-system-log-compatibility.json
 !/docs/api-responses/p9-timesetting-noop.json
 !/docs/api-responses/p9-tmp-contract-probe.json
 !/docs/api-responses/p9-tmp-discovery.json

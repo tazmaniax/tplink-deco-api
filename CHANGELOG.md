@@ -13,6 +13,8 @@ transport, compatibility evidence and a conservative mutation workflow.
   lifespan across both protocol adapters
 * added semantic status, configuration, mesh, client, traffic, reservation,
   log-type, capability, WLAN, cloud and mutation resources
+* added gated, bounded system-log pagination at `/api/v1/logs/{index}` without
+  implicitly preparing or replacing the router's current log snapshot
 * published named OpenAPI response schemas from frozen protocol-neutral
   dataclasses shared with MCP, without adding Pydantic to the base SDK
 * replaced finite firmware JSON shapes with one canonical recursive SDK type
@@ -32,7 +34,9 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
 * exposed 13 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  log categories, capabilities and mutations
+  log levels, capabilities and mutations
+* added a gated `deco://logs/{index}` resource template for bounded system-log
+  pagination without duplicating the read as a tool
 * kept the default tool surface to five parameterized or action-oriented tools
   for capability reads, WLAN state, cloud state, mutation planning and mutation
   execution
@@ -51,18 +55,23 @@ transport, compatibility evidence and a conservative mutation workflow.
   reads, binary responses, multipart backup contracts and server-side logout
   handling
 * added typed models for reservations, generic responses, compatibility evidence,
-  capabilities, routes, mutation plans and verification results
+  capabilities, routes, system-log pages, mutation plans and verification results
+* recovered and live-validated the P9 web firmware's system-log pagination and
+  level-specific snapshot-preparation contracts without retaining log values
 * added a stream-based, CRC-checked TMP/AppV2 implementation and an SSH adapter
   with mandatory host-key pinning
 * recovered and classified a 600-operation TMP/AppV2 catalogue from signed Deco
   Android applications while keeping the public generic TMP API read-only
+* confirmed against Deco Android 3.10.215 that the existing TMP catalogue had no
+  missing named opcodes and distinguished TMP feedback-bundle creation from the
+  web UI's HTTP level-specific snapshot preparation
 
 ### Model compatibility and discovery
 
 * added model and firmware compatibility profiles so catalogue presence is not
   mistaken for confirmed support
-* recorded positive P9 evidence for 59 data-returning HTTP reads and 55
-  data-returning TMP/AppV2 reads
+* recorded positive P9 evidence for 60 HTTP reads, including 32 data-returning
+  reads, and 55 data-returning TMP/AppV2 reads
 * recorded a P9 outcome for all 246 conservatively classified TMP reads and
   inventoried all 348 TMP writes
 * added sanitized, value-free P9 compatibility manifests and live-audit records
@@ -75,7 +84,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 
 ### Mutation safety
 
-* inventoried 21 deduplicated semantic mutation intents, including blocked and
+* inventoried 22 deduplicated semantic mutation intents, including blocked and
   unverified candidates
 * added discover, plan, authorize and execute semantics using short-lived one-shot
   plans bound to the resolved controller and exact confirmation
@@ -85,8 +94,10 @@ transport, compatibility evidence and a conservative mutation workflow.
   firmware-internal calls and HTTP no-op verification
 * recorded controlled P9 current-value no-op evidence for address reservation,
   time settings, beamforming, 802.11r and monthly-report setters
-* kept desired state changes execution-ineligible because current live P9 write
-  evidence is limited to unchanged-value verification requests
+* recorded a controlled P9 general-scope test of the transient system-log
+  snapshot preparation mutation at the official web UI's default `NOTICE` level
+* kept configuration state changes execution-ineligible; the validated transient
+  log preparation remains raw-diagnostic until general semantic execution exists
 * hard-disabled TMP writes in MCP, REST and the deployed service because the
   earlier same-value results established only immediate field equality, not
   operational safety; a later P9 mesh incident is recorded as temporally
@@ -118,7 +129,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 436 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 454 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)
