@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import (  # noqa: TC001 - FastAPI resolves these at runtime.
-    JsonRecord,
-    JsonSection,
-)
+from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .mutation_response import (  # noqa: TC001 - FastAPI resolves this at runtime.
     MutationResponse,
 )
@@ -20,11 +17,11 @@ class MutationsResponse(ResponseDto):
 
     schema_version: int
     resolution_status: str
-    controller: JsonSection
+    controller: JsonObject
     profile_match: str
     mutations: list[MutationResponse]
     candidate_count: int
-    execution_counts: JsonRecord
-    mutation_gate_status: JsonRecord
+    execution_counts: JsonObject
+    mutation_gate_status: JsonObject
     router_contacted: bool
     mutation_invoked: bool

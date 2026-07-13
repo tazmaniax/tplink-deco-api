@@ -2,24 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from typing import cast
 
-from .json_types import JsonData, ResponseDocument
+from .._json import JsonValue
 
 
-class ResponseDto(Mapping[str, JsonData]):
+class ResponseDto(Mapping[str, JsonValue]):
     """Expose a response dataclass as a JSON-compatible immutable mapping."""
 
-    def to_dict(self) -> ResponseDocument:
+    def to_dict(self) -> dict[str, JsonValue]:
         """Return the complete JSON representation of this response."""
-        values = cast(
-            "dict[str, JsonData | ResponseDto | list[ResponseDto]]",
-            vars(self),
-        )
+        values = cast("dict[str, JsonValue]", vars(self))
         return {key: _response_value(value) for key, value in values.items()}
 
-    def __getitem__(self, key: str) -> JsonData:
+    def __getitem__(self, key: str) -> JsonValue:
         """Return one serialized response field."""
         return self.to_dict()[key]
 
@@ -32,12 +29,11 @@ class ResponseDto(Mapping[str, JsonData]):
         return len(self.to_dict())
 
 
-def _response_value(value: JsonData | ResponseDto | list[ResponseDto]) -> JsonData:
+def _response_value(value: JsonValue) -> JsonValue:
     if isinstance(value, ResponseDto):
-        return cast("JsonData", value.to_dict())
-    if isinstance(value, list):
-        return cast(
-            "JsonData",
-            [item.to_dict() if isinstance(item, ResponseDto) else item for item in value],
-        )
+        return value.to_dict()
+    if isinstance(value, Mapping):
+        return {key: _response_value(item) for key, item in value.items()}
+    if isinstance(value, Sequence) and not isinstance(value, str):
+        return [_response_value(item) for item in value]
     return value

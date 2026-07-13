@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import JsonSection  # noqa: TC001 - FastAPI resolves this at runtime.
+from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .response_dto import ResponseDto
 
 
@@ -14,8 +14,8 @@ class MeshResponse(ResponseDto):
 
     schema_version: int
     resolution_status: str
-    controller: JsonSection
-    nodes: list[JsonSection]
+    controller: JsonObject
+    nodes: list[JsonObject]
     node_count: int
     mixed_model_mesh: bool
     identity_source: str

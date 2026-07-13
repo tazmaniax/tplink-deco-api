@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import (  # noqa: TC001 - FastAPI resolves these at runtime.
-    JsonData,
-    JsonRecord,
-    JsonSection,
+from .._json import (  # noqa: TC001 - FastAPI resolves these annotations at runtime.
+    JsonObject,
+    JsonValue,
 )
 from .response_dto import ResponseDto
 
@@ -18,16 +17,16 @@ class NetworkStatusResponse(ResponseDto):
 
     schema_version: int
     status: str
-    controller: JsonRecord
-    internet: JsonData
-    mesh: JsonSection
-    performance: JsonData
-    firmware: JsonData
-    speed_test: JsonData
-    client_count: JsonData
+    controller: JsonObject
+    internet: JsonValue
+    mesh: JsonObject
+    performance: JsonValue
+    firmware: JsonValue
+    speed_test: JsonValue
+    client_count: JsonValue
     client_count_status: str
-    warnings: list[JsonRecord]
-    unavailable_sections: list[JsonRecord]
+    warnings: list[JsonObject]
+    unavailable_sections: list[JsonObject]
     observed_at_epoch_seconds: float
     passwords_included: bool
     client_identities_included: bool

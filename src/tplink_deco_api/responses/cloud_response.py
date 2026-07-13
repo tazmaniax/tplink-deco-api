@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import JsonData  # noqa: TC001 - FastAPI resolves this at runtime.
+from .._json import JsonValue  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .response_dto import ResponseDto
 
 
@@ -12,5 +12,5 @@ from .response_dto import ResponseDto
 class CloudResponse(ResponseDto):
     """Describe observed DDNS and cloud-manager state."""
 
-    ddns: JsonData
-    manager: JsonData
+    ddns: JsonValue
+    manager: JsonValue

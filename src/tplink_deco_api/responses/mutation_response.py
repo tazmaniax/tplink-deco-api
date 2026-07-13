@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import JsonRecord  # noqa: TC001 - FastAPI resolves this at runtime.
+from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .response_dto import ResponseDto
 
 
@@ -18,7 +18,7 @@ class MutationResponse(ResponseDto):
     risk: str
     sensitivity: str
     scope: str
-    changes_schema: JsonRecord
+    changes_schema: JsonObject
     support_status: str
     validation_status: str
     execution_scope: str

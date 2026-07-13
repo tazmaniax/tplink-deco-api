@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import (  # noqa: TC001 - FastAPI resolves these at runtime.
-    JsonDocument,
-    JsonSection,
-)
+from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .response_dto import ResponseDto
 
 
@@ -17,7 +14,7 @@ class WlanResponse(ResponseDto):
 
     passwords_included: bool
     is_eg: bool
-    bands: JsonDocument
-    iot: JsonSection
-    mlo: JsonSection
-    features: JsonSection
+    bands: JsonObject
+    iot: JsonObject
+    mlo: JsonObject
+    features: JsonObject

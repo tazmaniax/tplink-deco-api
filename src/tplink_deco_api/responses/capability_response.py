@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import (  # noqa: TC001 - FastAPI resolves these at runtime.
-    JsonData,
-    JsonDocument,
+from .._json import (  # noqa: TC001 - FastAPI resolves these annotations at runtime.
+    JsonObject,
+    JsonValue,
 )
 from .response_dto import ResponseDto
 
@@ -17,6 +17,6 @@ class CapabilityResponse(ResponseDto):
 
     capability: str
     schema_version: int
-    data: JsonData
-    provenance: JsonDocument
+    data: JsonValue
+    provenance: JsonObject
     mutation_invoked: bool

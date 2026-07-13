@@ -11,6 +11,7 @@ import pytest
 from mcp.server.fastmcp.exceptions import ToolError
 from starlette.testclient import TestClient
 
+from tests.response_contract_assertions import assert_response_contract
 from tplink_deco_api import (
     HTTP_NOOP_CONFIRMATIONS,
     TMP_BEAMFORMING_NOOP_CONFIRMATION,
@@ -51,6 +52,16 @@ from tplink_deco_api import (
 )
 from tplink_deco_api.mcp._static_token_verifier import _StaticTokenVerifier
 from tplink_deco_api.mcp.server import create_server, main
+from tplink_deco_api.responses import (
+    ClientsResponse,
+    CloudResponse,
+    ConfigurationResponse,
+    LogTypesResponse,
+    NetworkStatusResponse,
+    ServiceStatusResponse,
+    TrafficResponse,
+    WlanResponse,
+)
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
 
@@ -282,6 +293,8 @@ def test_mcp_service_catalog_and_public_status() -> None:
     p9_catalog = service.endpoint_catalog(model="P9")
     status = service.public_status()
     profile = service.p9_profile()
+
+    assert_response_contract(ServiceStatusResponse, status)
 
     assert read_catalog
     assert all(item["safety"] == "read_only" for item in read_catalog)
@@ -1645,6 +1658,8 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
     with mock.patch.object(service, "_get_client", return_value=client):
         configuration = service.configuration_resource()
 
+    assert_response_contract(ConfigurationResponse, configuration)
+
     assert configuration["controller"]["model"] == "P9"
     assert configuration["operating_mode"]["workmode"] == "router"
     assert configuration["wireless_features"]["beamforming"] == {"enabled": True}
@@ -1725,6 +1740,7 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
         blocked = service.client_devices_resource("blocked")
 
     records = {record["mac"]: record for record in devices["devices"]}
+    assert_response_contract(ClientsResponse, devices)
     assert devices["device_count"] == devices["all_device_count"] == 4
     assert records["AA:BB:CC:DD:EE:01"]["status"] == "active"
     assert records["AA:BB:CC:DD:EE:01"]["connected_node"] == "AA:BB:CC:DD:EE:FF"
@@ -1762,6 +1778,8 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
     with mock.patch.object(service, "_get_client", return_value=client):
         traffic = service.traffic_resource()
 
+    assert_response_contract(TrafficResponse, traffic)
+
     assert traffic["device_count"] == 2
     assert traffic["device_speeds"][0] == {
         "mac": "AA:BB:CC:DD:EE:01",
@@ -1780,6 +1798,8 @@ def test_mcp_logs_resource_excludes_log_contents() -> None:
 
     with mock.patch.object(service, "_get_client", return_value=client):
         logs = service.logs_resource()
+
+    assert_response_contract(LogTypesResponse, logs)
 
     assert logs["status"] == "available"
     assert logs["category_count"] == 2
@@ -1859,6 +1879,8 @@ def test_mcp_network_status_resource_summarizes_health_without_client_identities
 
     with mock.patch.object(service, "_get_client", return_value=client):
         status = service.network_status_resource()
+
+    assert_response_contract(NetworkStatusResponse, status)
 
     assert status["status"] == "degraded"
     assert status["controller"] == {
@@ -1995,6 +2017,9 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
         redacted = service.wlan_state()
         complete = service.wlan_state(include_passwords=True)
 
+    assert_response_contract(WlanResponse, redacted)
+    assert_response_contract(WlanResponse, complete)
+
     assert "secret" not in json.dumps(redacted)
     assert redacted["passwords_included"] is False
     assert complete["bands"]["2.4ghz"]["host"]["password"] == "host-secret"
@@ -2018,6 +2043,8 @@ def test_mcp_service_cloud_state_requires_sensitive_gate() -> None:
     ]
     with mock.patch.object(service, "read_endpoint", side_effect=responses) as read_endpoint:
         state = service.cloud_state()
+
+    assert_response_contract(CloudResponse, state)
 
     assert state == {
         "ddns": {"enabled": True},

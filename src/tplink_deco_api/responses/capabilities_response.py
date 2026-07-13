@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .json_types import JsonSection  # noqa: TC001 - FastAPI resolves this at runtime.
+from .._json import JsonObject  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 from .response_dto import ResponseDto
 
 
@@ -14,9 +14,9 @@ class CapabilitiesResponse(ResponseDto):
 
     schema_version: int
     resolution_status: str
-    controller: JsonSection
+    controller: JsonObject
     profile_match: str
-    capabilities: list[JsonSection]
+    capabilities: list[JsonObject]
     supported_count: int
     unknown_count: int
     unsupported_count: int

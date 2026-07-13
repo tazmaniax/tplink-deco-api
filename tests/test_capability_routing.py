@@ -7,11 +7,13 @@ from unittest import mock
 
 import pytest
 
+from tests.response_contract_assertions import assert_response_contract
 from tplink_deco_api import (
     CAPABILITY_ROUTES,
     HTTP_NOOP_CONFIRMATIONS,
     MUTATION_CAPABILITY_ROUTES,
     TMP_MONTHLY_REPORT_NOOP_CONFIRMATION,
+    ApiResponse,
     Device,
     TransportError,
     get_capability_route,
@@ -19,6 +21,17 @@ from tplink_deco_api import (
 )
 from tplink_deco_api.exceptions import ConfirmationError, UnknownPlanError
 from tplink_deco_api.mcp.server import create_server
+from tplink_deco_api.responses import (
+    CapabilitiesResponse,
+    CapabilityResponse,
+    MeshResponse,
+    MutationExecutionResponse,
+    MutationPlanCreatedResponse,
+    MutationPlanStatusResponse,
+    MutationPreflightResponse,
+    MutationResponse,
+    MutationsResponse,
+)
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
 
@@ -200,6 +213,7 @@ def test_capability_read_prefers_http_and_returns_provenance() -> None:
     ):
         result = service.read_capability("beamforming")
 
+    assert_response_contract(CapabilityResponse, result)
     get_tmp_client.assert_not_called()
     assert result["data"] == {"enabled": True}
     assert result["provenance"] == {
@@ -300,6 +314,8 @@ def test_connected_resources_distinguish_mesh_devices_and_reservations() -> None
         mesh = service.device_inventory()
         cached = service.device_inventory()
 
+    assert_response_contract(MeshResponse, mesh)
+    assert_response_contract(MeshResponse, cached)
     assert mesh["controller"]["model"] == "P9"
     assert mesh["profile_match"] == "exact"
     assert mesh["router_contacted"] is True
@@ -319,6 +335,8 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     capabilities = service.capabilities()
     mutations = service.semantic_mutations()
 
+    assert_response_contract(CapabilitiesResponse, capabilities)
+    assert_response_contract(MutationsResponse, mutations)
     assert capabilities["supported_count"] == 6
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
@@ -329,7 +347,9 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     assert beamforming["execution_status"] == "gated"
     assert beamforming["plan_operation"] == "plan_mutation"
     assert beamforming["execute_operation"] == "execute_mutation"
-    assert service.semantic_mutation("beamforming") == beamforming
+    semantic_mutation = service.semantic_mutation("beamforming")
+    assert_response_contract(MutationResponse, semantic_mutation)
+    assert semantic_mutation == beamforming
     reservation = next(
         item for item in mutations["mutations"] if item["name"] == "address_reservation_modify"
     )
@@ -375,6 +395,11 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
     service = DecoService(config)
     service._device_cache = (_p9_device(),)
 
+    preflight = service.preflight_semantic_mutation(
+        "beamforming",
+        {},
+        mode="verify_current_value_noop",
+    )
     change_plan = service.plan_semantic_mutation(
         "beamforming",
         {"enable": False},
@@ -385,6 +410,8 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
         mode="verify_current_value_noop",
     )
 
+    assert_response_contract(MutationPreflightResponse, preflight)
+    assert_response_contract(MutationPlanCreatedResponse, noop_plan)
     assert change_plan["execution_allowed"] is False
     assert change_plan["plan_id"] is None
     assert "state-changing semantic execution is not yet validated" in change_plan["blockers"]
@@ -400,6 +427,7 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
     assert isinstance(plan_id, str)
     assert isinstance(confirmation, str)
     plan_status = service.semantic_mutation_plan(plan_id)
+    assert_response_contract(MutationPlanStatusResponse, plan_status)
     assert plan_status["status"] == "pending"
     assert "required_confirmation" not in plan_status
     with (
@@ -411,19 +439,22 @@ def test_semantic_mutation_plan_blocks_changes_and_executes_one_shot_noop() -> N
         pytest.raises(ConfirmationError, match="exact plan confirmation"),
     ):
         service.execute_semantic_mutation(plan_id, "wrong")
+    verifier.assert_not_called()
 
-    with (
-        mock.patch.object(
-            service,
-            "verify_setting_noop",
-            return_value={"status": "verified_noop", "verified_noop": True},
-        ) as verifier,
-        mock.patch.object(service, "_get_client") as get_client,
-    ):
-        get_client.return_value.get_device_list.return_value = [_p9_device()]
+    client = mock.Mock()
+    client.get_device_list.return_value = [_p9_device()]
+    client.call.side_effect = [
+        ApiResponse.from_api({"error_code": 0, "result": {"enable": True}}),
+        ApiResponse.from_api({"error_code": 0}),
+        ApiResponse.from_api({"error_code": 0, "result": {"enable": True}}),
+    ]
+    with mock.patch.object(service, "_get_client", return_value=client):
         result = service.execute_semantic_mutation(plan_id, confirmation)
 
-    verifier.assert_called_once_with("beamforming", confirmation)
+    assert_response_contract(
+        MutationExecutionResponse,
+        {**result, "idempotency_replayed": False},
+    )
     assert result["plan_consumed"] is True
     assert result["fallback_used"] is False
     with pytest.raises(UnknownPlanError, match="unknown plan ID"):

@@ -429,6 +429,25 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ]["schema"]
         assert response_schema == {"$ref": f"#/components/schemas/{model_name}"}
     assert "JsonDocument" not in schema["components"]["schemas"]
+    for mode in ("Input", "Output"):
+        name = f"JsonValue-{mode}"
+        assert schema["components"]["schemas"][name] == {
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"},
+                {"type": "number"},
+                {"type": "boolean"},
+                {
+                    "items": {"$ref": f"#/components/schemas/{name}"},
+                    "type": "array",
+                },
+                {
+                    "additionalProperties": {"$ref": f"#/components/schemas/{name}"},
+                    "type": "object",
+                },
+                {"type": "null"},
+            ]
+        }
     assert (
         "required_confirmation"
         not in schema["components"]["schemas"]["MutationPlanStatusResponse"]["properties"]
@@ -454,6 +473,42 @@ def test_response_dtos_are_frozen_protocol_neutral_mappings() -> None:
     assert dict(response) == response.to_dict()
     with pytest.raises(FrozenInstanceError):
         response.name = "changed"
+
+
+def test_rest_response_accepts_deep_mixed_firmware_json() -> None:
+    application = create_http_application(_config())
+    service = application.state.deco_service
+    capability = CapabilityResponse(
+        capability="beamforming",
+        schema_version=1,
+        data={
+            "outer": {
+                "records": [
+                    {
+                        "nested": [
+                            {
+                                "value": {
+                                    "still_nested": [
+                                        {"enabled": True},
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        provenance={},
+        mutation_invoked=False,
+    )
+    with (
+        mock.patch.object(service, "read_capability", return_value=capability),
+        TestClient(application) as client,
+    ):
+        response = client.get("/api/v1/capabilities/beamforming", headers=_AUTH)
+
+    assert response.status_code == 200
+    assert response.json() == capability.to_dict()
 
 
 @pytest.mark.asyncio

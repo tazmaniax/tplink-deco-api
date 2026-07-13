@@ -363,7 +363,7 @@ def _create_rest_router(
         """Assess a semantic mutation without registering a plan."""
         return service.preflight_semantic_mutation(
             request.name,
-            cast("dict[str, JsonValue]", request.changes),
+            request.changes,
             mode=request.mode,
         )
 
@@ -391,7 +391,7 @@ def _create_rest_router(
         """Create a short-lived plan only when semantic execution is eligible."""
         result = service.plan_semantic_mutation(
             request.name,
-            cast("dict[str, JsonValue]", request.changes),
+            request.changes,
             mode=request.mode,
         )
         plan_id = result.get("plan_id")
