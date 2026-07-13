@@ -19,6 +19,9 @@ class SystemLogPageResponse(ResponseDto):
     entries: list[JsonObject]
     entry_count: int
     log_contents_included: bool
+    prepared_level: None
+    level_reported_by_firmware: bool
+    preparation_mutation: str
     source_interface: str
     router_contacted: bool
     mutation_invoked: bool

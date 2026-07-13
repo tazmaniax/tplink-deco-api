@@ -123,6 +123,7 @@ _SEMANTIC_MUTATION_OPERATIONS: dict[str, tuple[str, ...]] = {
         "admin.cloud.firmware_status.upgrade",
         "admin.cloud.firmware_status.local_upgrade",
     ),
+    "system_log_prepare": ("admin.log_export.feedback_log.build",),
     "monthly_report": (),
 }
 _SEMANTIC_MUTATION_DESCRIPTIONS: dict[str, str] = {
@@ -146,6 +147,7 @@ _SEMANTIC_MUTATION_DESCRIPTIONS: dict[str, str] = {
     "address_reservation_remove": "Remove an address reservation",
     "nickname": "Change the mesh nickname",
     "firmware_upgrade": "Start a firmware upgrade",
+    "system_log_prepare": "Prepare a paginated system-log snapshot for one level",
     "monthly_report": "Change monthly-report generation",
 }
 _SEMANTIC_MUTATION_CATEGORIES: dict[str, str] = {
@@ -169,6 +171,7 @@ _SEMANTIC_MUTATION_CATEGORIES: dict[str, str] = {
     "address_reservation_remove": "clients",
     "nickname": "mesh",
     "firmware_upgrade": "firmware",
+    "system_log_prepare": "diagnostics",
     "monthly_report": "reporting",
 }
 _SEMANTIC_PLAN_TTL_SECONDS = 300.0
@@ -369,7 +372,7 @@ class DecoService:
             blockers.append("no exact connected model, hardware, and firmware profile")
         if route is None:
             blockers.append("no complete verified semantic execution route")
-        elif route is not None:
+        elif route is not None and validation_status != "general_verified":
             blockers.append("state-changing behavior has not been validated")
         blockers.extend(
             f"{gate} is disabled" for gate, enabled in gate_status.items() if not enabled
@@ -519,7 +522,7 @@ class DecoService:
         }
 
     def logs_resource(self) -> dict[str, JsonValue]:
-        """Return the live log-category catalogue without reading log contents."""
+        """Return log levels and preparation metadata without reading log contents."""
         categories: list[dict[str, JsonValue]] = []
         errors: list[dict[str, JsonValue]] = []
         with self._lock:
@@ -534,6 +537,13 @@ class DecoService:
             "schema_version": 1,
             "categories": categories,
             "category_count": len(categories),
+            "selector_field": "level",
+            "web_ui_default_level": 5,
+            "all_level": next(
+                (item["value"] for item in categories if item["name"] == "ALL"),
+                None,
+            ),
+            "preparation_mutation": "system_log_prepare",
             "status": "available" if not errors else "unavailable",
             "unavailable_sections": errors,
             "log_contents_included": False,
@@ -546,7 +556,7 @@ class DecoService:
         index: int,
         limit: int = 100,
     ) -> dict[str, JsonValue]:
-        """Return one explicitly enabled page of secret system-log content."""
+        """Return one explicitly enabled page from the prepared system-log snapshot."""
         if not self._config.allow_sensitive_reads:
             raise PermissionError(
                 "Failed to read system log: DECO_ALLOW_SENSITIVE_READS=1 is required"
@@ -569,6 +579,9 @@ class DecoService:
             "entries": [entry.to_dict() for entry in page.entries],
             "entry_count": len(page.entries),
             "log_contents_included": True,
+            "prepared_level": None,
+            "level_reported_by_firmware": False,
+            "preparation_mutation": "system_log_prepare",
             "source_interface": "http_luci",
             "router_contacted": True,
             "mutation_invoked": False,
@@ -906,7 +919,11 @@ class DecoService:
         route = next((item for item in MUTATION_CAPABILITY_ROUTES if item.name == name), None)
         blockers = list(_json_string_list(entry, "blockers"))
         if mode == "change":
-            blockers.append("state-changing semantic execution is not yet validated")
+            blockers.append(
+                "state-changing semantic execution is not yet implemented"
+                if entry.get("validation_status") == "general_verified"
+                else "state-changing semantic execution is not yet validated"
+            )
         elif selected_changes:
             blockers.append("current-value no-op verification does not accept desired changes")
         blockers = list(dict.fromkeys(blockers))
@@ -1721,6 +1738,10 @@ class DecoService:
             P9_COMPATIBILITY_PROFILE.get(endpoint.name).mutation_tested
             for endpoint in P9_MUTATION_CANDIDATES
         )
+        http_mutation_general_scope_count = sum(
+            P9_COMPATIBILITY_PROFILE.get(endpoint.name).mutation_test_scope == "general"
+            for endpoint in P9_MUTATION_CANDIDATES
+        )
         tmp_write_operations = tuple(
             opcode for opcode in TMP_OPCODE_CATALOG if opcode.safety in {"mutation", "destructive"}
         )
@@ -1966,7 +1987,7 @@ class DecoService:
                 "http_mutations_untested": (
                     len(P9_MUTATION_CANDIDATES) - http_mutation_tested_count
                 ),
-                "http_mutations_general_scope_verified": 0,
+                "http_mutations_general_scope_verified": http_mutation_general_scope_count,
                 "tmp_mutations_untested": (len(tmp_write_operations) - tmp_mutation_tested_count),
                 "tmp_mutations_general_scope_verified": 0,
             },
@@ -1984,6 +2005,13 @@ class DecoService:
                     "outcome": "two_transport_errors_one_unvalidated_text_response",
                     "mutation_invoked": False,
                     "binary_content_returned": False,
+                },
+                {
+                    "id": "p9_http_system_log_prepare",
+                    "artifact": "docs/api-responses/p9-system-log-compatibility.json",
+                    "outcome": "notice_level_snapshot_prepared_and_page_zero_read",
+                    "mutation_invoked": True,
+                    "response_values_retained": False,
                 },
                 {
                     "id": "p9_mcp_complete_tmp_batch_audit",
@@ -2043,10 +2071,10 @@ class DecoService:
                 *http_transport_gaps,
                 {
                     "surface": "http_mutations",
-                    "count": len(P9_MUTATION_CANDIDATES),
-                    "gap": "general-scope mutation evidence absent",
+                    "count": len(P9_MUTATION_CANDIDATES) - http_mutation_general_scope_count,
+                    "gap": "general-scope mutation evidence absent for remaining operations",
                     "next_action": (
-                        "no new bounded candidates; retain planning-only until stronger "
+                        "retain remaining operations as planning-only until stronger "
                         "contract or external evidence exists"
                     ),
                 },

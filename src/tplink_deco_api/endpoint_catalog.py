@@ -187,6 +187,7 @@ _PARAMETER_CONTRACTS: dict[tuple[str, str, str], _ParameterContract] = {
         ("hw_id", "oem_id", "device_model"),
         (),
     ),
+    ("admin/log_export", "feedback_log", "build"): (("level",), ()),
     ("admin/log_export", "feedback_log", "read"): (("index", "limit"), ()),
     ("admin/syslog", "mail", "write"): (
         ("from", "password", "smtp_server", "port", "to"),
@@ -231,6 +232,7 @@ _FIRMWARE_ASSET_CONTRACTS: frozenset[tuple[str, str, str]] = frozenset(
         ("admin/device", "system", "reboot"),
         ("admin/cloud", "firmware", "upload"),
         ("admin/firmware", "config_multipart", "backup"),
+        ("admin/log_export", "feedback_log", "build"),
         ("admin/log_export", "feedback_log", "read"),
         ("admin/syslog", "mail", "write"),
         ("admin/cwmp", "cwmp_info", "write"),
@@ -1250,9 +1252,18 @@ ENDPOINT_CATALOG: tuple[EndpointSpec, ...] = (
         media_type="text/plain",
     ),
     *_specs(
-        "admin/log_export", "feedback_log", ("build",), safety="mutation", sensitivity="secret"
+        "admin/log_export",
+        "feedback_log",
+        ("build",),
+        safety="mutation",
+        sensitivity="secret",
     ),
-    *_specs("admin/log_export", "feedback_log", ("read",), sensitivity="secret"),
+    *_specs(
+        "admin/log_export",
+        "feedback_log",
+        ("read",),
+        sensitivity="secret",
+    ),
     *_specs("admin/syslog", "mail", ("read",), sensitivity="secret"),
     *_specs("admin/syslog", "mail", ("write",), safety="mutation", sensitivity="secret"),
     *_specs("admin/syslog", "log", ("mail",), safety="mutation", sensitivity="secret"),
@@ -1586,10 +1597,15 @@ P9_READ_ENDPOINTS: tuple[EndpointSpec, ...] = tuple(
 _P9_SUPPORTED_FORMS: frozenset[tuple[str, str]] = frozenset(
     (endpoint.path, endpoint.form) for endpoint in P9_READ_ENDPOINTS
 )
+_P9_VERIFIED_MUTATION_NAMES: frozenset[str] = frozenset({"admin.log_export.feedback_log.build"})
 P9_MUTATION_CANDIDATES: tuple[EndpointSpec, ...] = tuple(
     endpoint
     for endpoint in ENDPOINT_CATALOG
-    if endpoint.safety != "read_only" and (endpoint.path, endpoint.form) in _P9_SUPPORTED_FORMS
+    if endpoint.safety != "read_only"
+    and (
+        (endpoint.path, endpoint.form) in _P9_SUPPORTED_FORMS
+        or endpoint.name in _P9_VERIFIED_MUTATION_NAMES
+    )
 )
 READ_ONLY_ENDPOINTS: tuple[EndpointSpec, ...] = tuple(
     endpoint for endpoint in ENDPOINT_CATALOG if endpoint.safety == "read_only"

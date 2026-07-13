@@ -63,8 +63,8 @@ Resources are the canonical read-only state views:
 | `deco://devices/blocked` | Devices present in the block list. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
-| `deco://logs` | Available log categories without log contents. |
-| `deco://logs/{index}` | One gated 100-entry page of system-log content. |
+| `deco://logs` | Available log levels and snapshot-preparation metadata without log contents. |
+| `deco://logs/{index}` | One gated 100-entry page from the currently prepared system-log snapshot. |
 | `deco://capabilities` | Reads available for the connected controller. |
 | `deco://mutations` | Known mutation intents, evidence and eligibility. |
 

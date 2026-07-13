@@ -642,12 +642,12 @@ class DecoClient:
         return TimeSettings.from_api(result)
 
     def get_log_types(self) -> list[LogType]:
-        """Return the list of log categories available for export."""
+        """Return the list of log levels available for snapshot preparation."""
         items = self.request_list("admin/log_export", "types", {"operation": "read"})
         return [LogType.from_api(item) for item in items]
 
     def get_system_log(self, index: int = 0, limit: int = 100) -> SystemLogPage:
-        """Return one page of system logs without preparing or restarting logging."""
+        """Return one page from the system-log snapshot prepared most recently."""
         if index < 0:
             raise ValueError("Failed to read system log: index must be non-negative")
         if not 1 <= limit <= 100:

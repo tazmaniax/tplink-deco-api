@@ -324,7 +324,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     assert capabilities["supported_count"] == 6
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
-    assert mutations["candidate_count"] == 21
+    assert mutations["candidate_count"] == 22
     beamforming = next(item for item in mutations["mutations"] if item["name"] == "beamforming")
     assert beamforming["validation_status"] == "noop_verified"
     assert beamforming["execution_scope"] == "noop_only"
@@ -346,6 +346,26 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     assert reservation["validation_status"] == "noop_verified"
     assert reservation["execution_scope"] == "none"
     assert reservation["execution_status"] == "blocked"
+    system_log_prepare = next(
+        item for item in mutations["mutations"] if item["name"] == "system_log_prepare"
+    )
+    assert system_log_prepare["changes_schema"] == {
+        "required": ["level"],
+        "optional": [],
+    }
+    assert system_log_prepare["validation_status"] == "general_verified"
+    assert system_log_prepare["execution_scope"] == "none"
+    assert system_log_prepare["execution_status"] == "blocked"
+    assert system_log_prepare["execute_operation"] is None
+    assert "state-changing behavior has not been validated" not in system_log_prepare["blockers"]
+    assessment = service.preflight_semantic_mutation(
+        "system_log_prepare",
+        {"level": 5},
+    )
+    assert assessment["execution_allowed"] is False
+    assert assessment["changes"] == {"level": 5}
+    assert "state-changing semantic execution is not yet implemented" in assessment["blockers"]
+    assert "state-changing semantic execution is not yet validated" not in assessment["blockers"]
     with pytest.raises(ValueError, match="unknown mutation"):
         service.semantic_mutation("missing")
 
@@ -372,7 +392,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
     assert capabilities["unknown_count"] == 6
-    assert mutations["execution_counts"] == {"blocked": 21}
+    assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
 

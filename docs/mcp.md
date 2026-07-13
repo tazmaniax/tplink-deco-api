@@ -239,8 +239,8 @@ devices, traffic and address reservations additionally require
 | `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
 | `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
-| `deco://logs` | Available log categories without reading actual log entries. | `schema_version`, `categories`, `category_count`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
-| `deco://logs/{index}` | One zero-based, 100-entry page of secret system-log content. The response reports the total page count so callers can continue until complete. | `schema_version`, `current_index`, `total_pages`, `page_size`, `entries`, `entry_count`, `log_contents_included`, `source_interface`, `router_contacted`, `mutation_invoked` |
+| `deco://logs` | Available log levels and snapshot-preparation metadata without reading actual log entries. | `schema_version`, `categories`, `category_count`, `selector_field`, `web_ui_default_level`, `all_level`, `preparation_mutation`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
+| `deco://logs/{index}` | One zero-based, 100-entry page from the currently prepared secret system-log snapshot. The firmware does not report which level prepared it. | `schema_version`, `current_index`, `total_pages`, `page_size`, `entries`, `entry_count`, `log_contents_included`, `prepared_level`, `level_reported_by_firmware`, `preparation_mutation`, `source_interface`, `router_contacted`, `mutation_invoked` |
 | `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
 | `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
 
@@ -258,8 +258,9 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `interface`, `connected_node`, `space_id`, `access_host`, `owner_id`,
 `remain_time`, `client_mesh` and `sources`. `status` is the connectivity state
 `active` or `inactive`; blocking is an independent access state. Each
-`device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each
-`categories[]` item contains `name` and `value`. Each `warnings[]` item contains
+`device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
+`categories[]` item contains a firmware level `name` and `value`. Each
+`warnings[]` item contains
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
 
@@ -300,7 +301,7 @@ diagnostic mode for compatibility. They are excluded from the default surface
 because their data is available through the semantic resources: configuration
 contains the detailed network features, normalized device records contain
 topology and blocking state, traffic has its own resource, status contains
-speed-test and firmware state, and logs exposes categories without contents.
+speed-test and firmware state, and logs exposes levels without contents.
 Client-bearing and private overview reads require
 `DECO_ALLOW_SENSITIVE_READS=1` independently of diagnostic visibility.
 
@@ -312,12 +313,15 @@ mesh rather than an open-world target.
 
 The semantic mutation workflow is discover, plan, authorize and execute:
 
-1. Read `deco://mutations`. It includes all 21 known semantic intents, including
+1. Read `deco://mutations`. It includes all 22 known semantic intents, including
    unverified or blocked entries, without exposing duplicate HTTP forms or TMP
    opcodes.
 2. Call `deco_plan_mutation` with a semantic name, `changes_json`, and mode.
-   State-changing mode currently returns blockers because no general-scope P9
-   mutation is verified. `mode="verify_current_value_noop"` accepts no desired
+   State-changing mode currently returns blockers because general semantic
+   execution is not implemented. The verified `system_log_prepare` intent
+   documents the required `level`, but remains unavailable through the default
+   executor; diagnostic raw execution still requires its independent gates and
+   exact reviewed plan hash. `mode="verify_current_value_noop"` accepts no desired
    changes and can issue a plan only for an exact connected P9 profile with all
    required gates enabled.
 3. Review the returned model, scope, gates, blockers and exact confirmation.

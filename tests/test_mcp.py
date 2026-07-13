@@ -314,7 +314,7 @@ def test_mcp_service_catalog_and_public_status() -> None:
         "supported": 60,
         "transport_error": 6,
     }
-    assert len(profile["mutation_candidates"]) == 23
+    assert len(profile["mutation_candidates"]) == 24
     assert profile["web_asset_observation"] == {
         "observed_at": "2026-07-10T22:16:00+00:00",
         "asset_files": 39,
@@ -505,8 +505,8 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert coverage["tmp"]["untested_read_count"] == 0
     assert coverage["tmp"]["all_reads_tested"] is True
     assert coverage["mutations"]["http"] == {
-        "p9_candidate_count": 23,
-        "tested_count": 4,
+        "p9_candidate_count": 24,
+        "tested_count": 5,
         "execution_eligible_count": 0,
         "execution_available": True,
         "execution_policy": "general_scope_model_evidence_required",
@@ -563,7 +563,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
         "tmp_reads_payload_rejected": 4,
         "tmp_read_contract_unresolved": 1,
         "http_mutations_untested": 19,
-        "http_mutations_general_scope_verified": 0,
+        "http_mutations_general_scope_verified": 1,
         "tmp_mutations_untested": 345,
         "tmp_mutations_general_scope_verified": 0,
     }
@@ -574,11 +574,14 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     assert set(audits) == {
         "p9_tmp_iot_module_contract_discovery",
         "p9_http_binary_digest_discovery",
+        "p9_http_system_log_prepare",
         "p9_mcp_complete_tmp_batch_audit",
         "p9_tmp_beamforming_noop_verification",
         "p9_tmp_monthly_report_noop_verification",
     }
     assert audits["p9_mcp_complete_tmp_batch_audit"]["mutation_invoked"] is False
+    assert audits["p9_http_system_log_prepare"]["mutation_invoked"] is True
+    assert audits["p9_http_system_log_prepare"]["response_values_retained"] is False
     assert audits["p9_tmp_beamforming_noop_verification"]["state_unchanged"] is True
     assert audits["p9_tmp_monthly_report_noop_verification"]["state_unchanged"] is True
     assert all(action["explicit_authorization_required"] for action in actions.values())
@@ -591,7 +594,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     }
     gaps = {item["surface"]: item for item in coverage["remaining_gaps"]}
     assert gaps["http_mutations"]["count"] == 23
-    assert "no new bounded candidates" in gaps["http_mutations"]["next_action"]
+    assert "planning-only" in gaps["http_mutations"]["next_action"]
     assert gaps["tmp_mutations"]["count"] == 345
     assert "isolated source-checkout" in gaps["tmp_mutations"]["next_action"]
 
@@ -1710,7 +1713,11 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
 def test_mcp_logs_resource_excludes_log_contents() -> None:
     service = DecoService(_config())
     client = mock.Mock()
-    client.get_log_types.return_value = [LogType("system", 1), LogType("network", 2)]
+    client.get_log_types.return_value = [
+        LogType("system", 1),
+        LogType("network", 2),
+        LogType("ALL", 8),
+    ]
 
     with mock.patch.object(service, "_get_client", return_value=client):
         logs = service.logs_resource()
@@ -1718,11 +1725,16 @@ def test_mcp_logs_resource_excludes_log_contents() -> None:
     assert_response_contract(LogTypesResponse, logs)
 
     assert logs["status"] == "available"
-    assert logs["category_count"] == 2
+    assert logs["category_count"] == 3
     assert logs["categories"] == [
         {"name": "system", "value": 1},
         {"name": "network", "value": 2},
+        {"name": "ALL", "value": 8},
     ]
+    assert logs["selector_field"] == "level"
+    assert logs["web_ui_default_level"] == 5
+    assert logs["all_level"] == 8
+    assert logs["preparation_mutation"] == "system_log_prepare"
     assert logs["log_contents_included"] is False
     assert logs["unavailable_sections"] == []
 
@@ -1767,6 +1779,9 @@ def test_mcp_system_log_page_returns_typed_http_data() -> None:
         "entries": [{"content": "message", "time": "", "level": "INFO", "type": ""}],
         "entry_count": 1,
         "log_contents_included": True,
+        "prepared_level": None,
+        "level_reported_by_firmware": False,
+        "preparation_mutation": "system_log_prepare",
         "source_interface": "http_luci",
         "router_contacted": True,
         "mutation_invoked": False,
@@ -1801,6 +1816,9 @@ async def test_mcp_system_log_resource_template_reads_one_page() -> None:
         "entries": [],
         "entry_count": 0,
         "log_contents_included": True,
+        "prepared_level": None,
+        "level_reported_by_firmware": False,
+        "preparation_mutation": "system_log_prepare",
         "source_interface": "http_luci",
         "router_contacted": True,
         "mutation_invoked": False,
@@ -2389,6 +2407,22 @@ def test_mcp_service_invokes_enabled_verified_mutation_with_matching_plan() -> N
     client.call.assert_called_once_with(get_endpoint(name), params)
 
 
+def test_mcp_service_invokes_verified_system_log_preparation() -> None:
+    service = DecoService(_config(allow_mutations=True))
+    response = ApiResponse.from_api({"error_code": 0})
+    client = mock.Mock()
+    client.call.return_value = response
+    name = "admin.log_export.feedback_log.build"
+    params = {"level": 5}
+    plan_confirmation = service.plan_mutation(name, params)["confirmation_sha256"]
+
+    with mock.patch.object(service, "_get_client", return_value=client):
+        actual = service.invoke_mutation(name, params, name, str(plan_confirmation))
+
+    assert actual is response
+    client.call.assert_called_once_with(get_endpoint(name), params)
+
+
 def test_mcp_service_rejects_mutation_when_plan_parameters_changed() -> None:
     service = DecoService(_config(allow_mutations=True))
     name = "admin.network.wan_mode.write"
@@ -2477,15 +2511,15 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
         inventory = service.p9_mutation_inventory()
 
     get_client.assert_not_called()
-    assert inventory["candidate_count"] == 23
-    assert inventory["mutation_tested_count"] == 4
+    assert inventory["candidate_count"] == 24
+    assert inventory["mutation_tested_count"] == 5
     assert inventory["complete_safety_contract_count"] == 10
     assert inventory["live_preflight_count"] == 10
     assert inventory["execution_eligible_count"] == 0
     assert inventory["verification_candidate_count"] == 0
     assert inventory["verification_tier_counts"] == {
         "destructive_excluded": 3,
-        "evidence_blocked": 1,
+        "evidence_blocked": 2,
         "high_risk_deferred": 15,
         "verified_noop": 4,
     }
@@ -2575,9 +2609,17 @@ def test_mcp_service_p9_mutation_inventory_is_offline_and_non_executable() -> No
             allow_http_noop_verification=True,
         )
     ).p9_mutation_inventory()
-    assert enabled["execution_eligible_count"] == 0
+    assert enabled["execution_eligible_count"] == 1
     assert enabled["scoped_noop_runtime_gate_enabled"] is True
     assert enabled["scoped_noop_execution_eligible_count"] == 3
+    system_log_prepare = next(
+        item
+        for item in enabled["candidates"]
+        if item["endpoint"]["name"] == "admin.log_export.feedback_log.build"
+    )
+    assert system_log_prepare["mutation_test_scope"] == "general"
+    assert system_log_prepare["execution_eligible"] is True
+    assert system_log_prepare["complete_safety_contract"] is False
 
     lan_ip = next(
         item
@@ -2604,15 +2646,15 @@ def test_mcp_service_ranks_http_mutation_verification_offline() -> None:
         )
 
     get_client.assert_not_called()
-    assert default["candidate_count"] == 23
+    assert default["candidate_count"] == 24
     assert default["verification_candidate_count"] == 0
     assert default["returned_count"] == 0
     assert default["verification_execution_available"] is False
     assert default["execution_eligible_count"] == 0
-    assert complete["returned_count"] == 23
+    assert complete["returned_count"] == 24
     assert complete["tier_counts"] == {
         "destructive_excluded": 3,
-        "evidence_blocked": 1,
+        "evidence_blocked": 2,
         "high_risk_deferred": 15,
         "verified_noop": 4,
     }
@@ -3016,7 +3058,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     assert "admin.network.performance.read" in str(catalog_resource)
     assert "1.3.0 Build 20250804" in str(p9_resource)
     assert '"availability": "supported"' in str(p9_operations_resource)
-    assert '"candidate_count": 23' in str(p9_mutations_resource)
+    assert '"candidate_count": 24' in str(p9_mutations_resource)
     assert '"execution_eligible_count": 0' in str(p9_mutations_resource)
     assert '"external_port": 20001' in str(transport_resource)
     assert '"catalogued_opcode_count": 600' in str(tmp_opcodes_resource)

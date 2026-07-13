@@ -301,7 +301,7 @@ def _create_rest_router(
 
     @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:
-        """Return available log categories without reading log contents."""
+        """Return available log levels without reading log contents."""
         return service.logs_resource()
 
     @router.get(
@@ -313,7 +313,7 @@ def _create_rest_router(
         index: int,
         limit: Annotated[int, Query(ge=1, le=100)] = 100,
     ) -> dict[str, JsonValue]:
-        """Return one gated page of secret system-log content."""
+        """Return one gated page from the prepared system-log snapshot."""
         return service.system_log_page_resource(index, limit)
 
     @router.get(

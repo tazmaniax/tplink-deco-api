@@ -2,7 +2,7 @@
   "schema_version": 1,
   "model": "P9",
   "firmware_version": "1.3.0 Build 20250804 Rel. 58832",
-  "observed_at": "2026-07-11",
+  "observed_at": "2026-07-13",
   "observations": [
     {
       "name": "admin.client.addr_reservation.modify",
@@ -31,6 +31,13 @@
       "error_code": 0,
       "test_scope": "noop_only",
       "verification": "before_after_timesetting_equality"
+    },
+    {
+      "name": "admin.log_export.feedback_log.build",
+      "availability": "supported",
+      "error_code": 0,
+      "test_scope": "general",
+      "verification": "official_web_default_notice_level_then_paginated_read"
     }
   ]
 }

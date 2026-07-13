@@ -54,14 +54,15 @@ transport, compatibility evidence and a conservative mutation workflow.
   handling
 * added typed models for reservations, generic responses, compatibility evidence,
   capabilities, routes, system-log pages, mutation plans and verification results
-* recovered and live-validated the P9 web firmware's read-only system-log
-  pagination contract without preparing or restarting log export
+* recovered and live-validated the P9 web firmware's system-log pagination and
+  level-specific snapshot-preparation contracts without retaining log values
 * added a stream-based, CRC-checked TMP/AppV2 implementation and an SSH adapter
   with mandatory host-key pinning
 * recovered and classified a 600-operation TMP/AppV2 catalogue from signed Deco
   Android applications while keeping the public generic TMP API read-only
 * confirmed against Deco Android 3.10.215 that the existing TMP catalogue had no
-  missing named opcodes and kept feedback-log bundle creation classified as a mutation
+  missing named opcodes and distinguished TMP feedback-bundle creation from the
+  web UI's HTTP level-specific snapshot preparation
 
 ### Model compatibility and discovery
 
@@ -81,7 +82,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 
 ### Mutation safety
 
-* inventoried 21 deduplicated semantic mutation intents, including blocked and
+* inventoried 22 deduplicated semantic mutation intents, including blocked and
   unverified candidates
 * added discover, plan, authorize and execute semantics using short-lived one-shot
   plans bound to the resolved controller and exact confirmation
@@ -91,8 +92,10 @@ transport, compatibility evidence and a conservative mutation workflow.
   firmware-internal calls and HTTP no-op verification
 * recorded controlled P9 current-value no-op evidence for address reservation,
   time settings, beamforming, 802.11r and monthly-report setters
-* kept desired state changes execution-ineligible because current live P9 write
-  evidence is limited to unchanged-value verification requests
+* recorded a controlled P9 general-scope test of the transient system-log
+  snapshot preparation mutation at the official web UI's default `NOTICE` level
+* kept configuration state changes execution-ineligible; the validated transient
+  log preparation remains raw-diagnostic until general semantic execution exists
 * hard-disabled TMP writes in MCP, REST and the deployed service because the
   earlier same-value results established only immediate field equality, not
   operational safety; a later P9 mesh incident is recorded as temporally

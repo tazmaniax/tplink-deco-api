@@ -28,7 +28,7 @@ download. Related: [system.md](./system.md), [README.md](./README.md).
 | `/admin/log_export` · `types` | read | web | Available log levels. |
 | `/admin/log_export` · `save` | write | web | Apply export level / restart logging. |
 | `/admin/log_export` · `save_log` | (download) | web · **plain** | Download the log as a file. |
-| `/admin/log_export` · `feedback_log` | read, build | web + app | Read paginated logs or build a feedback bundle. |
+| `/admin/log_export` · `feedback_log` | read, build | web + app | Prepare and read paginated web logs; the app has a separate feedback-bundle flow. |
 | `/admin/syslog` · `mail` | read, write | web | SMTP and scheduled-email settings. |
 | `/admin/syslog` · `log` | mail | web | Send the current log by email. |
 | `/admin/debug` · `qlog` | start, stop | app | QLog modem-trace daemon (port 9000). |
@@ -53,9 +53,10 @@ IP/port and local ring-buffer size.
 
 ## `/admin/log_export`
 
-Web-UI log export + feedback bundle. Log levels (`types` → read):
-`EMERG`, `ALERT`, `CRITICAL`, `ERROR`, `WARNING`, `NOTICE`, `INFO`, `DEBUG`
-(plus a synthetic `ALL`); each returned as `{ name, value }`.
+Web-UI log export + feedback bundle. On the observed P9, log levels
+(`types` → read) were `ALERT=1`, `CRITIAL=2` (the firmware's spelling),
+`ERROR=3`, `WARNING=4`, `NOTICE=5`, `INFO=6`, `DEBUG=7` and `ALL=8`; each is
+returned as `{ name, value }`.
 
 - **`save` (write)** — set the export log level and restart logging, rebuilding
   the exported log file.
@@ -64,23 +65,29 @@ Web-UI log export + feedback bundle. Log levels (`types` → read):
   `Content-Type: text/plain`. See
   [plaintext endpoints](../protocol/transport-and-dispatch.md#plaintext-endpoints).
 - **`feedback_log` (read)** — accepts `params` `{ index, limit }` and returns
-  `currentIndex`, `totalNum` and `logList`. The P9 web UI uses zero-based page
-  indexes with a limit of 100; each observed entry contained `content`, while
-  other firmware assets also declare `time`, `level` and `type` fields.
-- **`feedback_log` (build)** — collects the log and encrypts it into a bundle
-  with a key derived from the AP SSID (default `TP-LINK`), producing a
-  `feedback.log` file. The app side exposes only `feedback_log` / `build`.
+  `currentIndex`, `totalNum` and `logList` from the snapshot most recently
+  prepared by `build`. The response does not identify the selected level. The
+  P9 web UI uses zero-based page indexes with a limit of 100; each observed
+  entry contained `content`, while other firmware assets also declare `time`,
+  `level` and `type` fields.
+- **`feedback_log` (build)** — the web UI submits `params` `{ level }` before
+  page zero, with `NOTICE=5` as its default. This replaces the transient
+  level-specific snapshot consumed by subsequent `read` calls. A live P9 test
+  returned `error_code=0`; the immediate value-free post-read returned 100
+  entries and 58 total pages. Because it changes runtime state, it remains a
+  mutation rather than being invoked implicitly by a resource read.
 
 > The web side also has internal `read` (paginated lines: `content`,
 > `totalNum`, `currentIndex`, `logList`) and `remove` operations used by the
 > in-UI log viewer.
 
-The Deco Android 3.10.215 app maps the build operation to TMP/AppV2 opcode
-`0x422E` and then downloads the bundle from the controller on port 30000. That
-build remains a mutation and is not used for semantic log reads. A value-free
-comparison of the same app recovered 596 named operational opcodes; together
-with the four protocol/token opcodes, all 600 were already present in the SDK
-catalogue, so this app version introduced no missing TMP operation names.
+Separately, the Deco Android 3.10.215 app maps feedback-bundle creation to
+TMP/AppV2 opcode `0x422E` and then downloads `feedback.log` from the controller
+on port 30000. That bundle build remains a mutation and is not used for
+semantic log reads. A value-free comparison of the same app recovered 596
+named operational opcodes; together with the four protocol/token opcodes, all
+600 were already present in the SDK catalogue, so this app version introduced
+no missing TMP operation names.
 The value-free controller and app evidence is retained in
 [`p9-system-log-compatibility.json`](../api-responses/p9-system-log-compatibility.json).
 

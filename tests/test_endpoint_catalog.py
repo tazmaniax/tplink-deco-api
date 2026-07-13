@@ -56,18 +56,33 @@ def test_discovery_sets_exclude_secrets_and_writes() -> None:
         assert endpoint.generic_call_supported or endpoint.bootstrap_call_supported
 
 
+def test_system_log_contract_separates_snapshot_preparation_from_page_reads() -> None:
+    build = get_endpoint("admin.log_export.feedback_log.build")
+    read = get_endpoint("admin.log_export.feedback_log.read")
+
+    assert build.safety == "mutation"
+    assert build.required_params == ("level",)
+    assert build.contract_source == "firmware_asset"
+    assert read.safety == "read_only"
+    assert read.required_params == ("index", "limit")
+    assert read.contract_source == "firmware_asset"
+
+
 def test_p9_profile_separates_observed_reads_from_untested_mutations() -> None:
     supported_forms = {(endpoint.path, endpoint.form) for endpoint in P9_READ_ENDPOINTS}
 
     assert len(P9_READ_ENDPOINTS) == 37
-    assert len(P9_MUTATION_CANDIDATES) == 23
+    assert len(P9_MUTATION_CANDIDATES) == 24
     assert P9_PROFILE_FIRMWARE == "1.3.0 Build 20250804 Rel. 58832"
     assert P9_PROFILE_HARDWARE_VERSIONS == ("1.0", "2.0")
     assert all(endpoint.safety != "read_only" for endpoint in P9_MUTATION_CANDIDATES)
     assert all(
-        (endpoint.path, endpoint.form) in supported_forms for endpoint in P9_MUTATION_CANDIDATES
+        (endpoint.path, endpoint.form) in supported_forms
+        or endpoint.name == "admin.log_export.feedback_log.build"
+        for endpoint in P9_MUTATION_CANDIDATES
     )
     assert get_endpoint("admin.device.device_list.remove") in P9_MUTATION_CANDIDATES
+    assert get_endpoint("admin.log_export.feedback_log.build") in P9_MUTATION_CANDIDATES
     assert get_endpoint("admin.cloud.firmware_status.check") in P9_READ_ENDPOINTS
     assert get_endpoint("admin.cloud.firmware_status.check_upgrade") in P9_READ_ENDPOINTS
     assert get_endpoint("login.auth.read") in P9_READ_ENDPOINTS

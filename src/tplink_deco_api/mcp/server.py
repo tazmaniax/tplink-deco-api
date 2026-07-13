@@ -226,7 +226,7 @@ def create_server(
 
     @server.resource("deco://logs")
     def logs_resource() -> str:
-        """Return available log categories without reading log contents."""
+        """Return available log levels without reading log contents."""
         return _json_text(service.logs_resource())
 
     @server.resource("deco://logs/{index}")

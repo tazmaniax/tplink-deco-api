@@ -70,8 +70,8 @@ a trusted network without TLS.
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
-| `GET` | `/api/v1/log-types` | Available categories without log contents. |
-| `GET` | `/api/v1/logs/{index}?limit=100` | One gated page of secret system-log entries. |
+| `GET` | `/api/v1/log-types` | Available levels and snapshot-preparation metadata without log contents. |
+| `GET` | `/api/v1/logs/{index}?limit=100` | One gated page from the currently prepared secret system-log snapshot. |
 | `GET` | `/api/v1/capabilities` | Read capability inventory and support evidence. |
 | `GET` | `/api/v1/capabilities/{name}` | One capability value with routing provenance. |
 | `GET` | `/api/v1/wlan?include_passwords=false` | Gated WLAN state. |
