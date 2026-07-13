@@ -91,6 +91,10 @@ from ._network_normalization import (
 )
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
+from ._wlan_normalization import (
+    normalize_http_wlan_configuration,
+    normalize_tmp_wlan_configuration,
+)
 
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
@@ -104,8 +108,6 @@ if TYPE_CHECKING:
         IpInfo,
         MutationPlan,
         TmpOpcodeSpec,
-        WlanBand,
-        WlanConfig,
     )
     from ..models.capability_route import CapabilityInterface
     from ..server.config import ServerConfig
@@ -1373,8 +1375,17 @@ class DecoService:
         }
         return states[gate]
 
-    def read_capability(self, name: str) -> dict[str, JsonValue]:
+    def read_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+    ) -> dict[str, JsonValue]:
         """Read one logical capability and apply only proven read-only fallback."""
+        if include_passwords and name != "wlan_state":
+            raise ValueError(
+                "Failed to read capability: password inclusion is supported only for WLAN state"
+            )
         try:
             route = get_capability_route(name)
         except KeyError as exc:
@@ -1409,7 +1420,7 @@ class DecoService:
         if route.primary_interface == "tmp_appv2":
             if _json_string(inventory, "profile_match") != "exact":
                 raise PermissionError("Failed to read capability: no exact compatibility evidence")
-            data = self._read_tmp_capability(name)
+            data = self._read_tmp_capability(name, include_passwords=include_passwords)
             return _capability_response(
                 route,
                 data,
@@ -1428,7 +1439,7 @@ class DecoService:
             and route.fallback_interface == "tmp_appv2"
             and self._tmp_fallback_available(route.sensitivity)
         ):
-            data = self._read_tmp_capability(name)
+            data = self._read_tmp_capability(name, include_passwords=include_passwords)
             return _capability_response(
                 route,
                 data,
@@ -1449,7 +1460,7 @@ class DecoService:
             )
         attempts: list[dict[str, JsonValue]] = []
         try:
-            data = self._read_http_capability(name)
+            data = self._read_http_capability(name, include_passwords=include_passwords)
         except (ApiError, TransportError, ValueError) as primary_error:
             attempts.append(
                 {
@@ -1466,7 +1477,7 @@ class DecoService:
             ):
                 raise
             try:
-                data = self._read_tmp_capability(name)
+                data = self._read_tmp_capability(name, include_passwords=include_passwords)
             except (DecoError, OSError, TimeoutError, ValueError) as fallback_error:
                 raise fallback_error from primary_error
             attempts.append(
@@ -1502,7 +1513,12 @@ class DecoService:
             raise PermissionError("Failed to read resource capability: TMP route is not eligible")
         return self._read_tmp_capability(name)
 
-    def _read_http_capability(self, name: str) -> JsonValue:
+    def _read_http_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+    ) -> JsonValue:
         with self._lock:
             client = self._get_client()
             if name == "mesh_nodes":
@@ -1536,9 +1552,19 @@ class DecoService:
                 if not isinstance(result, Mapping):
                     raise ValueError("Failed to read HTTP capability: DDNS result is not an object")
                 return dict(result)
+            if name == "wlan_state":
+                return normalize_http_wlan_configuration(
+                    client.get_wlan_config(),
+                    include_passwords=include_passwords,
+                )
         raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
 
-    def _read_tmp_capability(self, name: str) -> JsonValue:
+    def _read_tmp_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+    ) -> JsonValue:
         opcodes = {
             "mesh_nodes": 0x400F,
             "clients": 0x4012,
@@ -1550,6 +1576,7 @@ class DecoService:
             "blocked_clients": 0x4018,
             "speed_test": 0x4010,
             "ddns": 0x40D0,
+            "wlan_state": 0x4009,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1589,6 +1616,11 @@ class DecoService:
             return _speed_test_view(SpeedTest.from_api(result))
         if name == "ddns":
             return dict(result)
+        if name == "wlan_state":
+            return normalize_tmp_wlan_configuration(
+                result,
+                include_passwords=include_passwords,
+            )
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -3025,21 +3057,56 @@ class DecoService:
             raise PermissionError(
                 "Failed to read WLAN state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
-        with self._lock:
-            client = self._get_client()
-            config = client.get_wlan_config()
-            operation_mode = client.get_wireless_operation_mode()
-            bridge = client.get_bridge_status()
-            fast_roaming = client.get_fast_roaming()
-            beamforming = client.get_beamforming()
-        result = _wlan_view(config, include_passwords=include_passwords)
-        result["features"] = {
-            "operation_mode": operation_mode,
-            "bridge": bridge,
-            "fast_roaming": fast_roaming,
-            "beamforming": beamforming,
+        capability = self.read_capability(
+            "wlan_state",
+            include_passwords=include_passwords,
+        )
+        data, provenance = _capability_resource_parts(capability, "WLAN state")
+        inventory = self.device_inventory()
+        context = _capability_read_context(capability, inventory)
+        features: dict[str, JsonValue] = {
+            "operation_mode": None,
+            "bridge": None,
+            "fast_roaming": None,
+            "beamforming": None,
         }
-        return result
+        unavailable_sections: list[dict[str, JsonValue]] = []
+        if context.interface == "http_luci":
+            with self._lock:
+                client = self._get_client()
+                try:
+                    features["operation_mode"] = client.get_wireless_operation_mode()
+                except _LIVE_READ_ERRORS as exc:
+                    unavailable_sections.append(
+                        _configuration_error("features.operation_mode", exc)
+                    )
+                try:
+                    features["bridge"] = client.get_bridge_status()
+                except _LIVE_READ_ERRORS as exc:
+                    unavailable_sections.append(_configuration_error("features.bridge", exc))
+        else:
+            unavailable_sections.extend(
+                (
+                    _source_unavailable("features.operation_mode"),
+                    _source_unavailable("features.bridge"),
+                )
+            )
+        for name in ("fast_roaming", "beamforming"):
+            try:
+                features[name] = self._read_resource_capability(name, context)
+            except _LIVE_READ_ERRORS as exc:
+                unavailable_sections.append(_configuration_error(f"features.{name}", exc))
+        return {
+            "schema_version": 1,
+            "status": "available" if not unavailable_sections else "partial",
+            **dict(data),
+            "features": features,
+            "provenance": dict(provenance),
+            "unavailable_sections": unavailable_sections,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def cloud_state(self) -> dict[str, JsonValue]:
         """Return observed DDNS and cloud-manager state behind the sensitive-read gate."""
@@ -4433,6 +4500,7 @@ def _capability_category(name: str) -> str:
         "blocked_clients": "clients",
         "speed_test": "network",
         "ddns": "network",
+        "wlan_state": "wireless",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",
@@ -4470,65 +4538,6 @@ def _source_unavailable(section: str) -> dict[str, JsonValue]:
         "section": section,
         "status": "unavailable",
         "error_type": "SourceUnavailable",
-    }
-
-
-def _wlan_band_view(
-    band: WlanBand,
-    *,
-    include_passwords: bool,
-) -> dict[str, JsonValue]:
-    host: dict[str, JsonValue] = {
-        "ssid": band.host.ssid,
-        "channel": band.host.channel,
-        "enabled": band.host.enable,
-        "mode": band.host.mode,
-        "channel_width": band.host.channel_width,
-        "hidden": band.host.enable_hide_ssid,
-    }
-    guest: dict[str, JsonValue] = {
-        "ssid": band.guest.ssid,
-        "enabled": band.guest.enable,
-        "vlan_id": band.guest.vlan_id,
-        "need_set_vlan": band.guest.need_set_vlan,
-    }
-    if include_passwords:
-        host["password"] = band.host.password
-        guest["password"] = band.guest.password
-    return {
-        "host": host,
-        "guest": guest,
-        "backhaul": {"channel": band.backhaul.channel},
-    }
-
-
-def _wlan_view(config: WlanConfig, *, include_passwords: bool) -> dict[str, JsonValue]:
-    iot: dict[str, JsonValue] = {
-        "ssid": config.iot_host.ssid,
-        "enabled": config.iot_host.enable,
-        "enable_2g": config.iot_host.enable_2g,
-        "enable_5g": config.iot_host.enable_5g,
-        "encryption_mode": config.iot_host.encryption_mode,
-    }
-    mlo: dict[str, JsonValue] = {
-        "ssid": config.mlo_host.ssid,
-        "enabled": config.mlo_host.enable,
-        "bands": list(config.mlo_host.band),
-        "hidden": config.mlo_host.enable_hide_ssid,
-    }
-    if include_passwords:
-        iot["password"] = config.iot_host.password
-        mlo["password"] = config.mlo_host.password
-    return {
-        "passwords_included": include_passwords,
-        "is_eg": config.is_eg,
-        "bands": {
-            "2.4ghz": _wlan_band_view(config.band2_4, include_passwords=include_passwords),
-            "5ghz": _wlan_band_view(config.band5_1, include_passwords=include_passwords),
-            "6ghz": _wlan_band_view(config.band6, include_passwords=include_passwords),
-        },
-        "iot": iot,
-        "mlo": mlo,
     }
 
 

@@ -117,6 +117,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_schema_equivalence",
     ),
     CapabilityRoute(
+        name="wlan_state",
+        description="Wireless network configuration across supported radio bands",
+        sensitivity="secret",
+        primary_interface="http_luci",
+        primary_operation="admin.wireless.wlan.read",
+        fallback_interface="tmp_appv2",
+        fallback_operation="0x4009",
+        fallback_policy="equivalent_read_only",
+        equivalence_evidence="p9_live_normalized_field_equivalence",
+    ),
+    CapabilityRoute(
         name="ipv6_configuration",
         description="IPv6 WAN and LAN configuration",
         sensitivity="secret",

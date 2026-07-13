@@ -84,7 +84,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/logs/{index}?limit=100` | One gated page from the currently prepared secret system-log snapshot. |
 | `GET` | `/api/v1/capabilities` | Read capability inventory and support evidence. |
 | `GET` | `/api/v1/capabilities/{name}` | One capability value with routing provenance. |
-| `GET` | `/api/v1/wlan?include_passwords=false` | Gated WLAN state. |
+| `GET` | `/api/v1/wlan?include_passwords=false` | Gated normalized WLAN state with HTTP-to-TMP fallback. |
 | `GET` | `/api/v1/cloud` | Gated DDNS with HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 | `GET` | `/api/v1/mutations` | Mutation inventory and eligibility. |
 | `GET` | `/api/v1/mutations/{name}` | One mutation candidate. |
@@ -100,6 +100,9 @@ interface; a failed subread never falls back across transports independently.
 The latest speed-test result follows the selected status interface. DDNS is an
 independent schema-equivalent capability with HTTP-to-TMP fallback; a TMP-backed
 cloud response reports the HTTP-only manager section as unavailable.
+WLAN normalizes the common P9 band, host, guest, backhaul and radio fields. A
+TMP-backed response keeps HTTP-only wireless operation mode and bridge state
+unavailable instead of contacting HTTP for enrichment.
 The ten network and IPv6 routes are positively evidenced TMP-only semantic
 reads and do not require diagnostic tools to be exposed. They require the TMP
 gate; LAN, DHCP, port forwarding and the three IPv6 routes also require the

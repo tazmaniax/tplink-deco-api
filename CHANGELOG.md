@@ -55,13 +55,15 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added schema-equivalent speed-test and DDNS HTTP-to-TMP fallback, making the
   latest speed-test result available in TMP-backed status and returning explicit
   cloud-manager unavailability when DDNS selects TMP
+* routed the existing WLAN tool through normalized HTTP-to-TMP fallback while
+  preserving explicit password inclusion and reporting HTTP-only feature gaps
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
 * promoted ten positively evidenced TMP-only network datasets into default
   protocol-neutral MCP resources and REST routes without enabling diagnostics
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
-* added ten bounded, positively evidenced read-only fallback contracts while
+* added eleven bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
   matrices to an independently enabled diagnostic surface

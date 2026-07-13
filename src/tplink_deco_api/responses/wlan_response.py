@@ -12,9 +12,16 @@ from .response_dto import ResponseDto
 class WlanResponse(ResponseDto):
     """Describe WLAN bands and features with explicit password inclusion state."""
 
+    schema_version: int
+    status: str
     passwords_included: bool
     is_eg: bool
     bands: JsonObject
     iot: JsonObject
     mlo: JsonObject
     features: JsonObject
+    provenance: JsonObject
+    unavailable_sections: list[JsonObject]
+    observed_at_epoch_seconds: float
+    router_contacted: bool
+    mutation_invoked: bool

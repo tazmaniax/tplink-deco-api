@@ -217,7 +217,7 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current ten HTTP-primary overlap routes,
+bootstrap now follows that policy; the current eleven HTTP-primary overlap routes,
 ten TMP-only network routes and directly implemented canonical resources remain
 a transitional subset of the wider design.
 
@@ -298,6 +298,14 @@ absent and are listed in `unavailable_sections` with
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
 
+`deco_get_wlan_state` returns `schema_version`, `status`,
+`passwords_included`, `is_eg`, `bands`, `iot`, `mlo`, `features`, `provenance`,
+`unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted` and
+`mutation_invoked`. The normalized P9 fallback maps TMP radio `channel`,
+`hwmode` and `htmode` into the same band fields used by HTTP. A TMP response
+includes same-interface fast-roaming and beamforming state while marking
+HTTP-only operation-mode and bridge sections unavailable.
+
 `deco_get_cloud_state` returns `schema_version`, `status`, `ddns`, `manager`,
 `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`,
 `router_contacted` and `mutation_invoked`. DDNS has an evidence-backed
@@ -333,7 +341,7 @@ agent never supplies a live model or protocol.
 | `deco_get_capability` | Read any registered semantic capability, including mesh, clients, network state, wireless settings and TMP-only network configuration; normalize the result and report source interface, operation, attempts and fallback use. |
 | `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
 | `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
-| `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
+| `deco_get_wlan_state` | Return normalized WLAN state through HTTP-to-TMP fallback, with passwords omitted unless `include_passwords=true`. |
 | `deco_get_cloud_state` | Return opted-in DDNS through schema-equivalent HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 
 The legacy compound reads `deco_get_router_profile`,
@@ -671,8 +679,9 @@ caller explicitly passes `include_passwords=true`.
 Together, the agent-oriented network, mesh, WLAN, cloud, client and system
 views cover all 26 P9 reads currently observed to return structured data. The
 network view includes LAN IPv4, LAN IP, VLAN, MAC-clone and WAN-mode state; the
-WLAN view includes bridge/backhaul, 802.11r, beamforming and wireless operation
-mode. Generic endpoint tools remain available for complete envelopes and for
+WLAN view includes backhaul, 802.11r and beamforming state from either selected
+interface, plus bridge and wireless operation mode when HTTP is selected.
+Generic endpoint tools remain available for complete envelopes and for
 accepted-null or future firmware-specific reads.
 
 ## Safety model

@@ -463,7 +463,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 20
+    assert coverage["unified_semantic_surface"]["capability_count"] == 21
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -2037,11 +2037,14 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
         band,
         IotHost("IoT", "iot-secret", "wpa2", True, True, False),
         MloHost("MLO", "mlo-secret", False, ("2g", "5g"), False),
+        band5_2=band,
+        band6_2=band,
     )
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
         DecoService(_config()).wlan_state()
 
     service = DecoService(_config(allow_sensitive_reads=True))
+    service._device_cache = (_p9_controller(),)
     client = mock.Mock()
     client.get_wlan_config.return_value = config
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
@@ -2056,9 +2059,15 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
     assert_response_contract(WlanResponse, complete)
 
     assert "secret" not in json.dumps(redacted)
+    assert redacted["schema_version"] == 1
+    assert redacted["status"] == "available"
     assert redacted["passwords_included"] is False
     assert complete["bands"]["2.4ghz"]["host"]["password"] == "host-secret"
+    assert complete["bands"]["5ghz-2"]["host"]["password"] == "host-secret"
+    assert complete["bands"]["6ghz-2"]["host"]["password"] == "host-secret"
     assert complete["iot"]["password"] == "iot-secret"
+    assert redacted["provenance"]["source_interface"] == "http_luci"
+    assert redacted["unavailable_sections"] == []
     assert redacted["features"] == {
         "operation_mode": {"mode": "host"},
         "bridge": {"enabled": False},

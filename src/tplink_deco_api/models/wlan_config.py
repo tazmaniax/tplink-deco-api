@@ -142,6 +142,8 @@ class WlanConfig:
     iot_host: IotHost
     mlo_host: MloHost
     is_eg: bool = False
+    band5_2: WlanBand | None = None
+    band6_2: WlanBand | None = None
 
     @classmethod
     def from_api(cls, data: JsonObject) -> WlanConfig:
@@ -153,4 +155,6 @@ class WlanConfig:
             iot_host=IotHost.from_api(get_object(get_object(data, "iot"), "host")),
             mlo_host=MloHost.from_api(get_object(get_object(data, "mlo"), "host")),
             is_eg=get_bool(data, "is_eg"),
+            band5_2=(WlanBand.from_api(get_object(data, "band5_2")) if "band5_2" in data else None),
+            band6_2=(WlanBand.from_api(get_object(data, "band6_2")) if "band6_2" in data else None),
         )
