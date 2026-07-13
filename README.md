@@ -26,7 +26,7 @@ developers and contributors.
 
 ## What it provides
 
-- A small, protocol-neutral default MCP surface: 16 resources and five tools.
+- A protocol-neutral default MCP surface: 23 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
@@ -64,6 +64,13 @@ Resources are the canonical read-only state views:
 | `deco://devices/blocked` | Devices present in the block list. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
+| `deco://network/lan` | LAN address, subnet, DNS and upstream addresses. |
+| `deco://network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `deco://network/vlan` | Internet VLAN state. |
+| `deco://network/port-forwarding` | Port-forwarding rules and capacity. |
+| `deco://network/iptv` | IPTV state and mode. |
+| `deco://network/sip-alg` | SIP application-layer gateway state. |
+| `deco://network/mac-clone` | WAN MAC-clone state. |
 | `deco://network/ipv6` | IPv6 WAN and LAN configuration. |
 | `deco://network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
 | `deco://devices/ipv6` | IPv6 client and neighbor inventory. |
@@ -76,8 +83,9 @@ Mesh, status, configuration, devices and reservations select their interface
 inside the service. HTTP supplies the richer response when available; an
 eligible TMP cold start returns the validated subset with provenance and
 explicit unavailable fields, without merging live data from both transports.
-The three IPv6 resources use positively evidenced TMP-only routes and remain
-lazy: startup validates configuration but opens TMP only when one is read.
+Ten network and IPv6 resources use positively evidenced TMP-only routes and
+remain lazy: startup validates configuration but opens TMP only when one is
+read.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

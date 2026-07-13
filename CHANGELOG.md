@@ -32,9 +32,10 @@ transport, compatibility evidence and a conservative mutation workflow.
 ### MCP server
 
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
-* exposed 16 canonical resources for MCP state, network status, configuration,
+* exposed 23 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  IPv6 configuration/firewall/clients, log levels, capabilities and mutations
+  LAN/DHCP/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv6
+  configuration/firewall/clients, log levels, capabilities and mutations
 * added a gated `deco://logs/{index}` resource template for bounded system-log
   pagination without duplicating the read as a tool
 * kept the default tool surface to five parameterized or action-oriented tools
@@ -49,7 +50,7 @@ transport, compatibility evidence and a conservative mutation workflow.
   sections when HTTP cannot establish the session
 * reused TMP after TMP identity bootstrap without repeating a known-unavailable
   HTTP capability attempt, while keeping unmatched models fail-closed
-* promoted three positively evidenced TMP-only IPv6 datasets into default
+* promoted ten positively evidenced TMP-only network datasets into default
   protocol-neutral MCP resources and REST routes without enabling diagnostics
 * kept HTTP and TMP sessions lazy while separately reporting whether each
   capability source is configured, connected and runtime-gated
@@ -140,7 +141,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 470 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 474 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

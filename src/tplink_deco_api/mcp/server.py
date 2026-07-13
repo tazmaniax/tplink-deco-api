@@ -47,6 +47,13 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://devices/ipv6",
         "deco://traffic",
         "deco://address-reservations",
+        "deco://network/lan",
+        "deco://network/dhcp",
+        "deco://network/vlan",
+        "deco://network/port-forwarding",
+        "deco://network/iptv",
+        "deco://network/sip-alg",
+        "deco://network/mac-clone",
         "deco://network/ipv6",
         "deco://network/ipv6/firewall",
         "deco://logs",
@@ -226,6 +233,41 @@ def create_server(
     def address_reservations_resource() -> str:
         """Return the gated live address-reservation table."""
         return _json_text(service.address_reservations_resource())
+
+    @server.resource("deco://network/lan")
+    def lan_configuration_resource() -> str:
+        """Return the gated semantic LAN addressing configuration."""
+        return _json_text(service.lan_configuration_resource())
+
+    @server.resource("deco://network/dhcp")
+    def dhcp_configuration_resource() -> str:
+        """Return the gated semantic DHCP configuration."""
+        return _json_text(service.dhcp_configuration_resource())
+
+    @server.resource("deco://network/vlan")
+    def vlan_configuration_resource() -> str:
+        """Return the gated semantic Internet VLAN state."""
+        return _json_text(service.vlan_configuration_resource())
+
+    @server.resource("deco://network/port-forwarding")
+    def port_forwarding_resource() -> str:
+        """Return the gated semantic port-forwarding table."""
+        return _json_text(service.port_forwarding_resource())
+
+    @server.resource("deco://network/iptv")
+    def iptv_configuration_resource() -> str:
+        """Return the gated semantic IPTV configuration."""
+        return _json_text(service.iptv_configuration_resource())
+
+    @server.resource("deco://network/sip-alg")
+    def sip_alg_resource() -> str:
+        """Return the gated semantic SIP ALG state."""
+        return _json_text(service.sip_alg_resource())
+
+    @server.resource("deco://network/mac-clone")
+    def mac_clone_resource() -> str:
+        """Return the gated semantic WAN MAC-clone state."""
+        return _json_text(service.mac_clone_resource())
 
     @server.resource("deco://network/ipv6")
     def ipv6_configuration_resource() -> str:

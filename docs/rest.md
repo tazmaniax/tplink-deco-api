@@ -70,6 +70,13 @@ a trusted network without TLS.
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
+| `GET` | `/api/v1/network/lan` | LAN address, subnet, DNS and upstream addresses. |
+| `GET` | `/api/v1/network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `GET` | `/api/v1/network/vlan` | Internet VLAN state. |
+| `GET` | `/api/v1/network/port-forwarding` | Port-forwarding rules and capacity. |
+| `GET` | `/api/v1/network/iptv` | IPTV state and mode. |
+| `GET` | `/api/v1/network/sip-alg` | SIP application-layer gateway state. |
+| `GET` | `/api/v1/network/mac-clone` | WAN MAC-clone state. |
 | `GET` | `/api/v1/network/ipv6` | Normalized IPv6 WAN and LAN configuration. |
 | `GET` | `/api/v1/network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
 | `GET` | `/api/v1/clients/ipv6` | IPv6 client and neighbor inventory. |
@@ -89,10 +96,11 @@ interface. If HTTP is unavailable at cold start and gated TMP routing is
 eligible, they return the validated TMP-backed subset with provenance and
 explicit unavailable-section evidence instead of mixing values from both
 interfaces.
-The IPv6 configuration, firewall and client routes are positively evidenced
-TMP-only semantic reads. They require the TMP and sensitive-read gates, but do
-not require diagnostic tools to be exposed. TMP remains disconnected until one
-of these routes is actually read.
+The ten network and IPv6 routes are positively evidenced TMP-only semantic
+reads and do not require diagnostic tools to be exposed. They require the TMP
+gate; LAN, DHCP, port forwarding and the three IPv6 routes also require the
+sensitive-read gate. TMP remains disconnected until one of these routes is
+actually read.
 
 ## Response contracts
 

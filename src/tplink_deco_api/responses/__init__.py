@@ -7,10 +7,14 @@ from .capability_response import CapabilityResponse
 from .clients_response import ClientsResponse
 from .cloud_response import CloudResponse
 from .configuration_response import ConfigurationResponse
+from .dhcp_configuration_response import DhcpConfigurationResponse
+from .iptv_configuration_response import IptvConfigurationResponse
 from .ipv6_configuration_response import Ipv6ConfigurationResponse
 from .ipv6_devices_response import Ipv6DevicesResponse
 from .ipv6_firewall_response import Ipv6FirewallResponse
+from .lan_configuration_response import LanConfigurationResponse
 from .log_types_response import LogTypesResponse
+from .mac_clone_response import MacCloneResponse
 from .mesh_response import MeshResponse
 from .mutation_execution_response import MutationExecutionResponse
 from .mutation_plan_created_response import MutationPlanCreatedResponse
@@ -19,10 +23,13 @@ from .mutation_preflight_response import MutationPreflightResponse
 from .mutation_response import MutationResponse
 from .mutations_response import MutationsResponse
 from .network_status_response import NetworkStatusResponse
+from .port_forwarding_response import PortForwardingResponse
 from .response_dto import ResponseDto
 from .service_status_response import ServiceStatusResponse
+from .sip_alg_response import SipAlgResponse
 from .system_log_page_response import SystemLogPageResponse
 from .traffic_response import TrafficResponse
+from .vlan_configuration_response import VlanConfigurationResponse
 from .wlan_response import WlanResponse
 
 __all__ = [
@@ -31,10 +38,14 @@ __all__ = [
     "ClientsResponse",
     "CloudResponse",
     "ConfigurationResponse",
+    "DhcpConfigurationResponse",
+    "IptvConfigurationResponse",
     "Ipv6ConfigurationResponse",
     "Ipv6DevicesResponse",
     "Ipv6FirewallResponse",
+    "LanConfigurationResponse",
     "LogTypesResponse",
+    "MacCloneResponse",
     "MeshResponse",
     "MutationExecutionResponse",
     "MutationPlanCreatedResponse",
@@ -43,9 +54,12 @@ __all__ = [
     "MutationResponse",
     "MutationsResponse",
     "NetworkStatusResponse",
+    "PortForwardingResponse",
     "ResponseDto",
     "ServiceStatusResponse",
+    "SipAlgResponse",
     "SystemLogPageResponse",
     "TrafficResponse",
+    "VlanConfigurationResponse",
     "WlanResponse",
 ]

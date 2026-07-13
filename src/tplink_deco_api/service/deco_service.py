@@ -78,6 +78,15 @@ from ._ipv6_normalization import (
     normalize_ipv6_configuration,
     normalize_ipv6_firewall,
 )
+from ._network_normalization import (
+    normalize_dhcp_configuration,
+    normalize_iptv_configuration,
+    normalize_lan_configuration,
+    normalize_mac_clone,
+    normalize_port_forwarding,
+    normalize_sip_alg,
+    normalize_vlan_configuration,
+)
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
 
@@ -535,36 +544,51 @@ class DecoService:
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
-        capability = self.read_capability("ipv6_configuration")
-        data, provenance = _capability_resource_parts(capability, "IPv6 configuration")
-        return {
-            "schema_version": 1,
-            "status": "available",
-            **dict(data),
-            "provenance": dict(provenance),
-            "observed_at_epoch_seconds": time.time(),
-            "router_contacted": True,
-            "mutation_invoked": False,
-        }
+        return self._semantic_capability_resource("ipv6_configuration", "IPv6 configuration")
 
     def ipv6_firewall_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 inbound-firewall rule table."""
-        capability = self.read_capability("ipv6_firewall")
-        data, provenance = _capability_resource_parts(capability, "IPv6 firewall")
-        return {
-            "schema_version": 1,
-            "status": "available",
-            **dict(data),
-            "provenance": dict(provenance),
-            "observed_at_epoch_seconds": time.time(),
-            "router_contacted": True,
-            "mutation_invoked": False,
-        }
+        return self._semantic_capability_resource("ipv6_firewall", "IPv6 firewall")
 
     def ipv6_devices_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 client and neighbor inventory."""
-        capability = self.read_capability("ipv6_clients")
-        data, provenance = _capability_resource_parts(capability, "IPv6 clients")
+        return self._semantic_capability_resource("ipv6_clients", "IPv6 clients")
+
+    def lan_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic LAN addressing configuration."""
+        return self._semantic_capability_resource("lan_configuration", "LAN configuration")
+
+    def dhcp_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic DHCP configuration."""
+        return self._semantic_capability_resource("dhcp_configuration", "DHCP configuration")
+
+    def vlan_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic Internet VLAN state."""
+        return self._semantic_capability_resource("vlan_configuration", "VLAN configuration")
+
+    def port_forwarding_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic port-forwarding table."""
+        return self._semantic_capability_resource("port_forwarding", "port forwarding")
+
+    def iptv_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPTV configuration."""
+        return self._semantic_capability_resource("iptv_configuration", "IPTV configuration")
+
+    def sip_alg_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic SIP ALG state."""
+        return self._semantic_capability_resource("sip_alg", "SIP ALG")
+
+    def mac_clone_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic WAN MAC-clone state."""
+        return self._semantic_capability_resource("mac_clone", "MAC clone")
+
+    def _semantic_capability_resource(
+        self,
+        name: str,
+        dataset: str,
+    ) -> dict[str, JsonValue]:
+        capability = self.read_capability(name)
+        data, provenance = _capability_resource_parts(capability, dataset)
         return {
             "schema_version": 1,
             "status": "available",
@@ -1498,6 +1522,13 @@ class DecoService:
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
+            "lan_configuration": 0x4211,
+            "dhcp_configuration": 0x4213,
+            "vlan_configuration": 0x420D,
+            "port_forwarding": 0x40B0,
+            "iptv_configuration": 0x4224,
+            "sip_alg": 0x421D,
+            "mac_clone": 0x4226,
         }
         code = opcodes.get(name)
         if code is None:
@@ -1525,6 +1556,20 @@ class DecoService:
             return normalize_ipv6_firewall(result)
         if name == "ipv6_clients":
             return normalize_ipv6_clients(result)
+        if name == "lan_configuration":
+            return normalize_lan_configuration(result)
+        if name == "dhcp_configuration":
+            return normalize_dhcp_configuration(result)
+        if name == "vlan_configuration":
+            return normalize_vlan_configuration(result)
+        if name == "port_forwarding":
+            return normalize_port_forwarding(result)
+        if name == "iptv_configuration":
+            return normalize_iptv_configuration(result)
+        if name == "sip_alg":
+            return normalize_sip_alg(result)
+        if name == "mac_clone":
+            return normalize_mac_clone(result)
         return _boolean_setting_view(result)
 
     def _tmp_fallback_available(self, sensitivity: str) -> bool:
@@ -4317,6 +4362,13 @@ def _capability_category(name: str) -> str:
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",
+        "lan_configuration": "network",
+        "dhcp_configuration": "network",
+        "vlan_configuration": "network",
+        "port_forwarding": "nat",
+        "iptv_configuration": "network",
+        "sip_alg": "nat",
+        "mac_clone": "network",
     }
     return categories[name]
 

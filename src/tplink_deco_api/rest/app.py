@@ -46,10 +46,14 @@ from ..responses import (
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
+    DhcpConfigurationResponse,
+    IptvConfigurationResponse,
     Ipv6ConfigurationResponse,
     Ipv6DevicesResponse,
     Ipv6FirewallResponse,
+    LanConfigurationResponse,
     LogTypesResponse,
+    MacCloneResponse,
     MeshResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
@@ -58,9 +62,12 @@ from ..responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    PortForwardingResponse,
     ServiceStatusResponse,
+    SipAlgResponse,
     SystemLogPageResponse,
     TrafficResponse,
+    VlanConfigurationResponse,
     WlanResponse,
 )
 from ..server import ServerConfig, StaticBearerAuthenticator
@@ -302,6 +309,69 @@ def _create_rest_router(
     def address_reservations() -> dict[str, JsonValue]:
         """Return the live address-reservation table."""
         return service.address_reservations_resource()
+
+    @router.get(
+        "/network/lan",
+        response_model=LanConfigurationResponse,
+        operation_id="getLanConfiguration",
+    )
+    def lan_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic LAN addressing configuration."""
+        return service.lan_configuration_resource()
+
+    @router.get(
+        "/network/dhcp",
+        response_model=DhcpConfigurationResponse,
+        operation_id="getDhcpConfiguration",
+    )
+    def dhcp_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic DHCP configuration."""
+        return service.dhcp_configuration_resource()
+
+    @router.get(
+        "/network/vlan",
+        response_model=VlanConfigurationResponse,
+        operation_id="getVlanConfiguration",
+    )
+    def vlan_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic Internet VLAN state."""
+        return service.vlan_configuration_resource()
+
+    @router.get(
+        "/network/port-forwarding",
+        response_model=PortForwardingResponse,
+        operation_id="getPortForwarding",
+    )
+    def port_forwarding() -> dict[str, JsonValue]:
+        """Return the current semantic port-forwarding table."""
+        return service.port_forwarding_resource()
+
+    @router.get(
+        "/network/iptv",
+        response_model=IptvConfigurationResponse,
+        operation_id="getIptvConfiguration",
+    )
+    def iptv_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPTV configuration."""
+        return service.iptv_configuration_resource()
+
+    @router.get(
+        "/network/sip-alg",
+        response_model=SipAlgResponse,
+        operation_id="getSipAlg",
+    )
+    def sip_alg() -> dict[str, JsonValue]:
+        """Return the current semantic SIP ALG state."""
+        return service.sip_alg_resource()
+
+    @router.get(
+        "/network/mac-clone",
+        response_model=MacCloneResponse,
+        operation_id="getMacClone",
+    )
+    def mac_clone() -> dict[str, JsonValue]:
+        """Return the current semantic WAN MAC-clone state."""
+        return service.mac_clone_resource()
 
     @router.get(
         "/network/ipv6",

@@ -27,9 +27,13 @@ from tplink_deco_api.responses import (
     CapabilityResponse,
     ClientsResponse,
     ConfigurationResponse,
+    DhcpConfigurationResponse,
+    IptvConfigurationResponse,
     Ipv6ConfigurationResponse,
     Ipv6DevicesResponse,
     Ipv6FirewallResponse,
+    LanConfigurationResponse,
+    MacCloneResponse,
     MeshResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
@@ -38,6 +42,9 @@ from tplink_deco_api.responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    PortForwardingResponse,
+    SipAlgResponse,
+    VlanConfigurationResponse,
 )
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
@@ -92,6 +99,13 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
+        "lan_configuration",
+        "dhcp_configuration",
+        "vlan_configuration",
+        "port_forwarding",
+        "iptv_configuration",
+        "sip_alg",
+        "mac_clone",
     ]
     assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:6])
     assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[6:])
@@ -137,7 +151,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 9
+    assert len(result["routes"]) == 16
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -832,6 +846,194 @@ def test_ipv6_semantic_resource_rejects_contract_drift() -> None:
         service.ipv6_firewall_resource()
 
 
+def test_network_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    http_client = mock.Mock()
+    http_client.get_device_list.return_value = [_p9_device()]
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {
+            "error_code": 0,
+            "result": {
+                "lan_ip": {"ip": "192.168.68.1", "mask": "255.255.255.0"},
+                "dns_server_ip": ["192.168.68.1"],
+                "wan_ip": ["198.51.100.10"],
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "start_ip": "192.168.68.100",
+                "end_ip": "192.168.68.250",
+                "gateway": "192.168.68.1",
+                "dns1": "192.168.68.1",
+                "dns2": "1.1.1.1",
+                "ip_amount_in_use": 38,
+            },
+        },
+        {"error_code": 0, "result": {"vlan": {"enable": False}}},
+        {
+            "error_code": 0,
+            "result": {
+                "port_forwarding_list": [
+                    {
+                        "port_forwarding_id": "rule-1",
+                        "service_name": "HTTPS",
+                        "service_type": "custom",
+                        "internal_ip": "192.168.68.10",
+                        "internal_port": "443",
+                        "external_port": "8443",
+                        "protocol": "TCP",
+                    }
+                ],
+                "port_forwarding_list_max_count": 64,
+            },
+        },
+        {"error_code": 0, "result": {"enable": True, "type": "bridge"}},
+        {"error_code": 0, "result": {"enable": True}},
+        {"error_code": 0, "result": {"enable": False}},
+    ]
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        lan = service.lan_configuration_resource()
+        dhcp = service.dhcp_configuration_resource()
+        vlan = service.vlan_configuration_resource()
+        forwarding = service.port_forwarding_resource()
+        iptv = service.iptv_configuration_resource()
+        sip_alg = service.sip_alg_resource()
+        mac_clone = service.mac_clone_resource()
+
+    assert_response_contract(LanConfigurationResponse, lan)
+    assert_response_contract(DhcpConfigurationResponse, dhcp)
+    assert_response_contract(VlanConfigurationResponse, vlan)
+    assert_response_contract(PortForwardingResponse, forwarding)
+    assert_response_contract(IptvConfigurationResponse, iptv)
+    assert_response_contract(SipAlgResponse, sip_alg)
+    assert_response_contract(MacCloneResponse, mac_clone)
+    assert lan == {
+        "schema_version": 1,
+        "status": "available",
+        "ip": "192.168.68.1",
+        "subnet_mask": "255.255.255.0",
+        "dns_servers": ["192.168.68.1"],
+        "wan_addresses": ["198.51.100.10"],
+        "provenance": lan["provenance"],
+        "observed_at_epoch_seconds": lan["observed_at_epoch_seconds"],
+        "router_contacted": True,
+        "mutation_invoked": False,
+    }
+    assert dhcp["addresses_in_use"] == 38
+    assert dhcp["dns_servers"] == ["192.168.68.1", "1.1.1.1"]
+    assert vlan["enabled"] is False
+    assert forwarding["rules"] == [
+        {
+            "id": "rule-1",
+            "service_name": "HTTPS",
+            "service_type": "custom",
+            "internal_ip": "192.168.68.10",
+            "internal_port": "443",
+            "external_port": "8443",
+            "protocol": "TCP",
+        }
+    ]
+    assert forwarding["rule_count"] == 1
+    assert forwarding["rule_limit"] == 64
+    assert iptv["enabled"] is True
+    assert iptv["mode"] == "bridge"
+    assert sip_alg["enabled"] is True
+    assert mac_clone["enabled"] is False
+    assert all(
+        result["provenance"]["source_interface"] == "tmp_appv2"
+        for result in (lan, dhcp, vlan, forwarding, iptv, sip_alg, mac_clone)
+    )
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x4211, None),
+        mock.call(0x4213, None),
+        mock.call(0x420D, None),
+        mock.call(0x40B0, None),
+        mock.call(0x4224, None),
+        mock.call(0x421D, None),
+        mock.call(0x4226, None),
+    ]
+    http_client.get_device_list.assert_called_once_with()
+
+
+def test_private_network_semantic_resource_does_not_require_sensitive_gate() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"vlan": {"enable": True}},
+    }
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        vlan = service.vlan_configuration_resource()
+
+    assert_response_contract(VlanConfigurationResponse, vlan)
+    assert vlan["enabled"] is True
+    tmp_client.request_read_json.assert_called_once_with(0x420D, None)
+
+
+def test_secret_network_semantic_resource_requires_sensitive_gate() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"),
+    ):
+        service.port_forwarding_resource()
+
+    get_client.assert_not_called()
+    get_tmp_client.assert_not_called()
+
+
+def test_network_semantic_resource_rejects_contract_drift() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"port_forwarding_list": "invalid", "port_forwarding_list_max_count": 64},
+    }
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="port_forwarding_list is not an array"),
+    ):
+        service.port_forwarding_resource()
+
+
 def test_tmp_identity_bootstrap_requires_its_ordinary_read_gate() -> None:
     service = DecoService(_config())
     http_client = mock.Mock()
@@ -962,7 +1164,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 9
+    assert capabilities["supported_count"] == 16
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -1038,7 +1240,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 9
+    assert capabilities["unknown_count"] == 16
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -1123,7 +1325,9 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
     server = create_server(_config())
 
     tool_names = {tool.name for tool in await server.list_tools()}
-    resource_uris = {str(resource.uri) for resource in await server.list_resources()}
+    registered_resources = await server.list_resources()
+    resource_uri_list = [str(resource.uri) for resource in registered_resources]
+    resource_uris = set(resource_uri_list)
     resource_templates = {
         str(template.uriTemplate) for template in await server.list_resource_templates()
     }
@@ -1135,6 +1339,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco_get_wlan_state",
         "deco_get_cloud_state",
     }
+    assert len(resource_uri_list) == len(resource_uris)
     assert resource_uris == {
         "deco://mcp",
         "deco://status",
@@ -1147,6 +1352,13 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://devices/ipv6",
         "deco://traffic",
         "deco://address-reservations",
+        "deco://network/lan",
+        "deco://network/dhcp",
+        "deco://network/vlan",
+        "deco://network/port-forwarding",
+        "deco://network/iptv",
+        "deco://network/sip-alg",
+        "deco://network/mac-clone",
         "deco://network/ipv6",
         "deco://network/ipv6/firewall",
         "deco://logs",

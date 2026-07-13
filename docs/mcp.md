@@ -153,9 +153,9 @@ environment and can print those values.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes five protocol-neutral tools and 16
+The current default surface exposes five protocol-neutral tools and 23
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 25 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 32 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -218,18 +218,19 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current six HTTP-primary overlap routes,
-three TMP-only IPv6 routes and directly implemented canonical resources remain
+ten TMP-only network routes and directly implemented canonical resources remain
 a transitional subset of the wider design.
 
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices, traffic and address reservations additionally require
-`DECO_ALLOW_SENSITIVE_READS=1`. The IPv6 configuration, firewall and client
-resources require that gate plus `DECO_ALLOW_TMP_READS=1`, configured TMP
-credentials and a pinned host key. System-log pages require both the sensitive
-gate and `DECO_ALLOW_BULK_SECRET_READS=1`.
+devices, traffic, address reservations, LAN, DHCP, port forwarding and all
+three IPv6 resources additionally require `DECO_ALLOW_SENSITIVE_READS=1`.
+Every resource under the TMP-only network set requires
+`DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
+System-log pages require both the sensitive gate and
+`DECO_ALLOW_BULK_SECRET_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
@@ -243,6 +244,13 @@ gate and `DECO_ALLOW_BULK_SECRET_READS=1`.
 | `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
 | `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/dhcp` | Current DHCP pool, gateway, DNS and address usage. | `schema_version`, `status`, `start_ip`, `end_ip`, `gateway`, `dns_servers`, `addresses_in_use`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/vlan` | Current Internet VLAN state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/port-forwarding` | Current port-forwarding rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/iptv` | Current IPTV state and mode. | `schema_version`, `status`, `enabled`, `mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/sip-alg` | Current SIP application-layer gateway state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/mac-clone` | Current WAN MAC-clone state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/ipv6` | Current normalized IPv6 WAN and LAN configuration. | `schema_version`, `status`, `enabled`, `wan`, `lan`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/ipv6/firewall` | Current inbound IPv6 firewall rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/ipv6` | Current IPv6 client and neighbor inventory. | `schema_version`, `status`, `devices`, `device_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
@@ -273,7 +281,9 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 Each `deco://devices/ipv6` device contains normalized `mac`, `ip`, decoded
 `name` and `client_type` fields. IPv6 firewall `rules[]` preserve the
 firmware-reported rule objects because the observed P9 table was empty and did
-not provide evidence for a narrower populated-rule schema.
+not provide evidence for a narrower populated-rule schema. Each port-forwarding
+rule contains normalized `id`, `service_name`, `service_type`, `internal_ip`,
+`internal_port`, `external_port` and `protocol` fields.
 Compound-resource `provenance` identifies the selected source interface, the
 source operation and attempts that selected it, whether fallback was used,
 the preceding identity attempts, and confirms that one interface produced the
@@ -307,7 +317,7 @@ agent never supplies a live model or protocol.
 
 | Primary tool | Behaviour |
 |---|---|
-| `deco_get_capability` | Read `mesh_nodes`, `clients`, `internet_status`, `address_reservations`, `fast_roaming`, `beamforming`, `ipv6_configuration`, `ipv6_firewall`, or `ipv6_clients`; normalize the result and report source interface, operation, attempts and fallback use. |
+| `deco_get_capability` | Read any registered semantic capability, including mesh, clients, network state, wireless settings and TMP-only network configuration; normalize the result and report source interface, operation, attempts and fallback use. |
 | `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
 | `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
 | `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
