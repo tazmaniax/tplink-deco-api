@@ -20,6 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "cryptography>=46.0.7",
+    "typing-extensions>=4.6; python_version < '3.12'",
 ]
 
 [project.optional-dependencies]

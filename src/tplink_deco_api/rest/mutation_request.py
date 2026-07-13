@@ -5,7 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue
+from pydantic import Field
+
+from .._json import JsonValue  # noqa: TC001 - FastAPI resolves this annotation at runtime.
 
 
 @dataclass(frozen=True)

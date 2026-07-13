@@ -28,7 +28,9 @@ developers and contributors.
 
 - A small, protocol-neutral default MCP surface: 13 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
-  preflight, planning and idempotent execution resources.
+  typed response schemas, preflight, planning and idempotent execution resources.
+- Frozen protocol-neutral response dataclasses shared by REST and MCP without a
+  Pydantic dependency in the base SDK.
 - Automatic controller identification and evidence-based capability routing.
 - Normalized network status, configuration, mesh, devices, traffic,
   reservations, logs, capabilities and mutation inventory.

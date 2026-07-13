@@ -7,7 +7,7 @@ import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
-from dataclasses import replace
+from dataclasses import FrozenInstanceError, is_dataclass, replace
 from unittest import mock
 
 import pytest
@@ -22,6 +22,25 @@ from tplink_deco_api.exceptions import (
 )
 from tplink_deco_api.mcp.server import create_server
 from tplink_deco_api.models import Device
+from tplink_deco_api.responses import (
+    CapabilitiesResponse,
+    CapabilityResponse,
+    ClientsResponse,
+    CloudResponse,
+    ConfigurationResponse,
+    LogTypesResponse,
+    MeshResponse,
+    MutationExecutionResponse,
+    MutationPlanCreatedResponse,
+    MutationPreflightResponse,
+    MutationResponse,
+    MutationsResponse,
+    NetworkStatusResponse,
+    ResponseDto,
+    ServiceStatusResponse,
+    TrafficResponse,
+    WlanResponse,
+)
 from tplink_deco_api.rest import create_http_application
 from tplink_deco_api.rest._in_memory_idempotency_store import _InMemoryIdempotencyStore
 from tplink_deco_api.rest.request_capacity_middleware import RequestCapacityMiddleware
@@ -53,6 +72,260 @@ def _config(**overrides: bool) -> ServerConfig:
         allowed_origins=("https://dashboard.example",),
         **values,
     )
+
+
+def _mutation_response() -> MutationResponse:
+    return MutationResponse(
+        name="beamforming",
+        description="Change wireless beamforming",
+        category="wireless",
+        risk="mutation",
+        sensitivity="normal",
+        scope="mesh",
+        changes_schema={"required": ["enable"], "optional": []},
+        support_status="supported",
+        validation_status="noop_verified",
+        execution_scope="noop_only",
+        execution_status="ready",
+        required_gates=["DECO_ALLOW_MUTATIONS"],
+        confirmation_required=True,
+        preflight_available=True,
+        verification_available=True,
+        rollback_available=True,
+        plan_operation="plan_mutation",
+        execute_operation="execute_mutation",
+        blockers=[],
+    )
+
+
+def _preflight_response(*, allowed: bool = True) -> MutationPreflightResponse:
+    return MutationPreflightResponse(
+        schema_version=1,
+        mutation="beamforming",
+        mode="verify_current_value_noop",
+        changes={},
+        model="P9",
+        profile_match="exact",
+        validation_status="noop_verified",
+        execution_scope="noop_only",
+        execution_allowed=allowed,
+        plan_id=None,
+        expires_in_seconds=None,
+        required_confirmation=None,
+        required_gates=["DECO_ALLOW_MUTATIONS"],
+        preflight_available=True,
+        verification_available=True,
+        rollback_available=True,
+        blockers=[] if allowed else ["state-changing semantic execution is not yet validated"],
+        router_contacted=False,
+        mutation_invoked=False,
+        fallback_policy="none",
+    )
+
+
+def _created_plan_response() -> MutationPlanCreatedResponse:
+    return MutationPlanCreatedResponse(
+        schema_version=1,
+        mutation="beamforming",
+        mode="verify_current_value_noop",
+        changes={},
+        model="P9",
+        profile_match="exact",
+        validation_status="noop_verified",
+        execution_scope="noop_only",
+        execution_allowed=True,
+        plan_id="plan-1",
+        expires_in_seconds=300.0,
+        required_confirmation="CONFIRM",
+        required_gates=["DECO_ALLOW_MUTATIONS"],
+        preflight_available=True,
+        verification_available=True,
+        rollback_available=True,
+        blockers=[],
+        router_contacted=False,
+        mutation_invoked=False,
+        fallback_policy="none",
+    )
+
+
+def _execution_response() -> MutationExecutionResponse:
+    return MutationExecutionResponse(
+        schema_version=1,
+        transport="encrypted_owner_http",
+        operation_name="admin.wireless.beamforming.write",
+        preflight_name="admin.wireless.beamforming.read",
+        status="verified_noop",
+        verified_noop=True,
+        write_firmware_error_code=0,
+        write_error_type="",
+        post_read_succeeded=True,
+        state_unchanged=True,
+        rollback_attempted=False,
+        rollback_firmware_error_code=None,
+        rollback_error_type="",
+        rollback_verified=None,
+        mutation_request_count=1,
+        same_value_payload=True,
+        current_value_source="live_preflight:admin.wireless.beamforming.read",
+        parameter_keys=["enable"],
+        parameter_values_retained=False,
+        response_values_retained=False,
+        raw_values_emitted=False,
+        different_value_write_invoked=False,
+        model="P9",
+        execution_scope="verified_current_value_noop_only",
+        runtime_gates=["DECO_ALLOW_MUTATIONS"],
+        requires_attention=False,
+        capability="beamforming",
+        selected_interface="http_luci",
+        selected_operation="admin.wireless.beamforming.write",
+        fallback_policy="none",
+        fallback_used=False,
+        caller_selected_protocol=False,
+        plan_id="plan-1",
+        plan_consumed=True,
+        idempotency_replayed=False,
+        verification_name="admin.wireless.beamforming.read",
+        rollback_name="admin.wireless.beamforming.write",
+        generic_http_noop_execution_supported=False,
+    )
+
+
+def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
+    capability = CapabilityResponse(
+        capability="beamforming",
+        schema_version=1,
+        data={"enabled": True},
+        provenance={
+            "source_interface": "http_luci",
+            "source_operation": "admin.wireless.beamforming.read",
+            "fallback_used": False,
+            "fallback_policy": "equivalent_read_only",
+            "equivalence_evidence": "verified",
+            "attempts": [],
+        },
+        mutation_invoked=False,
+    )
+    mutation = _mutation_response()
+    return {
+        "public_status": ServiceStatusResponse(**DecoService(config).public_status()),
+        "network_status_resource": NetworkStatusResponse(
+            schema_version=1,
+            status="healthy",
+            controller={},
+            internet=None,
+            mesh={},
+            performance=None,
+            firmware=None,
+            speed_test=None,
+            client_count=None,
+            client_count_status="gated",
+            warnings=[],
+            unavailable_sections=[],
+            observed_at_epoch_seconds=1.0,
+            passwords_included=False,
+            client_identities_included=False,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "configuration_resource": ConfigurationResponse(
+            schema_version=1,
+            controller={},
+            related_sections=[],
+            nickname=None,
+            nickname_status="gated",
+            unavailable_sections=[],
+            passwords_included=False,
+            client_identities_included=False,
+            address_reservations_included=False,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "device_inventory": MeshResponse(
+            schema_version=1,
+            resolution_status="resolved",
+            controller={},
+            nodes=[],
+            node_count=0,
+            mixed_model_mesh=False,
+            identity_source="admin.device.device_list.read",
+            profile_match="exact",
+            profile_name="P9",
+            cached=True,
+            router_contacted=False,
+            mutation_invoked=False,
+        ),
+        "client_devices_resource": ClientsResponse(
+            schema_version=1,
+            view="all",
+            devices=[],
+            device_count=0,
+            all_device_count=0,
+            source_counts={},
+            provenance=None,
+            unavailable_sections=[],
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "traffic_resource": TrafficResponse(
+            schema_version=1,
+            device_speeds=[],
+            device_count=0,
+            aggregate_speed={"up_speed": 0, "down_speed": 0},
+            status="available",
+            unavailable_sections=[],
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "address_reservations_resource": capability,
+        "logs_resource": LogTypesResponse(
+            schema_version=1,
+            categories=[],
+            category_count=0,
+            status="available",
+            unavailable_sections=[],
+            log_contents_included=False,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "capabilities": CapabilitiesResponse(
+            schema_version=1,
+            resolution_status="resolved",
+            controller={},
+            profile_match="exact",
+            capabilities=[],
+            supported_count=0,
+            unknown_count=0,
+            unsupported_count=0,
+            router_contacted=False,
+            mutation_invoked=False,
+        ),
+        "read_capability": capability,
+        "wlan_state": WlanResponse(
+            passwords_included=False,
+            is_eg=False,
+            bands={},
+            iot={},
+            mlo={},
+            features={},
+        ),
+        "cloud_state": CloudResponse(ddns=None, manager=None),
+        "semantic_mutations": MutationsResponse(
+            schema_version=1,
+            resolution_status="resolved",
+            controller={},
+            profile_match="exact",
+            mutations=[mutation],
+            candidate_count=1,
+            execution_counts={"ready": 1},
+            mutation_gate_status={"ordinary": True},
+            router_contacted=False,
+            mutation_invoked=False,
+        ),
+        "semantic_mutation": mutation,
+    }
 
 
 def test_composite_application_exposes_health_rest_openapi_and_mcp() -> None:
@@ -117,6 +390,26 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/mutation-plans/{plan_id}", "get"): "getMutationPlan",
         ("/api/v1/mutation-plans/{plan_id}/executions", "post"): ("executeMutationPlan"),
     }
+    expected_response_models = {
+        ("/api/v1/service", "get"): "ServiceStatusResponse",
+        ("/api/v1/status", "get"): "NetworkStatusResponse",
+        ("/api/v1/configuration", "get"): "ConfigurationResponse",
+        ("/api/v1/mesh", "get"): "MeshResponse",
+        ("/api/v1/clients", "get"): "ClientsResponse",
+        ("/api/v1/traffic", "get"): "TrafficResponse",
+        ("/api/v1/address-reservations", "get"): "CapabilityResponse",
+        ("/api/v1/log-types", "get"): "LogTypesResponse",
+        ("/api/v1/capabilities", "get"): "CapabilitiesResponse",
+        ("/api/v1/capabilities/{name}", "get"): "CapabilityResponse",
+        ("/api/v1/wlan", "get"): "WlanResponse",
+        ("/api/v1/cloud", "get"): "CloudResponse",
+        ("/api/v1/mutations", "get"): "MutationsResponse",
+        ("/api/v1/mutations/{name}", "get"): "MutationResponse",
+        ("/api/v1/mutation-preflights", "post"): "MutationPreflightResponse",
+        ("/api/v1/mutation-plans", "post"): "MutationPlanCreatedResponse",
+        ("/api/v1/mutation-plans/{plan_id}", "get"): "MutationPlanStatusResponse",
+        ("/api/v1/mutation-plans/{plan_id}/executions", "post"): ("MutationExecutionResponse"),
+    }
     operations = {
         (path, method): operation["operationId"]
         for path, path_item in schema["paths"].items()
@@ -130,14 +423,100 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         schema["paths"][path][method]["security"] == [{"BearerAuth": []}]
         for path, method in expected_operations
     )
+    for (path, method), model_name in expected_response_models.items():
+        status_code = "201" if model_name == "MutationPlanCreatedResponse" else "200"
+        response_schema = schema["paths"][path][method]["responses"][status_code]["content"][
+            "application/json"
+        ]["schema"]
+        assert response_schema == {"$ref": f"#/components/schemas/{model_name}"}
+    assert "JsonDocument" not in schema["components"]["schemas"]
+    for mode in ("Input", "Output"):
+        name = f"JsonValue-{mode}"
+        assert schema["components"]["schemas"][name] == {
+            "anyOf": [
+                {"type": "string"},
+                {"type": "integer"},
+                {"type": "number"},
+                {"type": "boolean"},
+                {
+                    "items": {"$ref": f"#/components/schemas/{name}"},
+                    "type": "array",
+                },
+                {
+                    "additionalProperties": {"$ref": f"#/components/schemas/{name}"},
+                    "type": "object",
+                },
+                {"type": "null"},
+            ]
+        }
+    assert (
+        "required_confirmation"
+        not in schema["components"]["schemas"]["MutationPlanStatusResponse"]["properties"]
+    )
+    assert {
+        "schema_version",
+        "status",
+        "controller",
+        "internet",
+        "mesh",
+        "router_contacted",
+        "mutation_invoked",
+    }.issubset(schema["components"]["schemas"]["NetworkStatusResponse"]["required"])
     created_response = schema["paths"]["/api/v1/mutation-plans"]["post"]["responses"]["201"]
     assert created_response["headers"]["Location"]["schema"] == {"type": "string"}
+
+
+def test_response_dtos_are_frozen_protocol_neutral_mappings() -> None:
+    response = _mutation_response()
+
+    assert is_dataclass(response)
+    assert response["name"] == "beamforming"
+    assert dict(response) == response.to_dict()
+    with pytest.raises(FrozenInstanceError):
+        response.name = "changed"
+
+
+def test_rest_response_accepts_deep_mixed_firmware_json() -> None:
+    application = create_http_application(_config())
+    service = application.state.deco_service
+    capability = CapabilityResponse(
+        capability="beamforming",
+        schema_version=1,
+        data={
+            "outer": {
+                "records": [
+                    {
+                        "nested": [
+                            {
+                                "value": {
+                                    "still_nested": [
+                                        {"enabled": True},
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        provenance={},
+        mutation_invoked=False,
+    )
+    with (
+        mock.patch.object(service, "read_capability", return_value=capability),
+        TestClient(application) as client,
+    ):
+        response = client.get("/api/v1/capabilities/beamforming", headers=_AUTH)
+
+    assert response.status_code == 200
+    assert response.json() == capability.to_dict()
 
 
 @pytest.mark.asyncio
 async def test_mcp_resources_and_rest_routes_serialize_shared_results_identically() -> None:
     config = _config()
     service = mock.create_autospec(DecoService, instance=True)
+    responses = _read_response_dtos(config)
     pairs = (
         ("public_status", "deco://mcp", "/api/v1/service"),
         ("network_status_resource", "deco://status", "/api/v1/status"),
@@ -155,10 +534,7 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
         ("semantic_mutations", "deco://mutations", "/api/v1/mutations"),
     )
     for method_name, _, _ in pairs:
-        getattr(service, method_name).return_value = {
-            "schema_version": 1,
-            "source": method_name,
-        }
+        getattr(service, method_name).return_value = responses[method_name]
     with mock.patch("tplink_deco_api.rest.app.DecoService", return_value=service):
         application = create_http_application(config)
     mcp_server = create_server(config, service)
@@ -189,8 +565,10 @@ def test_docs_are_absent_when_rest_is_disabled() -> None:
 
 
 def test_rest_read_routes_delegate_to_one_shared_service() -> None:
-    application = create_http_application(_config())
+    config = _config()
+    application = create_http_application(config)
     service = application.state.deco_service
+    documents = _read_response_dtos(config)
     methods = (
         "public_status",
         "network_status_resource",
@@ -208,7 +586,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
     with ExitStack() as stack:
         patched = {
             method: stack.enter_context(
-                mock.patch.object(service, method, return_value={"source": method})
+                mock.patch.object(service, method, return_value=documents[method])
             )
             for method in methods
         }
@@ -229,7 +607,9 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
             )
 
     assert all(response.status_code == 200 for response in responses)
-    assert [response.json()["source"] for response in responses] == list(methods)
+    assert [response.json() for response in responses] == [
+        documents[method].to_dict() for method in methods
+    ]
     patched["device_inventory"].assert_called_once_with(refresh=True)
     patched["client_devices_resource"].assert_called_once_with("blocked")
     patched["read_capability"].assert_called_once_with("beamforming")
@@ -239,24 +619,16 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
 def test_rest_mutation_catalog_and_noncreating_preflight() -> None:
     application = create_http_application(_config())
     service = application.state.deco_service
-    catalog = {
-        "schema_version": 1,
-        "mutations": [{"name": "beamforming", "execution_status": "ready"}],
-    }
-    preflight = {
-        "schema_version": 1,
-        "mutation": "beamforming",
-        "execution_allowed": True,
-        "plan_id": None,
-        "blockers": [],
-    }
+    mutation_document = _mutation_response()
+    catalog = _read_response_dtos(_config())["semantic_mutations"]
+    preflight = _preflight_response()
     with (
         mock.patch.object(service, "semantic_mutations", return_value=catalog) as inventory,
         mock.patch.object(
             service,
             "semantic_mutation",
             side_effect=[
-                {"name": "beamforming", "execution_status": "ready"},
+                mutation_document,
                 ValueError("unknown"),
             ],
         ) as one_mutation,
@@ -276,7 +648,7 @@ def test_rest_mutation_catalog_and_noncreating_preflight() -> None:
             json={"name": "beamforming", "mode": "verify_current_value_noop"},
         )
 
-    assert all_mutations.json() == catalog
+    assert all_mutations.json() == catalog.to_dict()
     assert mutation.json()["name"] == "beamforming"
     assert missing.status_code == 404
     assert response.status_code == 200
@@ -289,17 +661,8 @@ def test_rest_mutation_catalog_and_noncreating_preflight() -> None:
 def test_rest_plan_creation_rejects_blockers_and_returns_created_plan() -> None:
     application = create_http_application(replace(_config(), rest_prefix="/router/v1"))
     service = application.state.deco_service
-    blocked = {
-        "execution_allowed": False,
-        "plan_id": None,
-        "blockers": ["state-changing semantic execution is not yet validated"],
-    }
-    created = {
-        "execution_allowed": True,
-        "plan_id": "plan-1",
-        "required_confirmation": "CONFIRM",
-        "blockers": [],
-    }
+    blocked = _preflight_response(allowed=False)
+    created = _created_plan_response()
     with (
         mock.patch.object(
             service,
@@ -368,7 +731,7 @@ def test_rest_execution_is_synchronous_and_process_idempotent() -> None:
         mock.patch.object(
             service,
             "execute_semantic_mutation",
-            return_value={"status": "verified_noop", "plan_consumed": True},
+            return_value=_execution_response(),
         ) as execute,
         TestClient(application) as client,
     ):

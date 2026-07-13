@@ -3,14 +3,23 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+import sys
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, TypeAlias, cast
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
+if sys.version_info >= (3, 12):
+    from typing import TypeAliasType
+else:
+    from typing_extensions import TypeAliasType
 
 JsonPrimitive: TypeAlias = str | int | float | bool | None
-JsonValue: TypeAlias = "JsonPrimitive | Sequence[JsonValue] | Mapping[str, JsonValue]"
+if TYPE_CHECKING:
+    JsonValue: TypeAlias = JsonPrimitive | Sequence["JsonValue"] | Mapping[str, "JsonValue"]
+else:
+    JsonValue = TypeAliasType(
+        "JsonValue",
+        JsonPrimitive | Sequence["JsonValue"] | Mapping[str, "JsonValue"],
+    )
 JsonObject: TypeAlias = Mapping[str, JsonValue]
 
 

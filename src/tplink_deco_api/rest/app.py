@@ -39,11 +39,29 @@ from ..exceptions import (
     UnknownPlanError,
 )
 from ..mcp.server import create_server
+from ..responses import (
+    CapabilitiesResponse,
+    CapabilityResponse,
+    ClientsResponse,
+    CloudResponse,
+    ConfigurationResponse,
+    LogTypesResponse,
+    MeshResponse,
+    MutationExecutionResponse,
+    MutationPlanCreatedResponse,
+    MutationPlanStatusResponse,
+    MutationPreflightResponse,
+    MutationResponse,
+    MutationsResponse,
+    NetworkStatusResponse,
+    ServiceStatusResponse,
+    TrafficResponse,
+    WlanResponse,
+)
 from ..server import ServerConfig, StaticBearerAuthenticator
 from ..service import DecoService
 from ._in_memory_idempotency_store import _InMemoryIdempotencyStore
 from .http_transport_security_middleware import HttpTransportSecurityMiddleware
-from .json_document import JsonDocument
 from .mutation_execution_request import (  # noqa: TC001 - FastAPI resolves this annotation.
     MutationExecutionRequest,
 )
@@ -223,31 +241,40 @@ def _create_rest_router(
         },
     )
 
-    @router.get("/service", response_model=JsonDocument, operation_id="getServiceStatus")
+    @router.get(
+        "/service",
+        response_model=ServiceStatusResponse,
+        operation_id="getServiceStatus",
+    )
     def service_status() -> dict[str, JsonValue]:
         """Return sanitized server configuration and connection state."""
         return service.public_status()
 
-    @router.get("/status", response_model=JsonDocument, operation_id="getNetworkStatus")
+    @router.get(
+        "/status",
+        response_model=NetworkStatusResponse,
+        operation_id="getNetworkStatus",
+    )
     def network_status() -> dict[str, JsonValue]:
         """Return current normalized Deco network health."""
         return service.network_status_resource()
 
     @router.get(
         "/configuration",
-        response_model=JsonDocument,
+        response_model=ConfigurationResponse,
+        response_model_exclude_unset=True,
         operation_id="getConfiguration",
     )
     def configuration() -> dict[str, JsonValue]:
         """Return a sanitized live configuration overview."""
         return service.configuration_resource()
 
-    @router.get("/mesh", response_model=JsonDocument, operation_id="getMesh")
+    @router.get("/mesh", response_model=MeshResponse, operation_id="getMesh")
     def mesh(refresh: Annotated[bool, Query()] = False) -> dict[str, JsonValue]:
         """Return the controller and mesh-node inventory."""
         return service.device_inventory(refresh=refresh)
 
-    @router.get("/clients", response_model=JsonDocument, operation_id="getClients")
+    @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(
         view: Annotated[
             Literal["all", "active", "inactive", "blocked"],
@@ -257,33 +284,37 @@ def _create_rest_router(
         """Return one normalized client-device view."""
         return service.client_devices_resource(view)
 
-    @router.get("/traffic", response_model=JsonDocument, operation_id="getTraffic")
+    @router.get("/traffic", response_model=TrafficResponse, operation_id="getTraffic")
     def traffic() -> dict[str, JsonValue]:
         """Return normalized device and aggregate traffic rates."""
         return service.traffic_resource()
 
     @router.get(
         "/address-reservations",
-        response_model=JsonDocument,
+        response_model=CapabilityResponse,
         operation_id="getAddressReservations",
     )
     def address_reservations() -> dict[str, JsonValue]:
         """Return the live address-reservation table."""
         return service.address_reservations_resource()
 
-    @router.get("/log-types", response_model=JsonDocument, operation_id="getLogTypes")
+    @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:
         """Return available log categories without reading log contents."""
         return service.logs_resource()
 
-    @router.get("/capabilities", response_model=JsonDocument, operation_id="getCapabilities")
+    @router.get(
+        "/capabilities",
+        response_model=CapabilitiesResponse,
+        operation_id="getCapabilities",
+    )
     def capabilities() -> dict[str, JsonValue]:
         """Return semantic read capabilities for the connected controller."""
         return service.capabilities()
 
     @router.get(
         "/capabilities/{name}",
-        response_model=JsonDocument,
+        response_model=CapabilityResponse,
         operation_id="getCapability",
     )
     def capability(name: str) -> dict[str, JsonValue]:
@@ -294,26 +325,26 @@ def _create_rest_router(
             raise HTTPException(status_code=404, detail="Unknown semantic capability") from exc
         return service.read_capability(name)
 
-    @router.get("/wlan", response_model=JsonDocument, operation_id="getWlan")
+    @router.get("/wlan", response_model=WlanResponse, operation_id="getWlan")
     def wlan(
         include_passwords: Annotated[bool, Query()] = False,
     ) -> dict[str, JsonValue]:
         """Return gated WLAN state with passwords omitted by default."""
         return service.wlan_state(include_passwords=include_passwords)
 
-    @router.get("/cloud", response_model=JsonDocument, operation_id="getCloud")
+    @router.get("/cloud", response_model=CloudResponse, operation_id="getCloud")
     def cloud() -> dict[str, JsonValue]:
         """Return opted-in DDNS and cloud-manager state."""
         return service.cloud_state()
 
-    @router.get("/mutations", response_model=JsonDocument, operation_id="getMutations")
+    @router.get("/mutations", response_model=MutationsResponse, operation_id="getMutations")
     def mutations() -> dict[str, JsonValue]:
         """Return semantic mutation candidates and eligibility."""
         return service.semantic_mutations()
 
     @router.get(
         "/mutations/{name}",
-        response_model=JsonDocument,
+        response_model=MutationResponse,
         operation_id="getMutation",
     )
     def mutation(name: str) -> dict[str, JsonValue]:
@@ -325,20 +356,20 @@ def _create_rest_router(
 
     @router.post(
         "/mutation-preflights",
-        response_model=JsonDocument,
+        response_model=MutationPreflightResponse,
         operation_id="preflightMutation",
     )
     def preflight_mutation(request: MutationRequest) -> dict[str, JsonValue]:
         """Assess a semantic mutation without registering a plan."""
         return service.preflight_semantic_mutation(
             request.name,
-            cast("dict[str, JsonValue]", request.changes),
+            request.changes,
             mode=request.mode,
         )
 
     @router.post(
         "/mutation-plans",
-        response_model=JsonDocument,
+        response_model=MutationPlanCreatedResponse,
         status_code=status.HTTP_201_CREATED,
         operation_id="createMutationPlan",
         responses={
@@ -360,7 +391,7 @@ def _create_rest_router(
         """Create a short-lived plan only when semantic execution is eligible."""
         result = service.plan_semantic_mutation(
             request.name,
-            cast("dict[str, JsonValue]", request.changes),
+            request.changes,
             mode=request.mode,
         )
         plan_id = result.get("plan_id")
@@ -371,7 +402,7 @@ def _create_rest_router(
 
     @router.get(
         "/mutation-plans/{plan_id}",
-        response_model=JsonDocument,
+        response_model=MutationPlanStatusResponse,
         operation_id="getMutationPlan",
     )
     def mutation_plan(plan_id: str) -> dict[str, JsonValue]:
@@ -380,7 +411,8 @@ def _create_rest_router(
 
     @router.post(
         "/mutation-plans/{plan_id}/executions",
-        response_model=JsonDocument,
+        response_model=MutationExecutionResponse,
+        response_model_exclude_unset=True,
         operation_id="executeMutationPlan",
     )
     def execute_mutation_plan(

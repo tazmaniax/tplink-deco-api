@@ -15,6 +15,7 @@ from starlette.responses import PlainTextResponse
 
 from .._json import JsonObject, JsonValue, loads
 from ..models import CompatibilityManifest
+from ..responses import ResponseDto
 from ..server import ServerConfig
 from ..service import DecoService
 from ._static_token_verifier import _StaticTokenVerifier
@@ -80,8 +81,9 @@ _MUTATING_TOOL_ANNOTATIONS = ToolAnnotations(
 )
 
 
-def _json_text(value: JsonValue) -> str:
-    return json.dumps(value, indent=2, sort_keys=True)
+def _json_text(value: JsonValue | ResponseDto) -> str:
+    payload = value.to_dict() if isinstance(value, ResponseDto) else value
+    return json.dumps(payload, indent=2, sort_keys=True)
 
 
 def _params(params_json: str) -> JsonObject:

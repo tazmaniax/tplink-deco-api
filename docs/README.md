@@ -42,6 +42,7 @@ batching live in the protocol pages.
 | [`protocol/transport-and-dispatch.md`](./protocol/transport-and-dispatch.md) | URL layout, `form`/`operation`/`params`, response envelope, error codes, batch requests, plaintext endpoints |
 | [`protocol/cloud-api.md`](./protocol/cloud-api.md) | TP-Link cloud hosts, account API and device passthrough |
 | [`mcp.md`](./mcp.md) | Agent-facing MCP server, tools, resources and safety gates |
+| [`architecture/semantic-resource-routing.md`](./architecture/semantic-resource-routing.md) | Required source selection, fallback, resource boundaries and provenance policy |
 
 The default MCP surface is protocol-neutral: agents see five semantic tools and
 13 resources covering MCP state, live network status, sanitized configuration,

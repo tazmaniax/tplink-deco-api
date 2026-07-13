@@ -211,6 +211,14 @@ shuts down. Shutdown attempts the router's server-side logout endpoint before
 discarding local session state; firmware such as the P9 that returns HTTP 404
 falls back to local token and cookie invalidation.
 
+Future resource and transport work must follow the
+[semantic resource routing policy](./architecture/semantic-resource-routing.md).
+It requires one data-producing interface per successful read, completeness-
+ranked source selection, fallback only after an eligible failure, TMP identity
+bootstrap for cold-start failover, and separate resources for single-source
+datasets that would otherwise force a dual-interface fetch. The current six
+HTTP-primary fallback routes are a transitional subset of that design.
+
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
