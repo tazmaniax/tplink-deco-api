@@ -54,14 +54,15 @@ def test_set_plan_uses_observed_read_for_preflight_and_state_restore() -> None:
     assert plan.rollback_relationship_evidence == "preflight_state_restore"
     assert plan.p9_opcode_tested
     assert not plan.p9_parameter_contract_verified
-    assert plan.p9_mutation_observation == "adverse_event_suspected"
+    assert plan.p9_mutation_observation == "same_value_immediate_verification_passed"
+    assert plan.p9_mutation_safety_status == "safety_not_established"
     assert plan.p9_mutation_firmware_error_code == 0
     assert plan.p9_mutation_parameter_keys == ("enable",)
     assert plan.p9_mutation_state_unchanged is True
     assert plan.p9_mutation_rollback_attempted is False
     assert plan.p9_mutation_request_count == 1
     assert not plan.complete_safety_contract
-    assert "post-test topology outage" in " ".join(plan.warnings)
+    assert "operational safety is not established" in " ".join(plan.warnings)
     assert plan.to_dict()["execution_eligible"] is False
 
 

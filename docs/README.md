@@ -113,12 +113,15 @@ JSON datasets to be fetched without returning request parameter values.
 The offline TMP mutation-verification queue ranks evidence and gaps while
 keeping sensitive, deferred and destructive tiers behind explicit filters; it
 never contacts the router. Three P9 current-value writes returned firmware
-success and immediate post-read equality, but were downgraded to
-`adverse_event_suspected` after a later mesh topology failure. Causality is
-unresolved. MCP, REST and the deployed service now hard-disable all TMP writes;
-TMP remains available only for explicitly enabled experimental reads and
-offline analysis. The source-checkout lab harnesses require a separate lab gate,
-exact confirmation and exact live controller identity binding. See the
+success and immediate post-read equality. Their observation status is
+`same_value_immediate_verification_passed`, while their safety status remains
+`safety_not_established`. A later mesh incident is temporally associated with
+aggregate TMP activity but is not attributed to these writes or any other
+opcode; causality is undetermined. MCP, REST and the deployed service now
+hard-disable all TMP writes; TMP remains available only for explicitly enabled
+experimental reads and offline analysis. The source-checkout lab harnesses
+require a separate lab gate, exact confirmation and exact live controller
+identity binding. See the
 [incident record](./incidents/2026-07-12-p9-tmp-topology-loss.md).
 The HTTP mutation surface has a separate offline queue covering all 23 P9
 candidates. It proposes zero new verifications: four are already no-op-verified,

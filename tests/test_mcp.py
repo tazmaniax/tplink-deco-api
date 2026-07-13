@@ -724,7 +724,7 @@ def test_mcp_service_ranks_tmp_mutation_verification_offline() -> None:
         "destructive_excluded": 71,
         "evidence_blocked": 193,
         "high_risk_deferred": 81,
-        "adverse_event_suspected": 3,
+        "safety_not_established": 3,
     }
     assert queue["verification_candidate_count"] == 0
     assert queue["returned_count"] == 0

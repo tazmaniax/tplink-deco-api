@@ -1,11 +1,14 @@
-# P9 TMP write validation followed by mesh topology loss
+# P9 TMP activity followed by mesh topology loss
 
 ## Status
 
-The relationship between the TMP/AppV2 writes and the later mesh failure is
-unresolved. The three writes are classified as `adverse_event_suspected`, not
-as verified safe no-ops. Server-side TMP writes are hard-disabled as a
-containment measure. TMP reads remain experimental and opt-in.
+The later mesh failure is temporally associated with the aggregate TMP/AppV2
+test activity, but the available evidence does not attribute it to any
+individual read, write, opcode or session. Causality is undetermined. The three
+writes retain the observation `same_value_immediate_verification_passed`, while
+their safety status is `safety_not_established`. Server-side TMP writes are
+hard-disabled as a containment measure. TMP reads remain experimental and
+opt-in.
 
 ## Timeline
 
@@ -22,6 +25,10 @@ Each setter returned firmware error code zero, and its immediate scalar
 post-read matched the preflight value. Those checks established only immediate
 field equality; they did not establish the absence of delayed, distributed or
 resource side effects.
+
+The wider test activity also included TMP sessions, reads and rejected probes.
+The retained evidence cannot isolate one operation or operation class as the
+cause of the later incident.
 
 On 12 July 2026, all four satellite P9 nodes were reported offline by the Deco
 app and then disappeared from the controller web topology. The satellite LEDs

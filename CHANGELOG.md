@@ -83,9 +83,11 @@ transport, compatibility evidence and a conservative mutation workflow.
   time settings, beamforming, 802.11r and monthly-report setters
 * kept desired state changes execution-ineligible because current live P9 write
   evidence is limited to unchanged-value verification requests
-* hard-disabled TMP writes in MCP, REST and the deployed service after a later
-  P9 mesh topology failure made the earlier same-value TMP results insufficient
-  safety evidence
+* hard-disabled TMP writes in MCP, REST and the deployed service because the
+  earlier same-value results established only immediate field equality, not
+  operational safety; a later P9 mesh incident is recorded as temporally
+  associated with aggregate TMP activity but unattributed, with causality
+  undetermined
 * retained TMP write harnesses only for source-checkout lab validation with an
   explicit lab gate, exact confirmation and exact live controller identity
 

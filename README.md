@@ -190,8 +190,9 @@ against both local interfaces:
 - All 246 conservatively classified TMP reads have a recorded P9 observation.
 - Controlled current-value no-op evidence exists for HTTP address reservation,
   time settings, beamforming and 802.11r setters. Three TMP same-value writes
-  were downgraded to `adverse_event_suspected` after a later P9 mesh topology
-  failure; causality is unresolved.
+  passed immediate post-read verification, but operational safety was not
+  established. A later P9 mesh incident is temporally associated with aggregate
+  TMP activity but unattributed; causality is undetermined.
 
 Other models can use generic routes immediately where their firmware matches,
 but unobserved results are reported as unknown rather than silently treated as

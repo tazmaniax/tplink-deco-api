@@ -31,10 +31,14 @@ TmpAppContractProvenance: TypeAlias = Literal[
 TmpP9MutationObservation: TypeAlias = Literal[
     "untested",
     "verified_noop",
-    "adverse_event_suspected",
+    "same_value_immediate_verification_passed",
     "write_rejected",
     "rollback_confirmed",
     "rollback_unconfirmed",
+]
+TmpP9MutationSafetyStatus: TypeAlias = Literal[
+    "untested",
+    "safety_not_established",
 ]
 
 
@@ -72,6 +76,7 @@ class TmpOpcodeSpec:
     p9_response_sha256: str = ""
     p9_fuzzy_status: str = ""
     p9_mutation_observation: TmpP9MutationObservation = "untested"
+    p9_mutation_safety_status: TmpP9MutationSafetyStatus = "untested"
     p9_mutation_firmware_error_code: int | None = None
     p9_mutation_parameter_keys: tuple[str, ...] = ()
     p9_mutation_state_unchanged: bool | None = None
@@ -132,6 +137,7 @@ class TmpOpcodeSpec:
             "p9_response_sha256": self.p9_response_sha256,
             "p9_fuzzy_status": self.p9_fuzzy_status,
             "p9_mutation_observation": self.p9_mutation_observation,
+            "p9_mutation_safety_status": self.p9_mutation_safety_status,
             "p9_mutation_firmware_error_code": self.p9_mutation_firmware_error_code,
             "p9_mutation_parameter_keys": self.p9_mutation_parameter_keys,
             "p9_mutation_state_unchanged": self.p9_mutation_state_unchanged,

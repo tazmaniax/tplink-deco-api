@@ -813,10 +813,12 @@ conditionally omitted fields; they are not an executable JSON schema.
 Three separately authorized P9 runs sent the current value for `11R_SET`
 (`0x4209`), `BEAMFORMING_SET` (`0x421C`) and `MONTHLY_REPORT_MGR_SET`
 (`0x4223`). Each setter returned firmware error code zero and its immediate
-post-read matched. A later mesh topology failure made those narrow observations
-insufficient safety evidence, so all three are now classified
-`adverse_event_suspected`. Causality is unresolved; the incident and containment
-decision are recorded in
+post-read matched. Those immediate observations are retained as
+`same_value_immediate_verification_passed`, while all three safety statuses are
+`safety_not_established`. A later mesh incident is temporally associated with
+aggregate TMP activity but is not attributed to these writes or any other
+opcode; causality is undetermined. The incident and containment decision are
+recorded in
 [`2026-07-12-p9-tmp-topology-loss.md`](incidents/2026-07-12-p9-tmp-topology-loss.md).
 
 MCP, REST and the deployed service hard-disable every TMP write. There is no
@@ -827,7 +829,7 @@ diagnostic surface exposes catalogues, plans and read operations only.
 `deco_p9_tmp_mutation_verification_queue` converts that inventory into seven
 agent-readable tiers without opening either router transport. `11R_SET`,
 `BEAMFORMING_SET` and `MONTHLY_REPORT_MGR_SET` are retained in the
-`post_validation_adverse_event` tier and are not eligible for server execution.
+`safety_not_established` tier and are not eligible for server execution.
 The default non-secret future-work view is empty. Eighty-one
 active-workflow or connectivity-changing operations are
 deferred, 193 are blocked by missing preflight, rollback, key-level parameter,

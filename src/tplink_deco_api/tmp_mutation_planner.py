@@ -173,9 +173,10 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
     )
     if operation.p9_mutation_observation == "verified_noop":
         warnings = ["P9 mutation was observed only as a current-value write"]
-    elif operation.p9_mutation_observation == "adverse_event_suspected":
+    elif operation.p9_mutation_observation == "same_value_immediate_verification_passed":
         warnings = [
-            "P9 mutation is associated with a post-test topology outage; causality is unresolved"
+            "P9 mutation passed immediate current-value verification only; operational safety "
+            "is not established"
         ]
     else:
         warnings = ["P9 mutation opcode has not been tested"]
@@ -229,6 +230,7 @@ def build_tmp_mutation_plan(code: int) -> TmpMutationPlan:
         parameter_contract_evidence=parameter_contract_evidence,
         p9_parameter_contract_verified=p9_parameter_contract_verified,
         p9_mutation_observation=operation.p9_mutation_observation,
+        p9_mutation_safety_status=operation.p9_mutation_safety_status,
         p9_mutation_firmware_error_code=operation.p9_mutation_firmware_error_code,
         p9_mutation_parameter_keys=operation.p9_mutation_parameter_keys,
         p9_mutation_state_unchanged=operation.p9_mutation_state_unchanged,

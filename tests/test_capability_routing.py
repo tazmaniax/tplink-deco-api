@@ -317,7 +317,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
     monthly_report = next(
         item for item in mutations["mutations"] if item["name"] == "monthly_report"
     )
-    assert monthly_report["validation_status"] == "adverse_event_suspected"
+    assert monthly_report["validation_status"] == "safety_not_established"
     assert monthly_report["execution_status"] == "blocked"
     assert monthly_report["execute_operation"] is None
     reservation = next(

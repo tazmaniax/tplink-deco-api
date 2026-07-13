@@ -35,6 +35,7 @@ class TmpMutationPlan:
     parameter_contract_evidence: str
     p9_parameter_contract_verified: bool
     p9_mutation_observation: str
+    p9_mutation_safety_status: str
     p9_mutation_firmware_error_code: int | None
     p9_mutation_parameter_keys: tuple[str, ...]
     p9_mutation_state_unchanged: bool | None
@@ -89,6 +90,7 @@ class TmpMutationPlan:
             "parameter_contract_evidence": self.parameter_contract_evidence,
             "p9_parameter_contract_verified": self.p9_parameter_contract_verified,
             "p9_mutation_observation": self.p9_mutation_observation,
+            "p9_mutation_safety_status": self.p9_mutation_safety_status,
             "p9_mutation_firmware_error_code": self.p9_mutation_firmware_error_code,
             "p9_mutation_parameter_keys": self.p9_mutation_parameter_keys,
             "p9_mutation_state_unchanged": self.p9_mutation_state_unchanged,

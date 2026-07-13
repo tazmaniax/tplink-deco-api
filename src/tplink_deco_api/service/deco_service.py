@@ -342,12 +342,12 @@ class DecoService:
             else ()
         )
         scopes = {compatibility.mutation_test_scope for compatibility in compatibilities}
-        tmp_adverse_event = name == "monthly_report" and profile_match in {
+        tmp_safety_not_established = name == "monthly_report" and profile_match in {
             "exact",
             "model_only",
         }
-        if tmp_adverse_event:
-            validation_status = "adverse_event_suspected"
+        if tmp_safety_not_established:
+            validation_status = "safety_not_established"
         elif "general" in scopes:
             validation_status = "general_verified"
         elif "noop_only" in scopes or route is not None:
@@ -374,8 +374,11 @@ class DecoService:
         blockers.extend(
             f"{gate} is disabled" for gate, enabled in gate_status.items() if not enabled
         )
-        if tmp_adverse_event:
-            blockers.append("TMP write evidence includes a suspected post-test adverse event")
+        if tmp_safety_not_established:
+            blockers.append(
+                "TMP current-value write passed immediate verification only; operational "
+                "safety is not established"
+            )
         required = sorted({key for endpoint in endpoints for key in endpoint.required_params})
         optional = sorted({key for endpoint in endpoints for key in endpoint.optional_params})
         if name == "monthly_report":
@@ -1610,7 +1613,9 @@ class DecoService:
                 ),
                 "evidence": (
                     "P9 SSH/TMP authentication and read audit; three current-value writes "
-                    "were followed by a suspected adverse event, so server writes are disabled"
+                    "passed immediate verification but did not establish operational safety; "
+                    "a later incident is temporally associated with aggregate TMP activity "
+                    "but unattributed"
                 ),
             },
         }
@@ -1957,7 +1962,8 @@ class DecoService:
                 {
                     "id": "p9_tmp_beamforming_noop_verification",
                     "artifact": "docs/api-responses/p9-tmp-beamforming-noop.json",
-                    "outcome": "same_value_observed_then_adverse_event_suspected",
+                    "outcome": "same_value_immediate_verification_passed",
+                    "safety_status": "safety_not_established",
                     "operation_code": 0x421C,
                     "mutation_request_count": 1,
                     "state_unchanged": True,
@@ -1967,7 +1973,8 @@ class DecoService:
                 {
                     "id": "p9_tmp_monthly_report_noop_verification",
                     "artifact": "docs/api-responses/p9-tmp-monthly-report-noop.json",
-                    "outcome": "same_value_observed_then_adverse_event_suspected",
+                    "outcome": "same_value_immediate_verification_passed",
+                    "safety_status": "safety_not_established",
                     "operation_code": 0x4223,
                     "mutation_request_count": 1,
                     "state_unchanged": True,
@@ -2014,8 +2021,8 @@ class DecoService:
                     "surface": "tmp_mutations",
                     "count": (len(tmp_write_operations) - tmp_mutation_tested_count),
                     "gap": (
-                        "345 mutations untested; three same-value writes are associated with "
-                        "a suspected post-test adverse event"
+                        "345 mutations untested; three same-value writes passed immediate "
+                        "verification but did not establish operational safety"
                     ),
                     "next_action": (
                         "keep server writes hard-disabled; use only the isolated source-checkout "
@@ -2071,10 +2078,19 @@ class DecoService:
             "source_scope": (
                 "signed Deco Android apps 1.10.5 and 3.10.215; tmpkit tested only "
                 "on X5000; this project tested the original 74 reads and two "
-                "protocol operations plus three current-value writes on P9 followed by a "
-                "suspected adverse event; server writes are hard-disabled; "
+                "protocol operations plus three current-value writes on P9; the writes passed "
+                "immediate verification but operational safety is not established; a later "
+                "incident is temporally associated with aggregate TMP activity but unattributed; "
+                "server writes are hard-disabled; "
                 f"{untested_read_count} reads remain untested"
             ),
+            "incident_context": {
+                "activity_scope": "aggregate_tmp_activity",
+                "association": "temporally_associated_unattributed",
+                "causality": "undetermined",
+                "observed_at": "2026-07-12",
+                "reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
+            },
             "catalogued_opcode_count": len(TMP_OPCODE_CATALOG),
             "safety_counts": dict(sorted(all_safety.items())),
             "category_counts": dict(sorted(all_categories.items())),
@@ -2243,7 +2259,9 @@ class DecoService:
             "evidence": (
                 "opcode name-pair inference, P9 read observations, and signed "
                 "Deco Android 1.10.5 plus 3.10.215 static request contracts; "
-                "three value-free P9 current-value writes followed by a suspected adverse event; "
+                "three value-free P9 current-value writes passed immediate verification but "
+                "did not establish operational safety; the later incident is associated only "
+                "with aggregate TMP activity and remains unattributed; "
                 "server execution is hard-disabled"
             ),
             "plans": plan_payloads,

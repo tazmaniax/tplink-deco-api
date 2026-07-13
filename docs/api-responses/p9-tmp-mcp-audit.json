@@ -2,7 +2,7 @@
   "schema_version": 20,
   "observed_at": "2026-07-11",
   "superseded": true,
-  "superseded_reason": "Server-side TMP writes were hard-disabled after a later P9 mesh topology failure; causality remains unresolved.",
+  "superseded_reason": "Server-side TMP writes were hard-disabled because immediate same-value verification did not establish operational safety. A later P9 mesh incident is temporally associated with aggregate TMP activity but unattributed; causality is undetermined.",
   "incident_reference": "docs/incidents/2026-07-12-p9-tmp-topology-loss.md",
   "model": "P9",
   "transport": "tmp_appv2_over_ssh",
