@@ -1388,7 +1388,7 @@ def test_configuration_uses_tmp_ipv4_after_tmp_identity_bootstrap() -> None:
     ]
 
 
-def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> None:
+def test_client_devices_use_one_tmp_source_after_tmp_identity_bootstrap() -> None:
     config = replace(
         _config(),
         allow_sensitive_reads=True,
@@ -1452,32 +1452,21 @@ def test_client_devices_use_only_tmp_sources_after_tmp_identity_bootstrap() -> N
 
     assert_response_contract(ClientsResponse, devices)
     assert devices["provenance"]["source_interface"] == "tmp_appv2"
-    assert devices["devices"][0]["reserved"] is True
-    assert devices["devices"][0]["reservation_ip"] == "192.0.2.10"
-    assert devices["devices"][0]["up_speed"] == 10
-    blocked = next(record for record in devices["devices"] if record["blocked"] is True)
-    assert blocked["mac"] == "AA:BB:CC:DD:EE:02"
-    assert devices["source_counts"] == {
-        "client_list": 1,
-        "node_client_assignments": 0,
-        "blocked_devices": 1,
-        "device_speeds": 1,
-        "address_reservations": 1,
-    }
-    assert {item["section"] for item in devices["unavailable_sections"]} == {"clients_by_node"}
+    assert devices["devices"][0]["mac"] == "AA:BB:CC:DD:EE:01"
+    assert "reserved" not in devices["devices"][0]
+    assert "blocked" not in devices["devices"][0]
+    assert devices["source_counts"] == {"client_list": 1}
+    assert devices["unavailable_sections"] == []
     http_client.get_client_list.assert_not_called()
     http_client.get_clients_by_node.assert_not_called()
     http_client.get_address_reservations.assert_not_called()
     assert tmp_client.request_read_json.call_args_list == [
         mock.call(0x400F, None),
         mock.call(0x4012, None),
-        mock.call(0x4018, None),
-        mock.call(0x4014, None),
-        mock.call(0x40C0, None),
     ]
 
 
-def test_http_device_enrichment_does_not_cross_transport_after_partial_failure() -> None:
+def test_http_device_collection_does_not_request_enrichment() -> None:
     config = replace(
         _config(),
         allow_sensitive_reads=True,
@@ -1523,10 +1512,12 @@ def test_http_device_enrichment_does_not_cross_transport_after_partial_failure()
         devices = service.client_devices_resource()
 
     assert_response_contract(ClientsResponse, devices)
-    assert devices["devices"][0]["up_speed"] == 10
-    assert devices["source_counts"]["blocked_devices"] == 0
-    assert devices["source_counts"]["device_speeds"] == 1
-    assert {item["section"] for item in devices["unavailable_sections"]} == {"blocked_devices"}
+    assert devices["devices"][0]["up_speed"] == 0
+    assert devices["source_counts"] == {"client_list": 1}
+    assert devices["unavailable_sections"] == []
+    http_client.call.assert_not_called()
+    http_client.get_traffic_statistics.assert_not_called()
+    http_client.get_address_reservations.assert_not_called()
     get_tmp_client.assert_not_called()
 
 
@@ -3246,6 +3237,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://mutations",
     }
     assert resource_templates == {
+        "deco://device-details/{mac}",
         "deco://logs/{index}",
         "deco://parental-controls/{owner_id}",
         "deco://parental-controls/{owner_id}/insights",

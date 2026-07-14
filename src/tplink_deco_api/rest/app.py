@@ -44,6 +44,7 @@ from ..responses import (
     AccessPermissionsResponse,
     CapabilitiesResponse,
     CapabilityResponse,
+    ClientResponse,
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
@@ -565,6 +566,18 @@ def _create_rest_router(
     def ipv6_clients() -> dict[str, JsonValue]:
         """Return the current semantic IPv6 client and neighbor inventory."""
         return service.ipv6_devices_resource()
+
+    @router.get(
+        "/clients/{mac}",
+        response_model=ClientResponse,
+        operation_id="getClient",
+    )
+    def client(mac: Annotated[str, Path(min_length=1)]) -> dict[str, JsonValue]:
+        """Return optional multi-source enrichment for one client device."""
+        try:
+            return service.client_device_resource(mac)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="Client device not found") from exc
 
     @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:

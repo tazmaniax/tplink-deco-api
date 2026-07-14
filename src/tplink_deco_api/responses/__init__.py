@@ -5,6 +5,7 @@ from __future__ import annotations
 from .access_permissions_response import AccessPermissionsResponse
 from .capabilities_response import CapabilitiesResponse
 from .capability_response import CapabilityResponse
+from .client_response import ClientResponse
 from .clients_response import ClientsResponse
 from .cloud_response import CloudResponse
 from .configuration_response import ConfigurationResponse
@@ -52,6 +53,7 @@ __all__ = [
     "AccessPermissionsResponse",
     "CapabilitiesResponse",
     "CapabilityResponse",
+    "ClientResponse",
     "ClientsResponse",
     "CloudResponse",
     "ConfigurationResponse",

@@ -257,10 +257,11 @@ System-log pages require both the sensitive gate and
 | `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. | `schema_version`, `status`, `owner_id`, `insights`, `insight_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. | `schema_version`, `status`, `owner_id`, `history`, `history_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://access/permissions` | Manager-role availability and component-access policies. | `schema_version`, `status`, `roles`, `role_count`, `permission_profiles`, `permission_profile_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
-| `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
-| `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
-| `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
-| `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
+| `deco://devices` | Lightweight devices from one global client-list read. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices/active` | Lightweight devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
+| `deco://devices/inactive` | Lightweight known devices currently reported offline. | Same as `deco://devices`, with `view="inactive"`. |
+| `deco://devices/blocked` | Lightweight identities from one block-list read. | Same as `deco://devices`, with `view="blocked"`. |
+| `deco://device-details/{mac}` | One selected device enriched on demand from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `device`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
 | `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
@@ -291,12 +292,13 @@ either transport at startup. Each
 `execution_scope`, `execution_status`, `required_gates`,
 `confirmation_required`, `preflight_available`, `verification_available`,
 `rollback_available`, `plan_operation`, `execute_operation` and `blockers`.
-Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
-`active`, `access_status`, `blocked`, `reserved`, `prioritized`,
-`reservation_ip`, `up_speed`, `down_speed`, `wire_type`, `connection_type`,
-`interface`, `connected_node`, `space_id`, `access_host`, `owner_id`,
-`remain_time`, `client_mesh` and `sources`. `status` is the connectivity state
-`active` or `inactive`; blocking is an independent access state. Each
+Each client-list `devices[]` summary contains the fields supplied by that read,
+including `mac`, `ip`, `name`, `client_type`, `status`, `active`, connection
+metadata and `detail_resource`; block-list summaries contain identity and
+blocking fields. The device-detail resource can additionally contain
+`access_status`, `blocked`, `reserved`, `reservation_ip`, `connected_node` and
+multi-source `sources`. `status` is the connectivity state `active` or
+`inactive`; blocking is an independent access state. Each
 `device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
 `categories[]` item contains a firmware level `name` and `value`.
 Each mesh `node_speeds[]` item contains `device_id`, `up_speed` and `down_speed`.
@@ -330,9 +332,11 @@ secret resource uses validated TMP opcode `0x4229` and exposes no permission
 write.
 The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
 normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
-fallback. `deco://devices` reads blocking, traffic and reservations only from
-the interface selected for its client inventory; a failed enrichment is marked
-unavailable rather than being filled from the other interface.
+fallback. Device collections each read only their authoritative capability and
+include `detail_resource` links. `deco://device-details/{mac}` performs optional
+per-node, blocking, traffic and reservation enrichment only for an explicitly
+selected device, stays on the interface selected for client inventory and marks
+failed enrichment unavailable rather than mixing interfaces.
 The `firmware` status section groups HTTP node records and TMP `0x401C` release
 records by model, hardware identity, target version and release metadata. Each
 release reports affected device IDs and update flags. HTTP supplies
