@@ -172,6 +172,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_normalized_field_equivalence",
     ),
     CapabilityRoute(
+        name="led_configuration",
+        description="System LED and night-mode schedule state",
+        sensitivity="private",
+        primary_interface="tmp_appv2",
+        primary_operation="0x401A",
+        fallback_interface=None,
+        fallback_operation="",
+        fallback_policy="none",
+        equivalence_evidence="p9_live_schema_contract",
+    ),
+    CapabilityRoute(
         name="ipv6_configuration",
         description="IPv6 WAN and LAN configuration",
         sensitivity="secret",

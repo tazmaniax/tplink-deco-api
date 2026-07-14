@@ -66,6 +66,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/service` | Sanitized server settings, gates and connection state. |
 | `GET` | `/api/v1/status` | Normalized internet, controller and mesh health. |
 | `GET` | `/api/v1/configuration` | Sanitized network and system configuration. |
+| `GET` | `/api/v1/system/led` | System LED state and firmware-native night-mode schedule values. |
 | `GET` | `/api/v1/mesh?refresh=false` | Controller and mesh-node inventory. |
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
@@ -112,6 +113,8 @@ TMP-only semantic reads and do not require diagnostic tools to be exposed. They
 require the TMP gate; LAN, DHCP, port forwarding and the three IPv6 resources
 also require the sensitive-read gate. TMP remains disconnected until one of
 these resources is actually read.
+The independently evidenced system LED resource also requires the TMP gate but
+does not require the sensitive-read gate.
 
 ## Response contracts
 

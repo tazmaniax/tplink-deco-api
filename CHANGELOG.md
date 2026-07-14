@@ -32,9 +32,9 @@ transport, compatibility evidence and a conservative mutation workflow.
 ### MCP server
 
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
-* exposed 25 canonical resources for MCP state, network status, configuration,
+* exposed 26 canonical resources for MCP state, network status, configuration,
   mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  LAN/DHCP/QoS/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv4 and IPv6
+  system LED state, LAN/DHCP/QoS/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv4 and IPv6
   configuration/firewall/clients, log levels, capabilities and mutations
 * added a gated `deco://logs/{index}` resource template for bounded system-log
   pagination without duplicating the read as a tool
@@ -63,6 +63,8 @@ transport, compatibility evidence and a conservative mutation workflow.
   TMP's supported-mode list and completing TMP-backed WLAN feature state
 * added normalized IPv4 WAN/LAN HTTP-to-TMP fallback, preserving TMP-only
   inbound-ping state and restoring those sections during eligible TMP startup
+* exposed the validated P9 TMP system LED and night-mode schedule as a default
+  protocol-neutral read without adding LED mutation support
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
 * promoted twelve positively evidenced TMP-only network datasets into eleven

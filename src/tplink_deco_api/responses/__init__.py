@@ -14,6 +14,7 @@ from .ipv6_configuration_response import Ipv6ConfigurationResponse
 from .ipv6_devices_response import Ipv6DevicesResponse
 from .ipv6_firewall_response import Ipv6FirewallResponse
 from .lan_configuration_response import LanConfigurationResponse
+from .led_configuration_response import LedConfigurationResponse
 from .log_types_response import LogTypesResponse
 from .mac_clone_response import MacCloneResponse
 from .mesh_response import MeshResponse
@@ -47,6 +48,7 @@ __all__ = [
     "Ipv6DevicesResponse",
     "Ipv6FirewallResponse",
     "LanConfigurationResponse",
+    "LedConfigurationResponse",
     "LogTypesResponse",
     "MacCloneResponse",
     "MeshResponse",

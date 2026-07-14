@@ -99,6 +99,7 @@ from ._network_normalization import (
 )
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
+from ._system_normalization import normalize_led_configuration
 from ._wlan_normalization import (
     normalize_http_wireless_bridge,
     normalize_http_wireless_operation_mode,
@@ -566,6 +567,10 @@ class DecoService:
     def ipv4_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv4 WAN and LAN configuration."""
         return self._semantic_capability_resource("ipv4_configuration", "IPv4 configuration")
+
+    def led_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic system LED and night-mode state."""
+        return self._semantic_capability_resource("led_configuration", "LED configuration")
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
@@ -1644,6 +1649,7 @@ class DecoService:
             "ddns": 0x40D0,
             "wlan_state": 0x4009,
             "ipv4_configuration": 0x4004,
+            "led_configuration": 0x401A,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1698,6 +1704,8 @@ class DecoService:
             )
         if name == "ipv4_configuration":
             return normalize_tmp_ipv4_configuration(result)
+        if name == "led_configuration":
+            return normalize_led_configuration(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4563,6 +4571,7 @@ def _capability_category(name: str) -> str:
         "ddns": "network",
         "wlan_state": "wireless",
         "ipv4_configuration": "network",
+        "led_configuration": "system",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",

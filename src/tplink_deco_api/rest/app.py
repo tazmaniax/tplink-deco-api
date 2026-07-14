@@ -53,6 +53,7 @@ from ..responses import (
     Ipv6DevicesResponse,
     Ipv6FirewallResponse,
     LanConfigurationResponse,
+    LedConfigurationResponse,
     LogTypesResponse,
     MacCloneResponse,
     MeshResponse,
@@ -282,6 +283,15 @@ def _create_rest_router(
     def configuration() -> dict[str, JsonValue]:
         """Return a sanitized live configuration overview."""
         return service.configuration_resource()
+
+    @router.get(
+        "/system/led",
+        response_model=LedConfigurationResponse,
+        operation_id="getLedConfiguration",
+    )
+    def led_configuration() -> dict[str, JsonValue]:
+        """Return the current system LED and night-mode state."""
+        return service.led_configuration_resource()
 
     @router.get("/mesh", response_model=MeshResponse, operation_id="getMesh")
     def mesh(refresh: Annotated[bool, Query()] = False) -> dict[str, JsonValue]:

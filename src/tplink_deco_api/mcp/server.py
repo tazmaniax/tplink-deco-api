@@ -39,6 +39,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://mcp",
         "deco://status",
         "deco://configuration",
+        "deco://system/led",
         "deco://mesh",
         "deco://devices",
         "deco://devices/active",
@@ -200,6 +201,11 @@ def create_server(
     def configuration_resource() -> str:
         """Return a sanitized live overview of the connected Deco configuration."""
         return _json_text(service.configuration_resource())
+
+    @server.resource("deco://system/led")
+    def led_configuration_resource() -> str:
+        """Return the gated system LED and night-mode state."""
+        return _json_text(service.led_configuration_resource())
 
     @server.resource("deco://mesh")
     def mesh_resource() -> str:
