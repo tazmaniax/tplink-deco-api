@@ -67,6 +67,12 @@ from ..responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    ParentalControlCatalogResponse,
+    ParentalControlFilterLevelsResponse,
+    ParentalControlHistoryResponse,
+    ParentalControlInsightsResponse,
+    ParentalControlProfileResponse,
+    ParentalControlsResponse,
     PortForwardingResponse,
     QosResponse,
     ServiceStatusResponse,
@@ -337,6 +343,66 @@ def _create_rest_router(
     def monthly_reports() -> dict[str, JsonValue]:
         """Return monthly client, parental-control, and security reports."""
         return service.monthly_reports_resource()
+
+    @router.get(
+        "/parental-controls",
+        response_model=ParentalControlsResponse,
+        operation_id="getParentalControls",
+    )
+    def parental_controls() -> dict[str, JsonValue]:
+        """Return parental-control profile policies and schedules."""
+        return service.parental_controls_resource()
+
+    @router.get(
+        "/parental-controls/filter-levels",
+        response_model=ParentalControlFilterLevelsResponse,
+        operation_id="getParentalControlFilterLevels",
+    )
+    def parental_control_filter_levels() -> dict[str, JsonValue]:
+        """Return default parental-control filtering policies."""
+        return service.parental_control_filter_levels_resource()
+
+    @router.get(
+        "/parental-controls/catalog",
+        response_model=ParentalControlCatalogResponse,
+        operation_id="getParentalControlCatalog",
+    )
+    def parental_control_catalog() -> dict[str, JsonValue]:
+        """Return the website and application filter catalogue."""
+        return service.parental_control_catalog_resource()
+
+    @router.get(
+        "/parental-controls/{owner_id}",
+        response_model=ParentalControlProfileResponse,
+        operation_id="getParentalControlProfile",
+    )
+    def parental_control_profile(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return one parental-control profile policy."""
+        return service.parental_control_profile_resource(owner_id)
+
+    @router.get(
+        "/parental-controls/{owner_id}/insights",
+        response_model=ParentalControlInsightsResponse,
+        operation_id="getParentalControlInsights",
+    )
+    def parental_control_insights(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return online-usage insights for one parental-control profile."""
+        return service.parental_control_insights_resource(owner_id)
+
+    @router.get(
+        "/parental-controls/{owner_id}/history",
+        response_model=ParentalControlHistoryResponse,
+        operation_id="getParentalControlHistory",
+    )
+    def parental_control_history(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return browsing history for one parental-control profile."""
+        return service.parental_control_history_resource(owner_id)
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(

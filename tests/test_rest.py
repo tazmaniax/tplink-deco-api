@@ -48,6 +48,12 @@ from tplink_deco_api.responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    ParentalControlCatalogResponse,
+    ParentalControlFilterLevelsResponse,
+    ParentalControlHistoryResponse,
+    ParentalControlInsightsResponse,
+    ParentalControlProfileResponse,
+    ParentalControlsResponse,
     PortForwardingResponse,
     QosResponse,
     ResponseDto,
@@ -365,6 +371,91 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             ],
             report_count=1,
             provenance={**tmp_provenance, "source_operation": "0x40E0"},
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_controls_resource": ParentalControlsResponse(
+            schema_version=1,
+            status="available",
+            profiles=[{"owner_id": "owner-1", "name": "Household member"}],
+            profile_count=1,
+            provenance={**tmp_provenance, "source_operation": "0x4029"},
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_control_filter_levels_resource": ParentalControlFilterLevelsResponse(
+            schema_version=1,
+            status="available",
+            filter_levels=[{"level": "teen", "categories": [], "websites": []}],
+            filter_level_count=1,
+            provenance={**tmp_provenance, "source_operation": "0x4035"},
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_control_catalog_resource": ParentalControlCatalogResponse(
+            schema_version=1,
+            status="available",
+            has_app_filter=True,
+            needs_update=False,
+            version=1030,
+            entries=[{"name": "Example service"}],
+            entry_count=1,
+            provenance={
+                **tmp_provenance,
+                "source_operation": "0x403A",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+            },
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_control_profile_resource": ParentalControlProfileResponse(
+            schema_version=1,
+            status="available",
+            profile={"owner_id": "owner-1", "name": "Household member"},
+            provenance={
+                **tmp_provenance,
+                "source_operation": "0x402D",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+            },
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_control_insights_resource": ParentalControlInsightsResponse(
+            schema_version=1,
+            status="available",
+            owner_id="owner-1",
+            insights=[{"spend_online": 600, "websites": []}],
+            insight_count=1,
+            provenance={
+                **tmp_provenance,
+                "source_operation": "0x402F",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+            },
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "parental_control_history_resource": ParentalControlHistoryResponse(
+            schema_version=1,
+            status="available",
+            owner_id="owner-1",
+            history=[
+                {
+                    "access_timestamp": "2026-07-14T10:00:00Z",
+                    "website": "example.test",
+                }
+            ],
+            history_count=1,
+            provenance={
+                **tmp_provenance,
+                "source_operation": "0x4031",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+            },
             observed_at_epoch_seconds=1.0,
             router_contacted=True,
             mutation_invoked=False,
@@ -701,6 +792,12 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/wireless/wps", "get"): "getWpsStatus",
         ("/api/v1/reports/monthly/settings", "get"): "getMonthlyReportSettings",
         ("/api/v1/reports/monthly", "get"): "getMonthlyReports",
+        ("/api/v1/parental-controls", "get"): "getParentalControls",
+        ("/api/v1/parental-controls/filter-levels", "get"): ("getParentalControlFilterLevels"),
+        ("/api/v1/parental-controls/catalog", "get"): "getParentalControlCatalog",
+        ("/api/v1/parental-controls/{owner_id}", "get"): "getParentalControlProfile",
+        ("/api/v1/parental-controls/{owner_id}/insights", "get"): ("getParentalControlInsights"),
+        ("/api/v1/parental-controls/{owner_id}/history", "get"): ("getParentalControlHistory"),
         ("/api/v1/clients", "get"): "getClients",
         ("/api/v1/traffic", "get"): "getTraffic",
         ("/api/v1/address-reservations", "get"): "getAddressReservations",
@@ -739,6 +836,14 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/wireless/wps", "get"): "WpsStatusResponse",
         ("/api/v1/reports/monthly/settings", "get"): "MonthlyReportSettingsResponse",
         ("/api/v1/reports/monthly", "get"): "MonthlyReportsResponse",
+        ("/api/v1/parental-controls", "get"): "ParentalControlsResponse",
+        ("/api/v1/parental-controls/filter-levels", "get"): ("ParentalControlFilterLevelsResponse"),
+        ("/api/v1/parental-controls/catalog", "get"): "ParentalControlCatalogResponse",
+        ("/api/v1/parental-controls/{owner_id}", "get"): ("ParentalControlProfileResponse"),
+        ("/api/v1/parental-controls/{owner_id}/insights", "get"): (
+            "ParentalControlInsightsResponse"
+        ),
+        ("/api/v1/parental-controls/{owner_id}/history", "get"): ("ParentalControlHistoryResponse"),
         ("/api/v1/clients", "get"): "ClientsResponse",
         ("/api/v1/traffic", "get"): "TrafficResponse",
         ("/api/v1/address-reservations", "get"): "CapabilityResponse",
@@ -899,6 +1004,21 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
             "deco://reports/monthly",
             "/api/v1/reports/monthly",
         ),
+        (
+            "parental_controls_resource",
+            "deco://parental-controls",
+            "/api/v1/parental-controls",
+        ),
+        (
+            "parental_control_filter_levels_resource",
+            "deco://parental-controls/filter-levels",
+            "/api/v1/parental-controls/filter-levels",
+        ),
+        (
+            "parental_control_catalog_resource",
+            "deco://parental-controls/catalog",
+            "/api/v1/parental-controls/catalog",
+        ),
         ("client_devices_resource", "deco://devices", "/api/v1/clients"),
         ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
         (
@@ -953,6 +1073,46 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
             assert rest_response.json() == json.loads(resource_result[0].content)
 
 
+@pytest.mark.asyncio
+async def test_parental_control_templates_and_rest_routes_serialize_identically() -> None:
+    config = _config()
+    service = mock.create_autospec(DecoService, instance=True)
+    responses = _read_response_dtos(config)
+    pairs = (
+        (
+            "parental_control_profile_resource",
+            "deco://parental-controls/owner-1",
+            "/api/v1/parental-controls/owner-1",
+        ),
+        (
+            "parental_control_insights_resource",
+            "deco://parental-controls/owner-1/insights",
+            "/api/v1/parental-controls/owner-1/insights",
+        ),
+        (
+            "parental_control_history_resource",
+            "deco://parental-controls/owner-1/history",
+            "/api/v1/parental-controls/owner-1/history",
+        ),
+    )
+    for method_name, _, _ in pairs:
+        getattr(service, method_name).return_value = responses[method_name]
+    with mock.patch("tplink_deco_api.rest.app.DecoService", return_value=service):
+        application = create_http_application(config)
+    mcp_server = create_server(config, service)
+
+    with TestClient(application) as client:
+        for _, resource_uri, rest_path in pairs:
+            rest_response = client.get(rest_path, headers=_AUTH)
+            resource_result = await mcp_server.read_resource(resource_uri)
+            assert isinstance(resource_result[0].content, str)
+            assert rest_response.json() == json.loads(resource_result[0].content)
+
+    for method_name, _, _ in pairs:
+        method = getattr(service, method_name)
+        assert method.call_args_list == [mock.call("owner-1"), mock.call("owner-1")]
+
+
 def test_non_ascii_bearer_token_is_rejected_without_type_error() -> None:
     authenticator = StaticBearerAuthenticator(_TOKEN)
 
@@ -984,6 +1144,12 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
         "wps_status_resource",
         "monthly_report_settings_resource",
         "monthly_reports_resource",
+        "parental_controls_resource",
+        "parental_control_filter_levels_resource",
+        "parental_control_catalog_resource",
+        "parental_control_profile_resource",
+        "parental_control_insights_resource",
+        "parental_control_history_resource",
         "client_devices_resource",
         "traffic_resource",
         "address_reservations_resource",
@@ -1011,6 +1177,12 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
                 client.get("/api/v1/wireless/wps", headers=_AUTH),
                 client.get("/api/v1/reports/monthly/settings", headers=_AUTH),
                 client.get("/api/v1/reports/monthly", headers=_AUTH),
+                client.get("/api/v1/parental-controls", headers=_AUTH),
+                client.get("/api/v1/parental-controls/filter-levels", headers=_AUTH),
+                client.get("/api/v1/parental-controls/catalog", headers=_AUTH),
+                client.get("/api/v1/parental-controls/owner-1", headers=_AUTH),
+                client.get("/api/v1/parental-controls/owner-1/insights", headers=_AUTH),
+                client.get("/api/v1/parental-controls/owner-1/history", headers=_AUTH),
                 client.get("/api/v1/clients?view=blocked", headers=_AUTH),
                 client.get("/api/v1/traffic", headers=_AUTH),
                 client.get("/api/v1/address-reservations", headers=_AUTH),
@@ -1028,6 +1200,9 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
     ]
     patched["device_inventory"].assert_called_once_with(refresh=True)
     patched["client_devices_resource"].assert_called_once_with("blocked")
+    patched["parental_control_profile_resource"].assert_called_once_with("owner-1")
+    patched["parental_control_insights_resource"].assert_called_once_with("owner-1")
+    patched["parental_control_history_resource"].assert_called_once_with("owner-1")
     patched["read_capability"].assert_called_once_with("beamforming")
     patched["wlan_state"].assert_called_once_with(include_passwords=True)
     patched["system_log_page_resource"].assert_called_once_with(2, 100)

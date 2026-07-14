@@ -53,6 +53,12 @@ from tplink_deco_api.responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    ParentalControlCatalogResponse,
+    ParentalControlFilterLevelsResponse,
+    ParentalControlHistoryResponse,
+    ParentalControlInsightsResponse,
+    ParentalControlProfileResponse,
+    ParentalControlsResponse,
     PortForwardingResponse,
     QosResponse,
     SipAlgResponse,
@@ -259,6 +265,37 @@ def _tmp_monthly_reports_payload() -> list[JsonObject]:
     ]
 
 
+def _tmp_parental_control_profile(owner_id: str = "owner-1") -> JsonObject:
+    return {
+        "owner_id": owner_id,
+        "name": "Household member",
+        "avatar_md5": "avatar-digest",
+        "internet_blocked": False,
+        "filter_level": "teen",
+        "filter_level_detail": {
+            "categories_list": ["adult_content", "games"],
+            "website_list": ["allowed.test"],
+        },
+        "bed_time": {
+            "enable_workday_bed_time": True,
+            "workday_bed_time_begin": "22:00",
+            "workday_bed_time_end": "07:00",
+            "enable_weekend_bed_time": False,
+            "weekend_bed_time_begin": 0,
+            "weekend_bed_time_end": 0,
+        },
+        "time_limits": {
+            "enable_workday_time_limit": True,
+            "workday_daily_time": 7200,
+            "enable_weekend_time_limit": True,
+            "weekend_daily_time": 10800,
+        },
+        "insights": 1,
+        "workday": 31,
+        "weekend": 96,
+    }
+
+
 def test_capability_registry_contains_only_read_fallbacks() -> None:
     assert [route.name for route in CAPABILITY_ROUTES] == [
         "mesh_nodes",
@@ -281,6 +318,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "wps_status",
         "monthly_report_settings",
         "monthly_reports",
+        "parental_control_profiles",
+        "parental_control_filter_levels",
+        "parental_control_catalog",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -338,7 +378,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 32
+    assert len(result["routes"]) == 35
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -1887,6 +1927,195 @@ def test_monthly_reports_resource_rejects_non_array_result() -> None:
         service.monthly_reports_resource()
 
 
+def test_parental_control_collection_resources_normalize_positive_p9_contracts() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {
+            "error_code": 0,
+            "result": {"owner_list": [_tmp_parental_control_profile()]},
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "filter_level_list": [
+                    {
+                        "filter_level": "teen",
+                        "filter_level_detail": {
+                            "categories_list": [{"games": "block"}],
+                            "website_list": [],
+                        },
+                    }
+                ]
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "has_app_filter": True,
+                "need_up_to_date": False,
+                "version": 1030,
+                "website_app_list": [{"name": "Example service"}],
+            },
+        },
+    ]
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        profiles = service.parental_controls_resource()
+        filter_levels = service.parental_control_filter_levels_resource()
+        catalog = service.parental_control_catalog_resource()
+
+    assert_response_contract(ParentalControlsResponse, profiles)
+    assert_response_contract(ParentalControlFilterLevelsResponse, filter_levels)
+    assert_response_contract(ParentalControlCatalogResponse, catalog)
+    assert profiles["profile_count"] == 1
+    profile = profiles["profiles"][0]
+    assert profile["owner_id"] == "owner-1"
+    assert profile["bedtime"]["workdays"] == {
+        "enabled": True,
+        "begin": "22:00",
+        "end": "07:00",
+    }
+    assert profile["time_limits"]["weekends"]["daily_time"] == 10800
+    assert filter_levels["filter_levels"] == [
+        {
+            "level": "teen",
+            "categories": [{"games": "block"}],
+            "websites": [],
+        }
+    ]
+    assert catalog["entries"] == [{"name": "Example service"}]
+    assert catalog["version"] == 1030
+    assert [
+        item["provenance"]["source_operation"]
+        for item in (
+            profiles,
+            filter_levels,
+            catalog,
+        )
+    ] == ["0x4029", "0x4035", "0x403A"]
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x4029, None),
+        mock.call(0x4035, None),
+        mock.call(0x403A, {"version": 1029}),
+    ]
+
+
+def test_parental_control_owner_resources_use_confirmed_parameter_contracts() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.side_effect = [
+        {"error_code": 0, "result": _tmp_parental_control_profile()},
+        {
+            "error_code": 0,
+            "result": {
+                "owner_id": "owner-1",
+                "insights": [
+                    {
+                        "spend_online": 600,
+                        "website_list": [{"website": "example.test"}],
+                    }
+                ],
+            },
+        },
+        {
+            "error_code": 0,
+            "result": {
+                "owner_id": "owner-1",
+                "history": [
+                    {
+                        "access_timestamp": "2026-07-14T10:00:00Z",
+                        "website": "example.test",
+                    }
+                ],
+            },
+        },
+    ]
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        profile = service.parental_control_profile_resource("owner-1")
+        insights = service.parental_control_insights_resource("owner-1")
+        history = service.parental_control_history_resource("owner-1")
+
+    assert_response_contract(ParentalControlProfileResponse, profile)
+    assert_response_contract(ParentalControlInsightsResponse, insights)
+    assert_response_contract(ParentalControlHistoryResponse, history)
+    assert profile["profile"]["name"] == "Household member"
+    assert insights["insights"] == [
+        {
+            "spend_online": 600,
+            "websites": [{"website": "example.test"}],
+        }
+    ]
+    assert history["history"] == [
+        {
+            "access_timestamp": "2026-07-14T10:00:00Z",
+            "website": "example.test",
+        }
+    ]
+    assert [
+        item["provenance"]["source_operation"]
+        for item in (
+            profile,
+            insights,
+            history,
+        )
+    ] == ["0x402D", "0x402F", "0x4031"]
+    assert tmp_client.request_read_json.call_args_list == [
+        mock.call(0x402D, {"owner_id": "owner-1"}),
+        mock.call(0x402F, {"owner_id": "owner-1"}),
+        mock.call(0x4031, {"owner_id": "owner-1"}),
+    ]
+
+
+def test_parental_control_owner_resources_validate_before_router_contact() -> None:
+    service = DecoService(_config())
+
+    with (
+        mock.patch.object(service, "device_inventory") as inventory,
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(ValueError, match="owner_id must be non-empty"),
+    ):
+        service.parental_control_profile_resource(" ")
+
+    inventory.assert_not_called()
+    get_tmp_client.assert_not_called()
+
+
+def test_parental_control_owner_resources_require_sensitive_read_gate() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+
+    with (
+        mock.patch.object(service, "device_inventory") as inventory,
+        pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"),
+    ):
+        service.parental_control_history_resource("owner-1")
+
+    inventory.assert_not_called()
+
+
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
     config = replace(
         _config(),
@@ -2492,7 +2721,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 32
+    assert capabilities["supported_count"] == 35
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -2568,7 +2797,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 32
+    assert capabilities["unknown_count"] == 35
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2678,6 +2907,9 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://wireless/wps",
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
+        "deco://parental-controls",
+        "deco://parental-controls/filter-levels",
+        "deco://parental-controls/catalog",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -2700,7 +2932,12 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://capabilities",
         "deco://mutations",
     }
-    assert resource_templates == {"deco://logs/{index}"}
+    assert resource_templates == {
+        "deco://logs/{index}",
+        "deco://parental-controls/{owner_id}",
+        "deco://parental-controls/{owner_id}/insights",
+        "deco://parental-controls/{owner_id}/history",
+    }
 
     tools = {tool.name: tool for tool in await server.list_tools()}
     assert tools["deco_get_capability"].annotations.readOnlyHint is True

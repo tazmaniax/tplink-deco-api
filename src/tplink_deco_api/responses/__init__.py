@@ -28,6 +28,12 @@ from .mutation_preflight_response import MutationPreflightResponse
 from .mutation_response import MutationResponse
 from .mutations_response import MutationsResponse
 from .network_status_response import NetworkStatusResponse
+from .parental_control_catalog_response import ParentalControlCatalogResponse
+from .parental_control_filter_levels_response import ParentalControlFilterLevelsResponse
+from .parental_control_history_response import ParentalControlHistoryResponse
+from .parental_control_insights_response import ParentalControlInsightsResponse
+from .parental_control_profile_response import ParentalControlProfileResponse
+from .parental_controls_response import ParentalControlsResponse
 from .port_forwarding_response import PortForwardingResponse
 from .qos_response import QosResponse
 from .response_dto import ResponseDto
@@ -66,6 +72,12 @@ __all__ = [
     "MutationResponse",
     "MutationsResponse",
     "NetworkStatusResponse",
+    "ParentalControlCatalogResponse",
+    "ParentalControlFilterLevelsResponse",
+    "ParentalControlHistoryResponse",
+    "ParentalControlInsightsResponse",
+    "ParentalControlProfileResponse",
+    "ParentalControlsResponse",
     "PortForwardingResponse",
     "QosResponse",
     "ResponseDto",

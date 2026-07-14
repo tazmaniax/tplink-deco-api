@@ -153,9 +153,9 @@ environment and can print those values.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes five protocol-neutral tools and 23
+The current default surface exposes five protocol-neutral tools and 33
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 32 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 42 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -218,15 +218,16 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current fifteen HTTP-primary overlap
-routes, seventeen TMP-only routes and directly implemented canonical resources
+routes, twenty TMP-only routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices, traffic, address reservations, monthly report history, IPv4, LAN, DHCP,
-port forwarding and all three IPv6 resources additionally require
+devices, traffic, address reservations, monthly report history, parental-control
+profiles and owner-specific reads, IPv4, LAN, DHCP, port forwarding and all
+three IPv6 resources additionally require
 `DECO_ALLOW_SENSITIVE_READS=1`.
 Every resource under the TMP-only network set requires
 `DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
@@ -247,6 +248,12 @@ System-log pages require both the sensitive gate and
 | `deco://wireless/wps` | Current WPS scan timer and normalized per-node session state. | `schema_version`, `status`, `scanning_time`, `sessions`, `session_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://reports/monthly/settings` | Current monthly report generation state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://reports/monthly` | Monthly client, parental-control and security reports. | `schema_version`, `status`, `reports`, `report_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls` | Parental-control profiles with filtering, bedtime and time-limit policies. | `schema_version`, `status`, `profiles`, `profile_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/filter-levels` | Default parental-control filtering policies. | `schema_version`, `status`, `filter_levels`, `filter_level_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/catalog` | Website and application filter catalogue. | `schema_version`, `status`, `has_app_filter`, `needs_update`, `version`, `entries`, `entry_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}` | One parental-control profile selected by its opaque owner ID. | `schema_version`, `status`, `profile`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. | `schema_version`, `status`, `owner_id`, `insights`, `insight_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. | `schema_version`, `status`, `owner_id`, `history`, `history_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
@@ -303,6 +310,15 @@ Each monthly `reports[]` item contains `year`, `month`, `daily_clients`,
 and forbidden-list values. Report history uses secret TMP opcode `0x40E0` and
 requires `DECO_ALLOW_SENSITIVE_READS=1`; the separate private settings resource
 uses `0x4222`. Report removal and settings writes remain unavailable.
+Each parental-control `profiles[]` item retains the opaque `owner_id`, profile
+name, avatar digest, internet-block state, filter policy, bedtime schedule,
+time limits and firmware-native day/insight fields. The collection uses secret
+TMP opcode `0x4029`; default filter levels use private opcode `0x4035`; and the
+private catalogue uses the signed-app-confirmed `{"version": 1029}` contract
+for `0x403A`. Owner-specific policy, insight and history templates invoke only
+the confirmed `{"owner_id": ...}` contracts for `0x402D`, `0x402F` and
+`0x4031`. They require the sensitive-read gate and never fetch one another as
+implicit enrichment. No parental-control write is exposed.
 The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
 normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
 fallback. `deco://devices` reads blocking, traffic and reservations only from

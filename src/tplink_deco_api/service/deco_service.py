@@ -102,6 +102,14 @@ from ._network_normalization import (
     normalize_tmp_ipv4_configuration,
     normalize_vlan_configuration,
 )
+from ._parental_control_normalization import (
+    normalize_parental_control_catalog,
+    normalize_parental_control_filter_levels,
+    normalize_parental_control_history,
+    normalize_parental_control_insights,
+    normalize_parental_control_profile,
+    normalize_parental_control_profiles,
+)
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
 from ._system_normalization import normalize_led_configuration
@@ -597,6 +605,67 @@ class DecoService:
         """Return gated monthly client, parental-control, and security reports."""
         return self._semantic_capability_resource("monthly_reports", "monthly reports")
 
+    def parental_controls_resource(self) -> dict[str, JsonValue]:
+        """Return gated parental-control profile policies and schedules."""
+        return self._semantic_capability_resource(
+            "parental_control_profiles",
+            "parental-control profiles",
+        )
+
+    def parental_control_filter_levels_resource(self) -> dict[str, JsonValue]:
+        """Return gated default parental-control filtering policies."""
+        return self._semantic_capability_resource(
+            "parental_control_filter_levels",
+            "parental-control filter levels",
+        )
+
+    def parental_control_catalog_resource(self) -> dict[str, JsonValue]:
+        """Return the gated website and application filter catalogue."""
+        return self._semantic_capability_resource(
+            "parental_control_catalog",
+            "parental-control catalogue",
+        )
+
+    def parental_control_profile_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return one gated parental-control profile by opaque owner identifier."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_profile",
+            "parental-control profile",
+            "0x402D",
+            normalized_owner_id,
+        )
+        profile = resource.get("profile")
+        if not isinstance(profile, Mapping) or profile.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control profile: owner_id does not match")
+        return resource
+
+    def parental_control_insights_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return gated online-usage insights for one parental-control profile."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_insights",
+            "parental-control insights",
+            "0x402F",
+            normalized_owner_id,
+        )
+        if resource.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control insights: owner_id does not match")
+        return resource
+
+    def parental_control_history_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return gated browsing history for one parental-control profile."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_history",
+            "parental-control history",
+            "0x4031",
+            normalized_owner_id,
+        )
+        if resource.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control history: owner_id does not match")
+        return resource
+
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
         return self._semantic_capability_resource("ipv6_configuration", "IPv6 configuration")
@@ -684,6 +753,53 @@ class DecoService:
             "status": "available",
             **dict(data),
             "provenance": dict(provenance),
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def _parameterized_parental_control_resource(
+        self,
+        name: str,
+        dataset: str,
+        operation: str,
+        owner_id: str,
+    ) -> dict[str, JsonValue]:
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read parental controls: DECO_ALLOW_SENSITIVE_READS is disabled"
+            )
+        if not self._config.allow_tmp_reads:
+            raise PermissionError(
+                "Failed to read parental controls: DECO_ALLOW_TMP_READS is disabled"
+            )
+        self._tmp_ssh_config()
+        inventory = self.device_inventory()
+        if _json_string(inventory, "profile_match") != "exact":
+            raise PermissionError(
+                "Failed to read parental controls: no exact compatibility evidence"
+            )
+        data = self._read_tmp_capability(name, params={"owner_id": owner_id})
+        if not isinstance(data, Mapping):
+            raise ValueError(f"Failed to read {dataset}: data is not an object")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": {
+                "source_interface": "tmp_appv2",
+                "source_operation": operation,
+                "fallback_used": False,
+                "fallback_policy": "none",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+                "attempts": [
+                    {
+                        "interface": "tmp_appv2",
+                        "operation": operation,
+                        "status": "ok",
+                    }
+                ],
+            },
             "observed_at_epoch_seconds": time.time(),
             "router_contacted": True,
             "mutation_invoked": False,
@@ -1657,6 +1773,7 @@ class DecoService:
         name: str,
         *,
         include_passwords: bool = False,
+        params: JsonValue = None,
     ) -> JsonValue:
         opcodes = {
             "mesh_nodes": 0x400F,
@@ -1679,6 +1796,12 @@ class DecoService:
             "wps_status": 0x4215,
             "monthly_report_settings": 0x4222,
             "monthly_reports": 0x40E0,
+            "parental_control_profiles": 0x4029,
+            "parental_control_filter_levels": 0x4035,
+            "parental_control_catalog": 0x403A,
+            "parental_control_profile": 0x402D,
+            "parental_control_insights": 0x402F,
+            "parental_control_history": 0x4031,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1695,7 +1818,9 @@ class DecoService:
         code = opcodes.get(name)
         if code is None:
             raise ValueError(f"Failed to read TMP capability: unknown capability {name!r}")
-        payload = self.tmp_read(code)
+        if name == "parental_control_catalog" and params is None:
+            params = {"version": 1029}
+        payload = self.tmp_read(code, params)
         result = payload.get("result")
         if name == "monthly_reports":
             return normalize_monthly_reports(result)
@@ -1743,6 +1868,18 @@ class DecoService:
             return normalize_wps_status(result)
         if name == "monthly_report_settings":
             return normalize_monthly_report_settings(result)
+        if name == "parental_control_profiles":
+            return normalize_parental_control_profiles(result)
+        if name == "parental_control_filter_levels":
+            return normalize_parental_control_filter_levels(result)
+        if name == "parental_control_catalog":
+            return normalize_parental_control_catalog(result)
+        if name == "parental_control_profile":
+            return normalize_parental_control_profile(result)
+        if name == "parental_control_insights":
+            return normalize_parental_control_insights(result)
+        if name == "parental_control_history":
+            return normalize_parental_control_history(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4613,6 +4750,9 @@ def _capability_category(name: str) -> str:
         "wps_status": "wireless",
         "monthly_report_settings": "reports",
         "monthly_reports": "reports",
+        "parental_control_profiles": "parental_control",
+        "parental_control_filter_levels": "parental_control",
+        "parental_control_catalog": "parental_control",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",
@@ -4949,6 +5089,16 @@ def _tmp_parameterized_requests(
     if params is None:
         return ()
     return ((params, "signed_app_confirmed_static_contract"),)
+
+
+def _validate_owner_id(owner_id: str) -> str:
+    if not owner_id or not owner_id.strip():
+        raise ValueError("Failed to read parental controls: owner_id must be non-empty")
+    if len(owner_id) > 256:
+        raise ValueError("Failed to read parental controls: owner_id is too long")
+    if any(ord(character) < 32 or ord(character) == 127 for character in owner_id):
+        raise ValueError("Failed to read parental controls: owner_id contains a control character")
+    return owner_id
 
 
 def _validate_tmp_read_params(

@@ -45,6 +45,9 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://wireless/wps",
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
+        "deco://parental-controls",
+        "deco://parental-controls/filter-levels",
+        "deco://parental-controls/catalog",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -235,6 +238,36 @@ def create_server(
     def monthly_reports_resource() -> str:
         """Return gated monthly client, parental-control, and security reports."""
         return _json_text(service.monthly_reports_resource())
+
+    @server.resource("deco://parental-controls")
+    def parental_controls_resource() -> str:
+        """Return gated parental-control profile policies and schedules."""
+        return _json_text(service.parental_controls_resource())
+
+    @server.resource("deco://parental-controls/filter-levels")
+    def parental_control_filter_levels_resource() -> str:
+        """Return gated default parental-control filtering policies."""
+        return _json_text(service.parental_control_filter_levels_resource())
+
+    @server.resource("deco://parental-controls/catalog")
+    def parental_control_catalog_resource() -> str:
+        """Return the gated website and application filter catalogue."""
+        return _json_text(service.parental_control_catalog_resource())
+
+    @server.resource("deco://parental-controls/{owner_id}")
+    def parental_control_profile_resource(owner_id: str) -> str:
+        """Return one gated parental-control profile policy."""
+        return _json_text(service.parental_control_profile_resource(owner_id))
+
+    @server.resource("deco://parental-controls/{owner_id}/insights")
+    def parental_control_insights_resource(owner_id: str) -> str:
+        """Return gated online-usage insights for one parental-control profile."""
+        return _json_text(service.parental_control_insights_resource(owner_id))
+
+    @server.resource("deco://parental-controls/{owner_id}/history")
+    def parental_control_history_resource(owner_id: str) -> str:
+        """Return gated browsing history for one parental-control profile."""
+        return _json_text(service.parental_control_history_resource(owner_id))
 
     @server.resource("deco://devices")
     def devices_resource() -> str:

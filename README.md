@@ -63,6 +63,12 @@ Resources are the canonical read-only state views:
 | `deco://wireless/wps` | Current WPS scan timer and per-node session state. |
 | `deco://reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `deco://reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `deco://parental-controls` | Parental-control profiles, filters, schedules and time limits. |
+| `deco://parental-controls/filter-levels` | Available default filtering policies. |
+| `deco://parental-controls/catalog` | Website and application filter catalogue. |
+| `deco://parental-controls/{owner_id}` | One parental-control profile policy. |
+| `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
+| `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. |
 | `deco://devices` | All known client devices with connectivity and access state. |
 | `deco://devices/active` | Devices currently online. |
 | `deco://devices/inactive` | Known devices currently offline. |
@@ -106,6 +112,11 @@ established. WPS remains read-only; this surface cannot start or cancel a
 session. Monthly report settings remain private, while report history requires
 the sensitive-read gate because it contains client identities, owner details
 and app or website activity.
+Parental-control policies, per-profile insights and browsing history are also
+secret TMP-only reads. Owner-specific templates use only the confirmed
+`owner_id` request contract; reading the profile list does not implicitly fetch
+activity or history. Default filter policies and the application catalogue are
+private TMP-only reads. No parental-control mutation is exposed.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

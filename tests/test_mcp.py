@@ -487,7 +487,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 32
+    assert coverage["unified_semantic_surface"]["capability_count"] == 35
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -3137,7 +3137,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     } <= tool_names
     assert "deco_invoke_mutation" not in tool_names
     assert len(tool_names) == 47
-    assert len(resources) == 39
+    assert len(resources) == 42
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

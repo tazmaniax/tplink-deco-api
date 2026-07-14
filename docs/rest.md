@@ -72,6 +72,12 @@ a trusted network without TLS.
 | `GET` | `/api/v1/wireless/wps` | Current WPS scan timer and per-node session state. |
 | `GET` | `/api/v1/reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `GET` | `/api/v1/reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `GET` | `/api/v1/parental-controls` | Parental-control profiles, filters, schedules and time limits. |
+| `GET` | `/api/v1/parental-controls/filter-levels` | Default filtering policies. |
+| `GET` | `/api/v1/parental-controls/catalog` | Website and application filter catalogue. |
+| `GET` | `/api/v1/parental-controls/{owner_id}` | One parental-control profile policy. |
+| `GET` | `/api/v1/parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
+| `GET` | `/api/v1/parental-controls/{owner_id}/history` | Browsing history for one profile. |
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
@@ -127,6 +133,11 @@ The route is read-only and cannot start or cancel a WPS session.
 Monthly report settings are private, while report history requires the
 sensitive-read gate because it contains identities and app or website activity.
 Both reads are TMP-only; settings writes and report removal remain unavailable.
+Parental-control reads are also TMP-only. Profiles, owner-specific insights and
+browsing history require the sensitive-read gate; default filter levels and the
+filter catalogue are private reads. Owner-specific routes accept the opaque
+`owner_id` returned by the profile collection and use only its live-confirmed
+request shape. They do not expose parental-control writes.
 
 ## Response contracts
 
