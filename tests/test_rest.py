@@ -55,6 +55,7 @@ from tplink_deco_api.responses import (
     TrafficResponse,
     VlanConfigurationResponse,
     WlanResponse,
+    WpsStatusResponse,
 )
 from tplink_deco_api.rest import create_http_application
 from tplink_deco_api.rest._in_memory_idempotency_store import _InMemoryIdempotencyStore
@@ -316,6 +317,25 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             node_speeds=[{"device_id": "node-a", "up_speed": 10, "down_speed": 20}],
             node_count=1,
             provenance={**tmp_provenance, "source_operation": "0x422F"},
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
+        "wps_status_resource": WpsStatusResponse(
+            schema_version=1,
+            status="available",
+            scanning_time=120,
+            sessions=[
+                {
+                    "device_id": "node-a",
+                    "state": "idle",
+                    "remaining_time": 0,
+                    "client_accessed": False,
+                    "last_error_code": 0,
+                }
+            ],
+            session_count=1,
+            provenance={**tmp_provenance, "source_operation": "0x4215"},
             observed_at_epoch_seconds=1.0,
             router_contacted=True,
             mutation_invoked=False,
@@ -649,6 +669,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/system/led", "get"): "getLedConfiguration",
         ("/api/v1/mesh", "get"): "getMesh",
         ("/api/v1/mesh/traffic", "get"): "getMeshTraffic",
+        ("/api/v1/wireless/wps", "get"): "getWpsStatus",
         ("/api/v1/clients", "get"): "getClients",
         ("/api/v1/traffic", "get"): "getTraffic",
         ("/api/v1/address-reservations", "get"): "getAddressReservations",
@@ -684,6 +705,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/system/led", "get"): "LedConfigurationResponse",
         ("/api/v1/mesh", "get"): "MeshResponse",
         ("/api/v1/mesh/traffic", "get"): "MeshTrafficResponse",
+        ("/api/v1/wireless/wps", "get"): "WpsStatusResponse",
         ("/api/v1/clients", "get"): "ClientsResponse",
         ("/api/v1/traffic", "get"): "TrafficResponse",
         ("/api/v1/address-reservations", "get"): "CapabilityResponse",
@@ -833,6 +855,7 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
         ("led_configuration_resource", "deco://system/led", "/api/v1/system/led"),
         ("device_inventory", "deco://mesh", "/api/v1/mesh"),
         ("mesh_traffic_resource", "deco://mesh/traffic", "/api/v1/mesh/traffic"),
+        ("wps_status_resource", "deco://wireless/wps", "/api/v1/wireless/wps"),
         ("client_devices_resource", "deco://devices", "/api/v1/clients"),
         ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
         (
@@ -915,6 +938,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
         "configuration_resource",
         "device_inventory",
         "mesh_traffic_resource",
+        "wps_status_resource",
         "client_devices_resource",
         "traffic_resource",
         "address_reservations_resource",
@@ -939,6 +963,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
                 client.get("/api/v1/configuration", headers=_AUTH),
                 client.get("/api/v1/mesh?refresh=true", headers=_AUTH),
                 client.get("/api/v1/mesh/traffic", headers=_AUTH),
+                client.get("/api/v1/wireless/wps", headers=_AUTH),
                 client.get("/api/v1/clients?view=blocked", headers=_AUTH),
                 client.get("/api/v1/traffic", headers=_AUTH),
                 client.get("/api/v1/address-reservations", headers=_AUTH),

@@ -26,7 +26,7 @@ developers and contributors.
 
 ## What it provides
 
-- A protocol-neutral default MCP surface: 27 resources and five tools.
+- A protocol-neutral default MCP surface: 28 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
@@ -60,6 +60,7 @@ Resources are the canonical read-only state views:
 | `deco://system/led` | System LED state and firmware-native night-mode schedule. |
 | `deco://mesh` | Controller identity and all Deco nodes. |
 | `deco://mesh/traffic` | Firmware-native upload and download rates for each Deco node. |
+| `deco://wireless/wps` | Current WPS scan timer and per-node session state. |
 | `deco://devices` | All known client devices with connectivity and access state. |
 | `deco://devices/active` | Devices currently online. |
 | `deco://devices/inactive` | Known devices currently offline. |
@@ -96,9 +97,11 @@ is selected.
 Eleven network and IPv6 resources use positively evidenced TMP-only routes and
 remain lazy: startup validates configuration but opens TMP only when one is
 read.
-The system LED and per-node mesh traffic resources follow the same lazy policy
-through independently validated TMP-only routes. Mesh traffic rates retain the
-firmware-native integer values because their units have not been established.
+The system LED, per-node mesh traffic and WPS status resources follow the same
+lazy policy through independently validated TMP-only routes. Mesh traffic rates
+retain the firmware-native integer values because their units have not been
+established. WPS remains read-only; this surface cannot start or cancel a
+session.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

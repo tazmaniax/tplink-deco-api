@@ -73,6 +73,7 @@ from ..responses import (
     TrafficResponse,
     VlanConfigurationResponse,
     WlanResponse,
+    WpsStatusResponse,
 )
 from ..server import ServerConfig, StaticBearerAuthenticator
 from ..service import DecoService
@@ -307,6 +308,15 @@ def _create_rest_router(
     def mesh_traffic() -> dict[str, JsonValue]:
         """Return firmware-native traffic rates for each mesh node."""
         return service.mesh_traffic_resource()
+
+    @router.get(
+        "/wireless/wps",
+        response_model=WpsStatusResponse,
+        operation_id="getWpsStatus",
+    )
+    def wps_status() -> dict[str, JsonValue]:
+        """Return the current Wi-Fi Protected Setup session status."""
+        return service.wps_status_resource()
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(

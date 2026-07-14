@@ -42,6 +42,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://system/led",
         "deco://mesh",
         "deco://mesh/traffic",
+        "deco://wireless/wps",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -217,6 +218,11 @@ def create_server(
     def mesh_traffic_resource() -> str:
         """Return firmware-native traffic rates for each mesh node."""
         return _json_text(service.mesh_traffic_resource())
+
+    @server.resource("deco://wireless/wps")
+    def wps_status_resource() -> str:
+        """Return the current Wi-Fi Protected Setup session status."""
+        return _json_text(service.wps_status_resource())
 
     @server.resource("deco://devices")
     def devices_resource() -> str:

@@ -109,6 +109,7 @@ from ._wlan_normalization import (
     normalize_tmp_wireless_operation_mode,
     normalize_tmp_wlan_configuration,
 )
+from ._wps_normalization import normalize_wps_status
 
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
@@ -576,6 +577,10 @@ class DecoService:
     def mesh_traffic_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic per-node mesh traffic rates."""
         return self._semantic_capability_resource("mesh_traffic", "mesh traffic")
+
+    def wps_status_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic Wi-Fi Protected Setup status."""
+        return self._semantic_capability_resource("wps_status", "WPS status")
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
@@ -1656,6 +1661,7 @@ class DecoService:
             "ipv4_configuration": 0x4004,
             "led_configuration": 0x401A,
             "mesh_traffic": 0x422F,
+            "wps_status": 0x4215,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1714,6 +1720,8 @@ class DecoService:
             return normalize_led_configuration(result)
         if name == "mesh_traffic":
             return normalize_mesh_traffic(result)
+        if name == "wps_status":
+            return normalize_wps_status(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4581,6 +4589,7 @@ def _capability_category(name: str) -> str:
         "ipv4_configuration": "network",
         "led_configuration": "system",
         "mesh_traffic": "mesh",
+        "wps_status": "wireless",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",

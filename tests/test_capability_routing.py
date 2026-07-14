@@ -56,6 +56,7 @@ from tplink_deco_api.responses import (
     SipAlgResponse,
     VlanConfigurationResponse,
     WlanResponse,
+    WpsStatusResponse,
 )
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
@@ -244,6 +245,7 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "ipv4_configuration",
         "led_configuration",
         "mesh_traffic",
+        "wps_status",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -301,7 +303,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 29
+    assert len(result["routes"]) == 30
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -1659,6 +1661,89 @@ def test_mesh_traffic_resource_rejects_tmp_contract_drift() -> None:
         service.mesh_traffic_resource()
 
 
+def test_wps_status_resource_normalizes_private_p9_tmp_contract() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {
+            "scanning_time": 120,
+            "wps_list": [
+                {
+                    "device_id": "node-a",
+                    "wps_state": "idle",
+                    "remaing_time": 0,
+                    "client_accessed": False,
+                    "last_error_code": 0,
+                }
+            ],
+        },
+    }
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        wps = service.wps_status_resource()
+
+    assert_response_contract(WpsStatusResponse, wps)
+    assert wps["scanning_time"] == 120
+    assert wps["sessions"] == [
+        {
+            "device_id": "node-a",
+            "state": "idle",
+            "remaining_time": 0,
+            "client_accessed": False,
+            "last_error_code": 0,
+        }
+    ]
+    assert wps["session_count"] == 1
+    assert wps["provenance"]["source_interface"] == "tmp_appv2"
+    assert wps["provenance"]["source_operation"] == "0x4215"
+    get_client.assert_not_called()
+    tmp_client.request_read_json.assert_called_once_with(0x4215, None)
+
+
+def test_wps_status_resource_rejects_tmp_contract_drift() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {
+            "scanning_time": 120,
+            "wps_list": [
+                {
+                    "device_id": "node-a",
+                    "wps_state": "idle",
+                    "remaing_time": "0",
+                    "client_accessed": False,
+                    "last_error_code": 0,
+                }
+            ],
+        },
+    }
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="remaing_time is not an integer"),
+    ):
+        service.wps_status_resource()
+
+
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
     config = replace(
         _config(),
@@ -2264,7 +2349,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 29
+    assert capabilities["supported_count"] == 30
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -2340,7 +2425,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 29
+    assert capabilities["unknown_count"] == 30
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2447,6 +2532,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://system/led",
         "deco://mesh",
         "deco://mesh/traffic",
+        "deco://wireless/wps",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",

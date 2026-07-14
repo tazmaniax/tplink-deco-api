@@ -35,6 +35,7 @@ from .system_log_page_response import SystemLogPageResponse
 from .traffic_response import TrafficResponse
 from .vlan_configuration_response import VlanConfigurationResponse
 from .wlan_response import WlanResponse
+from .wps_status_response import WpsStatusResponse
 
 __all__ = [
     "CapabilitiesResponse",
@@ -70,4 +71,5 @@ __all__ = [
     "TrafficResponse",
     "VlanConfigurationResponse",
     "WlanResponse",
+    "WpsStatusResponse",
 ]
