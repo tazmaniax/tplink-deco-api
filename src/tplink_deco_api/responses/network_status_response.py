@@ -25,6 +25,7 @@ class NetworkStatusResponse(ResponseDto):
     speed_test: JsonValue
     client_count: JsonValue
     client_count_status: str
+    provenance: JsonObject
     warnings: list[JsonObject]
     unavailable_sections: list[JsonObject]
     observed_at_epoch_seconds: float

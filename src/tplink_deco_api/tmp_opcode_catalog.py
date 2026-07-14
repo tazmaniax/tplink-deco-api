@@ -379,7 +379,7 @@ _SET_DISPATCHED_GET_REVIEWS: dict[int, str] = {
         "expects only Boolean completion"
     ),
 }
-_SECRET_OPCODE_CODES: frozenset[int] = frozenset(_SET_DISPATCHED_GET_REVIEWS)
+_SECRET_OPCODE_CODES: frozenset[int] = frozenset({*_SET_DISPATCHED_GET_REVIEWS, 0x40E0})
 _CATEGORY_OVERRIDES: dict[int, str] = {
     0x4097: "network",
     0x40A5: "network",

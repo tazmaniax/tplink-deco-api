@@ -153,9 +153,9 @@ environment and can print those values.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes five protocol-neutral tools and 13
+The current default surface exposes five protocol-neutral tools and 36
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 22 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 45 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -216,37 +216,76 @@ Future resource and transport work must follow the
 It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
-datasets that would otherwise force a dual-interface fetch. The current six
-HTTP-primary fallback routes are a transitional subset of that design.
+datasets that would otherwise force a dual-interface fetch. Cold-start identity
+bootstrap now follows that policy; the current fifteen HTTP-primary overlap
+routes, twenty-three TMP-only routes and directly implemented canonical resources
+remain a transitional subset of the wider design.
 
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices, traffic and address reservations additionally require
-`DECO_ALLOW_SENSITIVE_READS=1`. System-log pages require both that gate and
+devices, traffic, address reservations, monthly report history, notifications,
+parental-control profiles and owner-specific reads, manager permissions, IPv4,
+LAN, DHCP, port forwarding and all three IPv6 resources additionally require
+`DECO_ALLOW_SENSITIVE_READS=1`.
+Every resource under the TMP-only network set requires
+`DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
+`deco://system/led`, `deco://mesh/traffic`, `deco://wireless/wps` and
+`deco://reports/monthly/settings` and `deco://speed-test/servers` require the
+same TMP configuration but not the sensitive-read gate.
+System-log pages require both the sensitive gate and
 `DECO_ALLOW_BULK_SECRET_READS=1`.
 
 | Resource | Contents | Top-level response attributes |
 |---|---|---|
 | `deco://mcp` | MCP configuration, connection state, gates and mutation latches; no router login. | `schema_version`, `host`, `username`, `timeout`, `password_configured`, `tp_link_id_configured`, `tmp_host_key_sha256`, `allow_sensitive_reads`, `allow_bulk_secret_reads`, `allow_binary_content`, `allow_mutations`, `allow_destructive`, `allow_internal`, `allow_tmp_reads`, `allow_unverified_tmp_reads`, `allow_tmp_noop_verification`, `allow_http_noop_verification`, `tmp_writes_hard_disabled`, `tmp_transport_status`, `expose_diagnostic_tools`, `expose_raw_mutation_tools`, `mcp_transport`, `server_host`, `server_port`, `mcp_path`, `mcp_public_url`, `server_bearer_token_configured`, `server_allowed_hosts`, `server_allowed_origins`, `authenticated`, `tmp_connected`, `http_mutation_latched`, `tmp_mutation_latched`, `catalogued_operations`, `identity_resolved`, `pending_mutation_plan_count` |
-| `deco://status` | Sanitized live health of the internet connection, controller and mesh; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
-| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
-| `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
-| `deco://devices` | Every known device normalized from client, per-node, block-list and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://status` | Sanitized live health of the internet connection, controller and mesh, including normalized firmware availability; no client identities or passwords. | `schema_version`, `status`, `controller`, `internet`, `mesh`, `performance`, `firmware`, `speed_test`, `client_count`, `client_count_status`, `provenance`, `warnings`, `unavailable_sections`, `observed_at_epoch_seconds`, `passwords_included`, `client_identities_included`, `router_contacted`, `mutation_invoked` |
+| `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `provenance`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
+| `deco://system/led` | Current system LED state and firmware-native night-mode schedule values. | `schema_version`, `status`, `enabled`, `night_mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh/traffic` | Current firmware-native upload and download rates for each Deco node. | `schema_version`, `status`, `node_speeds`, `node_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://wireless/wps` | Current WPS scan timer and normalized per-node session state. | `schema_version`, `status`, `scanning_time`, `sessions`, `session_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://reports/monthly/settings` | Current monthly report generation state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://reports/monthly` | Monthly client, parental-control and security reports. | `schema_version`, `status`, `reports`, `report_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://notifications` | Notifications from the Deco message centre. | `schema_version`, `status`, `notifications`, `notification_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://speed-test/servers` | Automatic selection and available speed-test servers. | `schema_version`, `status`, `automatic_selection`, `servers`, `server_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls` | Parental-control profiles with filtering, bedtime and time-limit policies. | `schema_version`, `status`, `profiles`, `profile_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/filter-levels` | Default parental-control filtering policies. | `schema_version`, `status`, `filter_levels`, `filter_level_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/catalog` | Website and application filter catalogue. | `schema_version`, `status`, `has_app_filter`, `needs_update`, `version`, `entries`, `entry_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}` | One parental-control profile selected by its opaque owner ID. | `schema_version`, `status`, `profile`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. | `schema_version`, `status`, `owner_id`, `insights`, `insight_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. | `schema_version`, `status`, `owner_id`, `history`, `history_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://access/permissions` | Manager-role availability and component-access policies. | `schema_version`, `status`, `roles`, `role_count`, `permission_profiles`, `permission_profile_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
 | `deco://devices/blocked` | Normalized devices present in the block list, including blocked-only entries. | Same as `deco://devices`, with `view="blocked"`. |
-| `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
+| `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/dhcp` | Current DHCP pool, gateway, DNS and address usage. | `schema_version`, `status`, `start_ip`, `end_ip`, `gateway`, `dns_servers`, `addresses_in_use`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/qos` | Current QoS mode details and configured bandwidth values. | `schema_version`, `status`, `mode`, `bandwidth`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/vlan` | Current Internet VLAN state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/port-forwarding` | Current port-forwarding rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/iptv` | Current IPTV state and mode. | `schema_version`, `status`, `enabled`, `mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/sip-alg` | Current SIP application-layer gateway state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/mac-clone` | Current WAN MAC-clone state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/ipv4` | Current normalized IPv4 WAN and LAN configuration. | `schema_version`, `status`, `wan`, `lan`, `unavailable_fields`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/ipv6` | Current normalized IPv6 WAN and LAN configuration. | `schema_version`, `status`, `enabled`, `wan`, `lan`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/ipv6/firewall` | Current inbound IPv6 firewall rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices/ipv6` | Current IPv6 client and neighbor inventory. | `schema_version`, `status`, `devices`, `device_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://logs` | Available log levels and snapshot-preparation metadata without reading actual log entries. | `schema_version`, `categories`, `category_count`, `selector_field`, `web_ui_default_level`, `all_level`, `preparation_mutation`, `status`, `unavailable_sections`, `log_contents_included`, `router_contacted`, `mutation_invoked` |
 | `deco://logs/{index}` | One zero-based, 100-entry page from the currently prepared secret system-log snapshot. The firmware does not report which level prepared it. | `schema_version`, `current_index`, `total_pages`, `page_size`, `entries`, `entry_count`, `log_contents_included`, `prepared_level`, `level_reported_by_firmware`, `preparation_mutation`, `source_interface`, `router_contacted`, `mutation_invoked` |
 | `deco://capabilities` | Semantic read catalogue for the connected controller. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `capabilities`, `supported_count`, `unknown_count`, `unsupported_count`, `router_contacted`, `mutation_invoked` |
 | `deco://mutations` | All known semantic mutation intents, including blocked and unverified candidates. | `schema_version`, `resolution_status`, `controller`, `profile_match`, `mutations`, `candidate_count`, `execution_counts`, `mutation_gate_status`, `router_contacted`, `mutation_invoked` |
 
 Each `capabilities[]` item contains `name`, `description`, `category`,
-`sensitivity`, `support_status`, `readable`, `mutable`, `read_operation`,
-`related_mutations`, `evidence_level` and `reason_unavailable`. Each
+`sensitivity`, `support_status`, `readable`, `source_configured`,
+`source_connected`, `runtime_gate_enabled`, `mutable`, `read_operation`,
+`related_mutations`, `evidence_level` and `reason_unavailable`. Configuration
+and connection state are reported separately because the server does not probe
+either transport at startup. Each
 `mutations[]` item contains `name`, `description`, `category`, `risk`,
 `sensitivity`, `scope`, `changes_schema`, `support_status`, `validation_status`,
 `execution_scope`, `execution_status`, `required_gates`,
@@ -259,10 +298,79 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `remain_time`, `client_mesh` and `sources`. `status` is the connectivity state
 `active` or `inactive`; blocking is an independent access state. Each
 `device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
-`categories[]` item contains a firmware level `name` and `value`. Each
-`warnings[]` item contains
+`categories[]` item contains a firmware level `name` and `value`.
+Each mesh `node_speeds[]` item contains `device_id`, `up_speed` and `down_speed`.
+These rates retain firmware-native integer values because the unit has not been
+validated. The resource does not calculate an aggregate because forwarded mesh
+traffic could otherwise be counted more than once.
+Each WPS `sessions[]` item contains `device_id`, `state`, `remaining_time`,
+`client_accessed` and `last_error_code`. The P9 HTTP WPS read returned 404, so
+the resource uses validated TMP opcode `0x4215` without claiming fallback.
+The corresponding write opcode is not exposed by this resource.
+Each monthly `reports[]` item contains `year`, `month`, `daily_clients`,
+`parental_control` and `security`. New-client identities contain normalized
+`date`, `mac` and `name`; parental-control owners retain app or website activity
+and forbidden-list values. Report history uses secret TMP opcode `0x40E0` and
+requires `DECO_ALLOW_SENSITIVE_READS=1`; the separate private settings resource
+uses `0x4222`. Report removal and settings writes remain unavailable.
+Each parental-control `profiles[]` item retains the opaque `owner_id`, profile
+name, avatar digest, internet-block state, filter policy, bedtime schedule,
+time limits and firmware-native day/insight fields. The collection uses secret
+TMP opcode `0x4029`; default filter levels use private opcode `0x4035`; and the
+private catalogue uses the signed-app-confirmed `{"version": 1029}` contract
+for `0x403A`. Owner-specific policy, insight and history templates invoke only
+the confirmed `{"owner_id": ...}` contracts for `0x402D`, `0x402F` and
+`0x4031`. They require the sensitive-read gate and never fetch one another as
+implicit enrichment. No parental-control write is exposed.
+Each access-permission `roles[]` item contains `role` and `enabled`.
+`permission_profiles[]` contains `role`, `forbidden_components` and
+`component_locks`; each component lock retains its firmware-native integer
+`lock` value because its wider enum semantics have not been established. The
+secret resource uses validated TMP opcode `0x4229` and exposes no permission
+write.
+The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
+normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
+fallback. `deco://devices` reads blocking, traffic and reservations only from
+the interface selected for its client inventory; a failed enrichment is marked
+unavailable rather than being filled from the other interface.
+The `firmware` status section groups HTTP node records and TMP `0x401C` release
+records by model, hardware identity, target version and release metadata. Each
+release reports affected device IDs and update flags. HTTP supplies
+`current_versions` but not `release_note`; TMP supplies `release_note` but not
+`current_versions`, so `unavailable_fields` identifies the missing field rather
+than implying raw response equivalence.
+Each `deco://devices/ipv6` device contains normalized `mac`, `ip`, decoded
+`name` and `client_type` fields. IPv6 firewall `rules[]` preserve the
+firmware-reported rule objects because the observed P9 table was empty and did
+not provide evidence for a narrower populated-rule schema. Each port-forwarding
+rule contains normalized `id`, `service_name`, `service_type`, `internal_ip`,
+`internal_port`, `external_port` and `protocol` fields.
+Compound-resource `provenance` identifies the selected source interface, the
+source operation and attempts that selected it, whether fallback was used,
+the preceding identity attempts, and confirms that one interface produced the
+response data. When TMP is the only available interface, HTTP-only fields remain
+absent and are listed in `unavailable_sections` with
+`error_type="SourceUnavailable"`. Each `warnings[]` item contains
 `code` and `message`; each `unavailable_sections[]` item contains `section`,
 `status` and `error_type`.
+
+`deco_get_wlan_state` returns `schema_version`, `status`,
+`passwords_included`, `is_eg`, `bands`, `iot`, `mlo`, `features`, `provenance`,
+`unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted` and
+`mutation_invoked`. The normalized P9 fallback maps TMP radio `channel`,
+`hwmode` and `htmode` into the same band fields used by HTTP. A TMP response
+includes same-interface operation mode, bridge/PLC status, fast-roaming and
+beamforming state. TMP additionally supplies `supported_modes`; HTTP explicitly
+lists that field as unavailable rather than triggering cross-interface
+enrichment.
+
+`deco_get_cloud_state` returns `schema_version`, `status`, `ddns`, `manager`,
+`provenance`, `unavailable_sections`, `observed_at_epoch_seconds`,
+`router_contacted` and `mutation_invoked`. DDNS has an evidence-backed
+HTTP-to-TMP fallback. If TMP supplies DDNS, `manager` is `null` and its HTTP-only
+absence is recorded in `unavailable_sections`. `deco://status` reads speed-test
+state from the same interface selected for the compound response, so a TMP-only
+startup retains the last speed-test result.
 
 Protocol and evidence resources are diagnostic-only:
 
@@ -288,11 +396,11 @@ agent never supplies a live model or protocol.
 
 | Primary tool | Behaviour |
 |---|---|
-| `deco_get_capability` | Read `mesh_nodes`, `clients`, `internet_status`, `address_reservations`, `fast_roaming`, or `beamforming`; normalize the result and report source interface, operation, attempts and fallback use. |
+| `deco_get_capability` | Read any registered semantic capability, including mesh, clients, network state, wireless settings and TMP-only network configuration; normalize the result and report source interface, operation, attempts and fallback use. |
 | `deco_plan_mutation` | Resolve one semantic mutation against the connected profile. State changes remain blocked; an eligible, fully gated current-value verification receives a one-shot five-minute plan ID. |
 | `deco_execute_mutation` | Consume an eligible plan ID once, require its exact confirmation, verify controller identity, and execute with immediate verification and rollback without fallback. |
-| `deco_get_wlan_state` | Return opted-in WLAN state with passwords omitted unless `include_passwords=true`. |
-| `deco_get_cloud_state` | Return opted-in DDNS and cloud-manager state. |
+| `deco_get_wlan_state` | Return normalized WLAN state through HTTP-to-TMP fallback, with passwords omitted unless `include_passwords=true`. |
+| `deco_get_cloud_state` | Return opted-in DDNS through schema-equivalent HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 
 The legacy compound reads `deco_get_router_profile`,
 `deco_get_network_overview`, `deco_get_mesh_overview`,
@@ -335,6 +443,11 @@ stronger typed SDK façade. TMP fallback requires its ordinary read gate, pinned
 host key and credentials; secret logical capabilities also require the single
 sensitive-read gate before either transport is selected. Errors include only
 the failed interface and exception type in successful fallback provenance.
+When HTTP identity discovery fails with an eligible transport or invalid-shape
+error, the resolver may bootstrap from read-only TMP opcode `0x400F`. HTTP
+authentication failures never trigger that fallback, host-key mismatches fail
+closed, and an unknown model is cached only for identity reporting rather than
+authorizing P9-specific reads.
 Mutations are never retried or routed automatically. Executable semantic
 mutation routes are fixed to HTTP for beamforming, fast roaming and time
 settings. TMP/AppV2 writes have no server route, including monthly report.
@@ -624,8 +737,9 @@ caller explicitly passes `include_passwords=true`.
 Together, the agent-oriented network, mesh, WLAN, cloud, client and system
 views cover all 26 P9 reads currently observed to return structured data. The
 network view includes LAN IPv4, LAN IP, VLAN, MAC-clone and WAN-mode state; the
-WLAN view includes bridge/backhaul, 802.11r, beamforming and wireless operation
-mode. Generic endpoint tools remain available for complete envelopes and for
+WLAN view includes backhaul, 802.11r and beamforming state from either selected
+interface, plus bridge and wireless operation mode when HTTP is selected.
+Generic endpoint tools remain available for complete envelopes and for
 accepted-null or future firmware-specific reads.
 
 ## Safety model

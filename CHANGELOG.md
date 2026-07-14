@@ -32,17 +32,70 @@ transport, compatibility evidence and a conservative mutation workflow.
 ### MCP server
 
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
-* exposed 13 canonical resources for MCP state, network status, configuration,
-  mesh nodes, all/active/inactive/blocked devices, traffic, address reservations,
-  log levels, capabilities and mutations
-* added a gated `deco://logs/{index}` resource template for bounded system-log
-  pagination without duplicating the read as a tool
+* exposed 36 canonical resources for MCP state, network status, configuration,
+  mesh nodes and per-node traffic, WPS status, all/active/inactive/blocked
+  devices, client traffic, address reservations, system LED state, LAN/DHCP/
+  QoS/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv4 and IPv6 configuration/
+  firewall/clients, monthly report settings and history, log levels,
+  capabilities and mutations
+* added gated resource templates for bounded system-log pagination and
+  owner-specific parental-control policy, insight and history reads without
+  duplicating those reads as tools
 * kept the default tool surface to five parameterized or action-oriented tools
   for capability reads, WLAN state, cloud state, mutation planning and mutation
   execution
 * detected the connected controller and selected an evidence-backed HTTP/LuCI or
   TMP/AppV2 route without requiring agents to choose a model or transport
-* added six bounded, positively evidenced read-only fallback contracts while
+* added a gated, pinned-host-key TMP device-list bootstrap so controller identity
+  and mesh inventory can resolve when HTTP is unavailable at cold start
+* migrated status, configuration and device resources to single-interface
+  semantic routing, returning validated TMP subsets and explicit unavailable
+  sections when HTTP cannot establish the session
+* reused TMP after TMP identity bootstrap without repeating a known-unavailable
+  HTTP capability attempt, while keeping unmatched models fail-closed
+* added validated traffic and blocked-client HTTP-to-TMP fallback while keeping
+  every compound device response bound to one selected interface
+* added schema-equivalent speed-test and DDNS HTTP-to-TMP fallback, making the
+  latest speed-test result available in TMP-backed status and returning explicit
+  cloud-manager unavailability when DDNS selects TMP
+* normalized HTTP node firmware checks and TMP release records into one status
+  contract with explicit source-unavailable fields and read-only fallback
+* routed the existing WLAN tool through normalized HTTP-to-TMP fallback while
+  preserving explicit password inclusion and reporting HTTP-only feature gaps
+* added wireless operation-mode and bridge/PLC HTTP-to-TMP fallback, retaining
+  TMP's supported-mode list and completing TMP-backed WLAN feature state
+* added normalized IPv4 WAN/LAN HTTP-to-TMP fallback, preserving TMP-only
+  inbound-ping state and restoring those sections during eligible TMP startup
+* exposed the validated P9 TMP system LED and night-mode schedule as a default
+  protocol-neutral read without adding LED mutation support
+* exposed validated P9 per-node mesh traffic through protocol-neutral MCP, REST
+  and SDK contracts without inferring firmware speed units or summing forwarded
+  traffic
+* exposed validated P9 WPS timers and per-node session state as a private,
+  read-only semantic resource while leaving WPS writes hard-disabled
+* separated private monthly-report enablement from secret report history,
+  normalized the validated P9 report schema and corrected the raw opcode's
+  sensitivity gate without enabling report mutations
+* exposed validated P9 parental-control profiles, filter defaults, application
+  catalogue, per-owner insights and browsing history through protocol-neutral
+  MCP, REST and SDK contracts without enabling parental-control mutations
+* exposed validated P9 manager roles and component-access policies as a secret
+  protocol-neutral read while preserving firmware-native lock values and
+  leaving permission mutations unavailable
+* exposed validated P9 message-centre notifications as a secret protocol-neutral
+  read while preserving type-specific structured content and leaving message
+  mutations unavailable
+* exposed the validated P9 speed-test server selection envelope as a private
+  protocol-neutral read while preserving model-specific server objects and
+  leaving selection and clear mutations unavailable
+* enriched TMP-backed device records with blocking and live speed data instead
+  of hiding those positively evidenced reads behind diagnostics
+* promoted twelve positively evidenced TMP-only network datasets into eleven
+  default protocol-neutral MCP resources and REST routes without enabling
+  diagnostics, combining the QoS mode and bandwidth contracts into one view
+* kept HTTP and TMP sessions lazy while separately reporting whether each
+  capability source is configured, connected and runtime-gated
+* added fifteen bounded, positively evidenced read-only fallback contracts while
   prohibiting mutation fallback
 * moved protocol catalogues, raw reads, discovery probes and compatibility
   matrices to an independently enabled diagnostic surface
@@ -129,7 +182,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 * added network-free coverage for capability routing, catalogues, compatibility,
   MCP resources and tools, transport security, mutation planning and
   verification, discovery probes, AppV2 framing and SSH transport
-* verified the branch with 454 passing tests, 8 skipped hardware-dependent tests,
+* verified the branch with 477 passing tests, 8 skipped hardware-dependent tests,
   strict type checking, Ruff, package builds and Compose configuration checks
 
 ## [1.2.1](https://github.com/roquerodrigo/tplink-deco-api/compare/v1.2.0...v1.2.1) (2026-07-06)

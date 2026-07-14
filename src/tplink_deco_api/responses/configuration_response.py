@@ -17,6 +17,7 @@ class ConfigurationResponse(ResponseDto):
 
     schema_version: int
     controller: JsonObject
+    provenance: JsonObject
     related_sections: list[str]
     nickname: JsonValue
     nickname_status: str

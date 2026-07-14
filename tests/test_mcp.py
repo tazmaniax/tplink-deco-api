@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import replace
+from typing import TYPE_CHECKING
 from unittest import mock
 
 import pytest
@@ -66,6 +67,9 @@ from tplink_deco_api.responses import (
 from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
 
+if TYPE_CHECKING:
+    from tplink_deco_api._json import JsonObject
+
 
 def _config(**overrides: bool) -> ServerConfig:
     values: dict[str, bool] = {
@@ -104,6 +108,26 @@ def _p9_controller() -> Device:
 
 def _prime_p9_profile(service: DecoService) -> None:
     service._device_cache = (_p9_controller(),)
+
+
+def _http_firmware_payload() -> JsonObject:
+    return {
+        "fw_list": [
+            {
+                "device_model": "P9",
+                "hw_id": "hardware-id",
+                "oem_id": "oem-id",
+                "new_version": "1.4.0 Build 20260701 Rel. 12345",
+                "device_id": "node-a",
+                "software_ver": "1.3.0 Build 20250804 Rel. 58832",
+                "need_to_download": False,
+                "need_to_upgrade": False,
+                "need_force_upgrade": False,
+                "release_date": "2026-07-01",
+                "file_size": 1024,
+            }
+        ]
+    }
 
 
 def test_mcp_config_from_env_and_public_settings(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -463,7 +487,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 6
+    assert coverage["unified_semantic_surface"]["capability_count"] == 38
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -927,6 +951,8 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
             service.tmp_read(0x401E)
         with pytest.raises(PermissionError, match="SENSITIVE_READS"):
             service.tmp_read(0x4009)
+        with pytest.raises(PermissionError, match="SENSITIVE_READS"):
+            service.tmp_read(0x40E0)
     get_client.assert_not_called()
 
 
@@ -1570,7 +1596,11 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
         "enabled",
     )
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
-    client.get_bridge_status.return_value = {"enable": False}
+    client.get_bridge_status.return_value = {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     client.get_fast_roaming.return_value = {"enable": True}
     client.get_beamforming.return_value = {"enable": True}
 
@@ -1581,6 +1611,16 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
 
     assert configuration["controller"]["model"] == "P9"
     assert configuration["operating_mode"]["workmode"] == "router"
+    assert configuration["wireless_features"]["operation_mode"] == {
+        "mode": "host",
+        "supported_modes": [],
+        "unavailable_fields": ["supported_modes"],
+    }
+    assert configuration["wireless_features"]["bridge"] == {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     assert configuration["wireless_features"]["beamforming"] == {"enabled": True}
     assert configuration["network_features"] == {
         "wan_mode": {"mode": "router"},
@@ -1615,6 +1655,9 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
         (AddressReservation("AA:BB:CC:DD:EE:04", "192.0.2.40"),),
         64,
     )
+    client.get_traffic_statistics.return_value = {
+        "client_list_speed": [{"mac": "AA:BB:CC:DD:EE:01", "up_speed": 50, "down_speed": 100}]
+    }
     capability = {
         "capability": "clients",
         "schema_version": 1,
@@ -1635,7 +1678,14 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
                 "online": False,
             },
         ],
-        "provenance": {},
+        "provenance": {
+            "source_interface": "http_luci",
+            "source_operation": "admin.client.client_list.read",
+            "fallback_used": False,
+            "fallback_policy": "equivalent_read_only",
+            "equivalence_evidence": "p9_live_client_contract",
+            "attempts": [],
+        },
         "mutation_invoked": False,
     }
     assigned_client = ClientDevice.from_api(
@@ -1666,6 +1716,8 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
     assert records["AA:BB:CC:DD:EE:01"]["prioritized"] is True
     assert records["AA:BB:CC:DD:EE:03"]["blocked"] is True
     assert records["AA:BB:CC:DD:EE:03"]["access_status"] == "blocked"
+    assert records["AA:BB:CC:DD:EE:01"]["up_speed"] == 50
+    assert records["AA:BB:CC:DD:EE:01"]["down_speed"] == 100
     assert records["AA:BB:CC:DD:EE:04"]["reserved"] is True
     assert records["AA:BB:CC:DD:EE:04"]["reservation_ip"] == "192.0.2.40"
     assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
@@ -1687,6 +1739,7 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
 
     service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
+    client.get_device_list.return_value = [_p9_controller()]
     client.get_traffic_statistics.return_value = {
         "client_list_speed": [
             {"mac": "AA:BB:CC:DD:EE:01", "up_speed": 10, "down_speed": 20},
@@ -1707,6 +1760,7 @@ def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:
     }
     assert traffic["aggregate_speed"] == {"up_speed": 40, "down_speed": 60}
     assert traffic["status"] == "available"
+    assert traffic["provenance"]["source_interface"] == "http_luci"
     assert traffic["unavailable_sections"] == []
 
 
@@ -1894,7 +1948,7 @@ def test_mcp_network_status_resource_summarizes_health_without_client_identities
     client.get_performance.return_value = Performance(0.95, 0.5)
     client.get_speed_test.return_value = SpeedTest(100, 20, "idle", True, 123)
     client.call.return_value = ApiResponse.from_api(
-        {"error_code": 0, "result": {"update_available": False}}
+        {"error_code": 0, "result": _http_firmware_payload()}
     )
 
     with mock.patch.object(service, "_get_client", return_value=client):
@@ -1939,6 +1993,7 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     service = DecoService(_config(allow_sensitive_reads=True))
     controller = Device.from_api(
         {
+            "mac": "AA:BB:CC:DD:EE:FF",
             "device_model": "P9",
             "role": "master",
             "hardware_ver": "2.0",
@@ -1954,7 +2009,7 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     client.get_performance.side_effect = TransportError("temporary failure")
     client.get_speed_test.return_value = SpeedTest(100, 20, "idle", True, 123)
     client.call.return_value = ApiResponse.from_api(
-        {"error_code": 0, "result": {"status": "idle", "download_progress": None}}
+        {"error_code": 0, "result": _http_firmware_payload()}
     )
     client.get_client_list.return_value = [mock.Mock(), mock.Mock()]
 
@@ -1964,7 +2019,9 @@ def test_mcp_network_status_resource_returns_partial_results_and_gated_client_co
     assert status["status"] == "degraded"
     assert status["internet"]["link_status"] == "up"
     assert status["performance"] is None
-    assert status["firmware"] == {"status": "idle", "download_progress": None}
+    assert status["firmware"]["update_available"] is False
+    assert status["firmware"]["release_count"] == 1
+    assert status["firmware"]["unavailable_fields"] == ["releases[].release_note"]
     assert status["client_count"] == 2
     assert status["client_count_status"] == "available"
     assert status["unavailable_sections"] == [
@@ -2022,15 +2079,22 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
         band,
         IotHost("IoT", "iot-secret", "wpa2", True, True, False),
         MloHost("MLO", "mlo-secret", False, ("2g", "5g"), False),
+        band5_2=band,
+        band6_2=band,
     )
     with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
         DecoService(_config()).wlan_state()
 
     service = DecoService(_config(allow_sensitive_reads=True))
+    service._device_cache = (_p9_controller(),)
     client = mock.Mock()
     client.get_wlan_config.return_value = config
     client.get_wireless_operation_mode.return_value = {"mode": "host"}
-    client.get_bridge_status.return_value = {"enabled": False}
+    client.get_bridge_status.return_value = {
+        "location": "living_room",
+        "status": "connected",
+        "support_plc": True,
+    }
     client.get_fast_roaming.return_value = {"enabled": True}
     client.get_beamforming.return_value = {"enabled": True}
     with mock.patch.object(service, "_get_client", return_value=client):
@@ -2041,12 +2105,26 @@ def test_mcp_service_wlan_state_omits_passwords_by_default() -> None:
     assert_response_contract(WlanResponse, complete)
 
     assert "secret" not in json.dumps(redacted)
+    assert redacted["schema_version"] == 1
+    assert redacted["status"] == "available"
     assert redacted["passwords_included"] is False
     assert complete["bands"]["2.4ghz"]["host"]["password"] == "host-secret"
+    assert complete["bands"]["5ghz-2"]["host"]["password"] == "host-secret"
+    assert complete["bands"]["6ghz-2"]["host"]["password"] == "host-secret"
     assert complete["iot"]["password"] == "iot-secret"
+    assert redacted["provenance"]["source_interface"] == "http_luci"
+    assert redacted["unavailable_sections"] == []
     assert redacted["features"] == {
-        "operation_mode": {"mode": "host"},
-        "bridge": {"enabled": False},
+        "operation_mode": {
+            "mode": "host",
+            "supported_modes": [],
+            "unavailable_fields": ["supported_modes"],
+        },
+        "bridge": {
+            "location": "living_room",
+            "status": "connected",
+            "support_plc": True,
+        },
         "fast_roaming": {"enabled": True},
         "beamforming": {"enabled": True},
     }
@@ -2057,23 +2135,30 @@ def test_mcp_service_cloud_state_requires_sensitive_gate() -> None:
         DecoService(_config()).cloud_state()
 
     service = DecoService(_config(allow_sensitive_reads=True))
-    responses = [
-        ApiResponse.from_api({"error_code": 0, "result": {"enabled": True}}),
-        ApiResponse.from_api({"error_code": 0, "result": {"permissions": ["owner"]}}),
-    ]
-    with mock.patch.object(service, "read_endpoint", side_effect=responses) as read_endpoint:
+    service._device_cache = (_p9_controller(),)
+    client = mock.Mock()
+    ddns = {
+        "ap_changed": False,
+        "ddns_enable": True,
+        "ddns_info": {"ddns_status": True, "domain_name": "example.tplinkdns.com"},
+    }
+    client.call.return_value = ApiResponse.from_api({"error_code": 0, "result": ddns})
+    manager = ApiResponse.from_api({"error_code": 0, "result": {"permissions": ["owner"]}})
+    with (
+        mock.patch.object(service, "_get_client", return_value=client),
+        mock.patch.object(service, "read_endpoint", return_value=manager) as read_endpoint,
+    ):
         state = service.cloud_state()
 
     assert_response_contract(CloudResponse, state)
 
-    assert state == {
-        "ddns": {"enabled": True},
-        "manager": {"permissions": ["owner"]},
-    }
-    assert [call.args[0] for call in read_endpoint.call_args_list] == [
-        "admin.cloud.ddns.get",
-        "admin.cloud.manager.get",
-    ]
+    assert state["schema_version"] == 1
+    assert state["status"] == "available"
+    assert state["ddns"] == ddns
+    assert state["manager"] == {"permissions": ["owner"]}
+    assert state["provenance"]["source_interface"] == "http_luci"
+    assert state["unavailable_sections"] == []
+    read_endpoint.assert_called_once_with("admin.cloud.manager.get")
 
 
 def test_mcp_service_client_overview_covers_confirmed_client_data() -> None:
@@ -3052,7 +3137,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     } <= tool_names
     assert "deco_invoke_mutation" not in tool_names
     assert len(tool_names) == 47
-    assert len(resources) == 22
+    assert len(resources) == 45
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

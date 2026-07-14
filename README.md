@@ -26,12 +26,13 @@ developers and contributors.
 
 ## What it provides
 
-- A small, protocol-neutral default MCP surface: 13 resources and five tools.
+- A protocol-neutral default MCP surface: 30 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
   Pydantic dependency in the base SDK.
-- Automatic controller identification and evidence-based capability routing.
+- Automatic controller identification over HTTP or gated TMP/AppV2 bootstrap,
+  followed by evidence-based capability routing.
 - Normalized network status, configuration, mesh, devices, traffic,
   reservations, logs, capabilities and mutation inventory.
 - Local HTTP/LuCI support using TP-Link's RSA/AES owner session.
@@ -54,19 +55,80 @@ Resources are the canonical read-only state views:
 | Resource | Contents |
 |---|---|
 | `deco://mcp` | MCP configuration, connection state and enabled safety gates. |
-| `deco://status` | Overall internet, controller and mesh health. |
+| `deco://status` | Overall internet, controller and mesh health, including normalized firmware availability. |
 | `deco://configuration` | Sanitized network and system configuration. |
+| `deco://system/led` | System LED state and firmware-native night-mode schedule. |
 | `deco://mesh` | Controller identity and all Deco nodes. |
+| `deco://mesh/traffic` | Firmware-native upload and download rates for each Deco node. |
+| `deco://wireless/wps` | Current WPS scan timer and per-node session state. |
+| `deco://reports/monthly/settings` | Whether monthly report generation is enabled. |
+| `deco://reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `deco://notifications` | Gated notifications from the Deco message centre. |
+| `deco://speed-test/servers` | Automatic selection and available speed-test servers. |
+| `deco://parental-controls` | Parental-control profiles, filters, schedules and time limits. |
+| `deco://parental-controls/filter-levels` | Available default filtering policies. |
+| `deco://parental-controls/catalog` | Website and application filter catalogue. |
+| `deco://parental-controls/{owner_id}` | One parental-control profile policy. |
+| `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
+| `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. |
+| `deco://access/permissions` | Manager roles and component-access policies. |
 | `deco://devices` | All known client devices with connectivity and access state. |
 | `deco://devices/active` | Devices currently online. |
 | `deco://devices/inactive` | Known devices currently offline. |
 | `deco://devices/blocked` | Devices present in the block list. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
+| `deco://network/lan` | LAN address, subnet, DNS and upstream addresses. |
+| `deco://network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `deco://network/qos` | QoS mode details and configured bandwidth values. |
+| `deco://network/vlan` | Internet VLAN state. |
+| `deco://network/port-forwarding` | Port-forwarding rules and capacity. |
+| `deco://network/iptv` | IPTV state and mode. |
+| `deco://network/sip-alg` | SIP application-layer gateway state. |
+| `deco://network/mac-clone` | WAN MAC-clone state. |
+| `deco://network/ipv4` | Normalized IPv4 WAN and LAN configuration. |
+| `deco://network/ipv6` | IPv6 WAN and LAN configuration. |
+| `deco://network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
+| `deco://devices/ipv6` | IPv6 client and neighbor inventory. |
 | `deco://logs` | Available log levels and snapshot-preparation metadata without log contents. |
 | `deco://logs/{index}` | One gated 100-entry page from the currently prepared system-log snapshot. |
 | `deco://capabilities` | Reads available for the connected controller. |
 | `deco://mutations` | Known mutation intents, evidence and eligibility. |
+
+Mesh, status, configuration, devices, traffic and reservations select their
+interface inside the service. HTTP supplies the richer response when available;
+an eligible TMP cold start returns the validated subset with provenance and
+explicit unavailable fields, without merging live data from both transports.
+Wireless operation mode and bridge/PLC status use the same semantic source as
+their surrounding WLAN or configuration response, including during TMP-only
+startup.
+IPv4 configuration uses normalized HTTP-to-TMP fallback, retaining TMP's
+additional inbound-ping state and declaring that field unavailable when HTTP
+is selected.
+Eleven network and IPv6 resources use positively evidenced TMP-only routes and
+remain lazy: startup validates configuration but opens TMP only when one is
+read.
+The system LED, per-node mesh traffic and WPS status resources follow the same
+lazy policy through independently validated TMP-only routes. Mesh traffic rates
+retain the firmware-native integer values because their units have not been
+established. WPS remains read-only; this surface cannot start or cancel a
+session. Monthly report settings remain private, while report history requires
+the sensitive-read gate because it contains client identities, owner details
+and app or website activity.
+Parental-control policies, per-profile insights and browsing history are also
+secret TMP-only reads. Owner-specific templates use only the confirmed
+`owner_id` request contract; reading the profile list does not implicitly fetch
+activity or history. Default filter policies and the application catalogue are
+private TMP-only reads. No parental-control mutation is exposed.
+Manager permissions are exposed separately as a secret TMP-only read. The
+firmware-native component lock value is retained without inferring boolean
+semantics, and no permission mutation is exposed.
+Message-centre notifications are also a secret TMP-only read. Stable envelope
+fields are normalized while type-specific content remains structured firmware
+data, and no message mutation is exposed.
+Speed-test server selection is a private TMP-only read. The P9 established the
+automatic-selection flag and list envelope but returned no server entries, so
+model-specific server objects are preserved without inventing common fields.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer
@@ -75,8 +137,8 @@ parameters or for actions:
 | Tool | Behaviour |
 |---|---|
 | `deco_get_capability` | Resolve and read one semantic capability with provenance and bounded fallback. |
-| `deco_get_wlan_state` | Read WLAN state with passwords omitted unless explicitly requested and permitted. |
-| `deco_get_cloud_state` | Read opted-in DDNS and cloud-manager state. |
+| `deco_get_wlan_state` | Read normalized WLAN state with HTTP-to-TMP fallback; passwords remain explicitly gated. |
+| `deco_get_cloud_state` | Read opted-in DDNS with HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 | `deco_plan_mutation` | Preflight one semantic mutation and, when eligible, issue a short-lived one-shot plan. |
 | `deco_execute_mutation` | Consume an eligible plan with exact confirmation, verification and rollback controls. |
 
@@ -173,7 +235,7 @@ separate concerns:
   gates.
 - Semantic mutations follow discover → plan → authorize → execute. Plans expire
   after five minutes, bind to the resolved controller and are consumed once.
-- Fallback is allowed only for six positively evidenced read capabilities.
+- Fallback is allowed only for fifteen positively evidenced read capabilities.
   Mutations never fall back between protocols.
 
 The repository inventories 21 semantic mutation intents, including blocked and
@@ -203,6 +265,12 @@ Other models can use generic routes immediately where their firmware matches,
 but unobserved results are reported as unknown rather than silently treated as
 unsupported. Compatibility evidence can be extended with the bounded probes in
 `examples/`.
+
+If HTTP is unavailable during initial identity discovery, an explicitly enabled
+TMP/AppV2 session can resolve the mesh through the read-only device-list
+contract. This requires configured TMP credentials and a pinned host key.
+Unknown models may report their identity but do not inherit P9-specific TMP
+capability evidence.
 
 See:
 

@@ -19,6 +19,9 @@ class MeshResponse(ResponseDto):
     node_count: int
     mixed_model_mesh: bool
     identity_source: str
+    identity_interface: str
+    identity_attempts: list[JsonObject]
+    fallback_used: bool
     profile_match: str
     profile_name: str | None
     cached: bool

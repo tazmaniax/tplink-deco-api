@@ -178,10 +178,38 @@ firmware, source interface and operation. Schema-only evidence can justify a
 gated firmware-native semantic leaf, but not a normalized field-equivalence
 claim.
 
-## Current implementation gap
+## Current implementation
 
-The current registry has six HTTP-primary, TMP-fallback read contracts and
-obtains controller identity through HTTP before considering TMP. Most canonical
-resources still call HTTP directly, and the positively observed TMP-only
-datasets remain diagnostic. Future routing work must migrate these paths toward
-this policy without weakening existing mutation or sensitivity controls.
+Controller identity now resolves from cached state, HTTP discovery, or the
+gated, pinned-host-key TMP device-list bootstrap. The bootstrap records both
+attempts, validates the controller shape before caching it, permits unknown-model
+identity reporting, and does not authorize P9-specific reads for an unmatched
+profile.
+
+The current registry has fifteen HTTP-primary, TMP-fallback read contracts and
+twenty-three TMP-only contracts. Mesh, per-node mesh traffic, network status,
+configuration, system LED, WPS status, monthly report settings and history,
+notifications, speed-test server selection, parental controls, manager
+permissions, client devices, traffic, blocked clients, address reservations,
+IPv4, LAN, DHCP, VLAN, port forwarding, IPTV, SIP ALG, MAC cloning, QoS mode and
+bandwidth configuration, IPv6 configuration, IPv6 firewall and IPv6 clients now
+use the semantic selection boundary. A compound resource binds
+itself to one data-producing interface: HTTP returns the richer documented
+sections, while a TMP cold start returns the validated overlapping sections
+plus explicit `SourceUnavailable` evidence for HTTP-only sections. It does not
+merge live values from both interfaces. The speed-test contract enriches status
+from the interface selected for that compound response. Firmware availability
+normalizes HTTP node records and TMP release records into grouped releases,
+while declaring source-specific unavailable fields. The DDNS contract drives
+the cloud tool; when it selects TMP, HTTP-only cloud-manager state is explicitly
+unavailable. WLAN normalizes the P9 HTTP host radio fields and TMP `radio`
+aliases into one contract. Operation mode and bridge/PLC status now follow the
+same selected interface; TMP retains its additional supported-mode list while
+HTTP reports that field as unavailable. IPv4 normalizes the common WAN/LAN
+address fields and declares TMP-only inbound-ping state unavailable on HTTP.
+
+Logs and other datasets without a validated alternative remain HTTP-only.
+Other positively observed TMP-only datasets remain diagnostic until they receive
+dedicated semantic contracts and response models. The 38
+registered routes and migrated canonical resources are therefore still a subset
+of the wider design.

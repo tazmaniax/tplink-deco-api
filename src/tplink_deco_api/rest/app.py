@@ -41,13 +41,26 @@ from ..exceptions import (
 )
 from ..mcp.server import create_server
 from ..responses import (
+    AccessPermissionsResponse,
     CapabilitiesResponse,
     CapabilityResponse,
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
+    DhcpConfigurationResponse,
+    IptvConfigurationResponse,
+    Ipv4ConfigurationResponse,
+    Ipv6ConfigurationResponse,
+    Ipv6DevicesResponse,
+    Ipv6FirewallResponse,
+    LanConfigurationResponse,
+    LedConfigurationResponse,
     LogTypesResponse,
+    MacCloneResponse,
     MeshResponse,
+    MeshTrafficResponse,
+    MonthlyReportSettingsResponse,
+    MonthlyReportsResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
     MutationPlanStatusResponse,
@@ -55,10 +68,23 @@ from ..responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    NotificationsResponse,
+    ParentalControlCatalogResponse,
+    ParentalControlFilterLevelsResponse,
+    ParentalControlHistoryResponse,
+    ParentalControlInsightsResponse,
+    ParentalControlProfileResponse,
+    ParentalControlsResponse,
+    PortForwardingResponse,
+    QosResponse,
     ServiceStatusResponse,
+    SipAlgResponse,
+    SpeedTestServersResponse,
     SystemLogPageResponse,
     TrafficResponse,
+    VlanConfigurationResponse,
     WlanResponse,
+    WpsStatusResponse,
 )
 from ..server import ServerConfig, StaticBearerAuthenticator
 from ..service import DecoService
@@ -271,10 +297,142 @@ def _create_rest_router(
         """Return a sanitized live configuration overview."""
         return service.configuration_resource()
 
+    @router.get(
+        "/system/led",
+        response_model=LedConfigurationResponse,
+        operation_id="getLedConfiguration",
+    )
+    def led_configuration() -> dict[str, JsonValue]:
+        """Return the current system LED and night-mode state."""
+        return service.led_configuration_resource()
+
     @router.get("/mesh", response_model=MeshResponse, operation_id="getMesh")
     def mesh(refresh: Annotated[bool, Query()] = False) -> dict[str, JsonValue]:
         """Return the controller and mesh-node inventory."""
         return service.device_inventory(refresh=refresh)
+
+    @router.get(
+        "/mesh/traffic",
+        response_model=MeshTrafficResponse,
+        operation_id="getMeshTraffic",
+    )
+    def mesh_traffic() -> dict[str, JsonValue]:
+        """Return firmware-native traffic rates for each mesh node."""
+        return service.mesh_traffic_resource()
+
+    @router.get(
+        "/wireless/wps",
+        response_model=WpsStatusResponse,
+        operation_id="getWpsStatus",
+    )
+    def wps_status() -> dict[str, JsonValue]:
+        """Return the current Wi-Fi Protected Setup session status."""
+        return service.wps_status_resource()
+
+    @router.get(
+        "/reports/monthly/settings",
+        response_model=MonthlyReportSettingsResponse,
+        operation_id="getMonthlyReportSettings",
+    )
+    def monthly_report_settings() -> dict[str, JsonValue]:
+        """Return whether monthly report generation is enabled."""
+        return service.monthly_report_settings_resource()
+
+    @router.get(
+        "/reports/monthly",
+        response_model=MonthlyReportsResponse,
+        operation_id="getMonthlyReports",
+    )
+    def monthly_reports() -> dict[str, JsonValue]:
+        """Return monthly client, parental-control, and security reports."""
+        return service.monthly_reports_resource()
+
+    @router.get(
+        "/notifications",
+        response_model=NotificationsResponse,
+        operation_id="getNotifications",
+    )
+    def notifications() -> dict[str, JsonValue]:
+        """Return notifications from the Deco message centre."""
+        return service.notifications_resource()
+
+    @router.get(
+        "/speed-test/servers",
+        response_model=SpeedTestServersResponse,
+        operation_id="getSpeedTestServers",
+    )
+    def speed_test_servers() -> dict[str, JsonValue]:
+        """Return speed-test server selection and inventory."""
+        return service.speed_test_servers_resource()
+
+    @router.get(
+        "/parental-controls",
+        response_model=ParentalControlsResponse,
+        operation_id="getParentalControls",
+    )
+    def parental_controls() -> dict[str, JsonValue]:
+        """Return parental-control profile policies and schedules."""
+        return service.parental_controls_resource()
+
+    @router.get(
+        "/parental-controls/filter-levels",
+        response_model=ParentalControlFilterLevelsResponse,
+        operation_id="getParentalControlFilterLevels",
+    )
+    def parental_control_filter_levels() -> dict[str, JsonValue]:
+        """Return default parental-control filtering policies."""
+        return service.parental_control_filter_levels_resource()
+
+    @router.get(
+        "/parental-controls/catalog",
+        response_model=ParentalControlCatalogResponse,
+        operation_id="getParentalControlCatalog",
+    )
+    def parental_control_catalog() -> dict[str, JsonValue]:
+        """Return the website and application filter catalogue."""
+        return service.parental_control_catalog_resource()
+
+    @router.get(
+        "/parental-controls/{owner_id}",
+        response_model=ParentalControlProfileResponse,
+        operation_id="getParentalControlProfile",
+    )
+    def parental_control_profile(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return one parental-control profile policy."""
+        return service.parental_control_profile_resource(owner_id)
+
+    @router.get(
+        "/parental-controls/{owner_id}/insights",
+        response_model=ParentalControlInsightsResponse,
+        operation_id="getParentalControlInsights",
+    )
+    def parental_control_insights(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return online-usage insights for one parental-control profile."""
+        return service.parental_control_insights_resource(owner_id)
+
+    @router.get(
+        "/parental-controls/{owner_id}/history",
+        response_model=ParentalControlHistoryResponse,
+        operation_id="getParentalControlHistory",
+    )
+    def parental_control_history(
+        owner_id: Annotated[str, Path(min_length=1, max_length=256)],
+    ) -> dict[str, JsonValue]:
+        """Return browsing history for one parental-control profile."""
+        return service.parental_control_history_resource(owner_id)
+
+    @router.get(
+        "/access/permissions",
+        response_model=AccessPermissionsResponse,
+        operation_id="getAccessPermissions",
+    )
+    def access_permissions() -> dict[str, JsonValue]:
+        """Return manager roles and component-access policies."""
+        return service.access_permissions_resource()
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(
@@ -299,6 +457,114 @@ def _create_rest_router(
     def address_reservations() -> dict[str, JsonValue]:
         """Return the live address-reservation table."""
         return service.address_reservations_resource()
+
+    @router.get(
+        "/network/lan",
+        response_model=LanConfigurationResponse,
+        operation_id="getLanConfiguration",
+    )
+    def lan_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic LAN addressing configuration."""
+        return service.lan_configuration_resource()
+
+    @router.get(
+        "/network/dhcp",
+        response_model=DhcpConfigurationResponse,
+        operation_id="getDhcpConfiguration",
+    )
+    def dhcp_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic DHCP configuration."""
+        return service.dhcp_configuration_resource()
+
+    @router.get(
+        "/network/qos",
+        response_model=QosResponse,
+        operation_id="getQos",
+    )
+    def qos() -> dict[str, JsonValue]:
+        """Return the current semantic QoS mode and bandwidth configuration."""
+        return service.qos_resource()
+
+    @router.get(
+        "/network/vlan",
+        response_model=VlanConfigurationResponse,
+        operation_id="getVlanConfiguration",
+    )
+    def vlan_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic Internet VLAN state."""
+        return service.vlan_configuration_resource()
+
+    @router.get(
+        "/network/port-forwarding",
+        response_model=PortForwardingResponse,
+        operation_id="getPortForwarding",
+    )
+    def port_forwarding() -> dict[str, JsonValue]:
+        """Return the current semantic port-forwarding table."""
+        return service.port_forwarding_resource()
+
+    @router.get(
+        "/network/iptv",
+        response_model=IptvConfigurationResponse,
+        operation_id="getIptvConfiguration",
+    )
+    def iptv_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPTV configuration."""
+        return service.iptv_configuration_resource()
+
+    @router.get(
+        "/network/sip-alg",
+        response_model=SipAlgResponse,
+        operation_id="getSipAlg",
+    )
+    def sip_alg() -> dict[str, JsonValue]:
+        """Return the current semantic SIP ALG state."""
+        return service.sip_alg_resource()
+
+    @router.get(
+        "/network/mac-clone",
+        response_model=MacCloneResponse,
+        operation_id="getMacClone",
+    )
+    def mac_clone() -> dict[str, JsonValue]:
+        """Return the current semantic WAN MAC-clone state."""
+        return service.mac_clone_resource()
+
+    @router.get(
+        "/network/ipv4",
+        response_model=Ipv4ConfigurationResponse,
+        operation_id="getIpv4Configuration",
+    )
+    def ipv4_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPv4 WAN and LAN configuration."""
+        return service.ipv4_configuration_resource()
+
+    @router.get(
+        "/network/ipv6",
+        response_model=Ipv6ConfigurationResponse,
+        operation_id="getIpv6Configuration",
+    )
+    def ipv6_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 WAN and LAN configuration."""
+        return service.ipv6_configuration_resource()
+
+    @router.get(
+        "/network/ipv6/firewall",
+        response_model=Ipv6FirewallResponse,
+        operation_id="getIpv6Firewall",
+    )
+    def ipv6_firewall() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 inbound-firewall table."""
+        return service.ipv6_firewall_resource()
+
+    @router.get(
+        "/clients/ipv6",
+        response_model=Ipv6DevicesResponse,
+        operation_id="getIpv6Clients",
+    )
+    def ipv6_clients() -> dict[str, JsonValue]:
+        """Return the current semantic IPv6 client and neighbor inventory."""
+        return service.ipv6_devices_resource()
 
     @router.get("/log-types", response_model=LogTypesResponse, operation_id="getLogTypes")
     def log_types() -> dict[str, JsonValue]:

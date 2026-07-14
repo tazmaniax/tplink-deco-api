@@ -13,7 +13,7 @@ import threading
 import time
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from .._json import get_bool, get_int, get_str
 from ..capability_routing import (
@@ -63,6 +63,7 @@ from ..models import (
     Device,
     InternetStatus,
     NodeClientList,
+    SpeedTest,
 )
 from ..mutation_planner import build_mutation_plan
 from ..tmp_client import DecoTmpClient
@@ -72,7 +73,58 @@ from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
+from ._access_normalization import normalize_access_permissions
+from ._client_read_normalization import normalize_blocked_clients, normalize_client_traffic
+from ._device_inventory_resolution import _DeviceInventoryResolution
+from ._firmware_normalization import (
+    normalize_http_firmware_status,
+    normalize_tmp_firmware_status,
+)
+from ._ipv6_normalization import (
+    normalize_ipv6_clients,
+    normalize_ipv6_configuration,
+    normalize_ipv6_firewall,
+)
+from ._mesh_normalization import normalize_mesh_traffic
+from ._monthly_report_normalization import (
+    normalize_monthly_report_settings,
+    normalize_monthly_reports,
+)
+from ._network_normalization import (
+    normalize_bandwidth_configuration,
+    normalize_dhcp_configuration,
+    normalize_http_ipv4_configuration,
+    normalize_iptv_configuration,
+    normalize_lan_configuration,
+    normalize_mac_clone,
+    normalize_port_forwarding,
+    normalize_qos_mode,
+    normalize_sip_alg,
+    normalize_tmp_ipv4_configuration,
+    normalize_vlan_configuration,
+)
+from ._notification_normalization import normalize_notifications
+from ._parental_control_normalization import (
+    normalize_parental_control_catalog,
+    normalize_parental_control_filter_levels,
+    normalize_parental_control_history,
+    normalize_parental_control_insights,
+    normalize_parental_control_profile,
+    normalize_parental_control_profiles,
+)
 from ._pending_mutation_plan import _PendingMutationPlan
+from ._resource_read_context import _ResourceReadContext
+from ._speed_test_normalization import normalize_speed_test_servers
+from ._system_normalization import normalize_led_configuration
+from ._wlan_normalization import (
+    normalize_http_wireless_bridge,
+    normalize_http_wireless_operation_mode,
+    normalize_http_wlan_configuration,
+    normalize_tmp_wireless_bridge,
+    normalize_tmp_wireless_operation_mode,
+    normalize_tmp_wlan_configuration,
+)
+from ._wps_normalization import normalize_wps_status
 
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
@@ -85,11 +137,9 @@ if TYPE_CHECKING:
         EndpointObservation,
         IpInfo,
         MutationPlan,
-        SpeedTest,
         TmpOpcodeSpec,
-        WlanBand,
-        WlanConfig,
     )
+    from ..models.capability_route import CapabilityInterface
     from ..server.config import ServerConfig
 
 _P9_BINARY_READ_NAMES: tuple[str, ...] = (
@@ -99,6 +149,12 @@ _P9_BINARY_READ_NAMES: tuple[str, ...] = (
 )
 _TMP_PARAMETER_SOURCE_OPCODES: tuple[int, ...] = (0x4012, 0x4029, 0x4060)
 _TMP_OWNER_PARAMETERIZED_OPCODES: frozenset[int] = frozenset({0x402D, 0x402F, 0x4031})
+_WIRELESS_FEATURE_CAPABILITIES: tuple[tuple[str, str], ...] = (
+    ("operation_mode", "wireless_operation_mode"),
+    ("bridge", "wireless_bridge"),
+    ("fast_roaming", "fast_roaming"),
+    ("beamforming", "beamforming"),
+)
 _SEMANTIC_MUTATION_OPERATIONS: dict[str, tuple[str, ...]] = {
     "wan_mode": ("admin.network.wan_mode.write",),
     "lan_ip": ("admin.network.lan_ip.write",),
@@ -186,6 +242,7 @@ class DecoService:
         self._client: DecoClient | None = None
         self._tmp_client: DecoTmpClient | None = None
         self._device_cache: tuple[Device, ...] | None = None
+        self._device_resolution: _DeviceInventoryResolution | None = None
         self._pending_mutation_plans: dict[str, _PendingMutationPlan] = {}
         self._http_mutation_latched = False
         self._tmp_mutation_latched = False
@@ -197,6 +254,7 @@ class DecoService:
             client, self._client = self._client, None
             tmp_client, self._tmp_client = self._tmp_client, None
             self._device_cache = None
+            self._device_resolution = None
             self._pending_mutation_plans.clear()
             try:
                 if client is not None:
@@ -223,9 +281,18 @@ class DecoService:
         router_contacted = False
         with self._lock:
             if refresh or self._device_cache is None:
-                self._device_cache = tuple(self._get_client().get_device_list())
+                resolution = self._resolve_device_inventory()
+                self._device_cache = resolution.devices
+                self._device_resolution = resolution
                 router_contacted = True
             devices = self._device_cache
+            resolution = self._device_resolution or _DeviceInventoryResolution(
+                devices=devices,
+                source_interface="http_luci",
+                source_operation="admin.device.device_list.read",
+                attempts=(),
+                fallback_used=False,
+            )
         controller = _controller_device(devices)
         profile_match = _profile_match(controller)
         return {
@@ -235,13 +302,108 @@ class DecoService:
             "nodes": [_device_view(device) for device in devices],
             "node_count": len(devices),
             "mixed_model_mesh": len({device.device_model for device in devices}) > 1,
-            "identity_source": "admin.device.device_list.read",
+            "identity_source": resolution.source_operation,
+            "identity_interface": resolution.source_interface,
+            "identity_attempts": [dict(attempt) for attempt in resolution.attempts],
+            "fallback_used": resolution.fallback_used,
             "profile_match": profile_match,
             "profile_name": "P9" if profile_match in {"exact", "model_only"} else None,
             "cached": not router_contacted,
             "router_contacted": router_contacted,
             "mutation_invoked": False,
         }
+
+    def _resolve_device_inventory(self) -> _DeviceInventoryResolution:
+        route = get_capability_route("mesh_nodes")
+        attempts: list[JsonObject] = []
+        try:
+            devices = self._read_http_device_inventory()
+        except (TransportError, ValueError) as primary_error:
+            attempts.append(
+                {
+                    "interface": route.primary_interface,
+                    "operation": route.primary_operation,
+                    "status": "error",
+                    "error_type": type(primary_error).__name__,
+                }
+            )
+            if not self._tmp_identity_bootstrap_available():
+                raise
+            try:
+                devices = self._read_tmp_device_inventory()
+            except (DecoError, OSError, TimeoutError, ValueError) as fallback_error:
+                raise fallback_error from primary_error
+            if route.fallback_interface is None:
+                raise ValueError(
+                    "Failed to resolve controller identity: fallback is missing"
+                ) from primary_error
+            attempts.append(
+                {
+                    "interface": route.fallback_interface,
+                    "operation": route.fallback_operation,
+                    "status": "ok",
+                }
+            )
+            return _DeviceInventoryResolution(
+                devices=devices,
+                source_interface=route.fallback_interface,
+                source_operation=route.fallback_operation,
+                attempts=tuple(attempts),
+                fallback_used=True,
+            )
+        attempts.append(
+            {
+                "interface": route.primary_interface,
+                "operation": route.primary_operation,
+                "status": "ok",
+            }
+        )
+        return _DeviceInventoryResolution(
+            devices=devices,
+            source_interface=route.primary_interface,
+            source_operation=route.primary_operation,
+            attempts=tuple(attempts),
+            fallback_used=False,
+        )
+
+    def _read_http_device_inventory(self) -> tuple[Device, ...]:
+        devices = tuple(self._get_client().get_device_list())
+        _validate_device_inventory(devices)
+        return devices
+
+    def _read_tmp_device_inventory(self) -> tuple[Device, ...]:
+        payload = self.tmp_read(0x400F)
+        result = payload.get("result")
+        if not isinstance(result, Mapping):
+            raise ValueError("Failed to resolve controller identity: TMP result is not an object")
+        devices = tuple(Device.from_api(row) for row in _mapping_rows(result, "device_list"))
+        _validate_device_inventory(devices)
+        return devices
+
+    def _tmp_identity_bootstrap_available(self) -> bool:
+        return (
+            self._config.allow_tmp_reads
+            and bool(self._config.tp_link_id)
+            and bool(self._config.password)
+            and bool(self._config.tmp_host_key_sha256)
+        )
+
+    def _interface_configured(self, interface: CapabilityInterface) -> bool:
+        if interface == "http_luci":
+            return bool(self._config.password)
+        return bool(
+            self._config.tp_link_id and self._config.password and self._config.tmp_host_key_sha256
+        )
+
+    def _interface_connected(self, interface: CapabilityInterface) -> bool:
+        if interface == "http_luci":
+            return self._client is not None and self._client.is_authenticated()
+        return self._tmp_client is not None and self._tmp_client.connected
+
+    def _capability_gate_enabled(self, route: CapabilityRoute) -> bool:
+        return (route.primary_interface != "tmp_appv2" or self._config.allow_tmp_reads) and (
+            route.sensitivity != "secret" or self._config.allow_sensitive_reads
+        )
 
     def capabilities(self) -> dict[str, JsonValue]:
         """Return semantic read capabilities for the connected controller."""
@@ -260,6 +422,9 @@ class DecoService:
                     "sensitivity": route.sensitivity,
                     "support_status": support_status,
                     "readable": True,
+                    "source_configured": self._interface_configured(route.primary_interface),
+                    "source_connected": self._interface_connected(route.primary_interface),
+                    "runtime_gate_enabled": self._capability_gate_enabled(route),
                     "mutable": bool(related_mutations),
                     "read_operation": "get_capability",
                     "related_mutations": related_mutations,
@@ -416,30 +581,306 @@ class DecoService:
         result["router_contacted"] = True
         return result
 
+    def ipv4_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv4 WAN and LAN configuration."""
+        return self._semantic_capability_resource("ipv4_configuration", "IPv4 configuration")
+
+    def led_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic system LED and night-mode state."""
+        return self._semantic_capability_resource("led_configuration", "LED configuration")
+
+    def mesh_traffic_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic per-node mesh traffic rates."""
+        return self._semantic_capability_resource("mesh_traffic", "mesh traffic")
+
+    def wps_status_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic Wi-Fi Protected Setup status."""
+        return self._semantic_capability_resource("wps_status", "WPS status")
+
+    def monthly_report_settings_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic monthly report generation state."""
+        return self._semantic_capability_resource(
+            "monthly_report_settings",
+            "monthly report settings",
+        )
+
+    def monthly_reports_resource(self) -> dict[str, JsonValue]:
+        """Return gated monthly client, parental-control, and security reports."""
+        return self._semantic_capability_resource("monthly_reports", "monthly reports")
+
+    def notifications_resource(self) -> dict[str, JsonValue]:
+        """Return gated notifications from the Deco message centre."""
+        return self._semantic_capability_resource("notifications", "notifications")
+
+    def speed_test_servers_resource(self) -> dict[str, JsonValue]:
+        """Return the gated speed-test server selection and inventory."""
+        return self._semantic_capability_resource(
+            "speed_test_servers",
+            "speed-test servers",
+        )
+
+    def parental_controls_resource(self) -> dict[str, JsonValue]:
+        """Return gated parental-control profile policies and schedules."""
+        return self._semantic_capability_resource(
+            "parental_control_profiles",
+            "parental-control profiles",
+        )
+
+    def parental_control_filter_levels_resource(self) -> dict[str, JsonValue]:
+        """Return gated default parental-control filtering policies."""
+        return self._semantic_capability_resource(
+            "parental_control_filter_levels",
+            "parental-control filter levels",
+        )
+
+    def parental_control_catalog_resource(self) -> dict[str, JsonValue]:
+        """Return the gated website and application filter catalogue."""
+        return self._semantic_capability_resource(
+            "parental_control_catalog",
+            "parental-control catalogue",
+        )
+
+    def parental_control_profile_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return one gated parental-control profile by opaque owner identifier."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_profile",
+            "parental-control profile",
+            "0x402D",
+            normalized_owner_id,
+        )
+        profile = resource.get("profile")
+        if not isinstance(profile, Mapping) or profile.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control profile: owner_id does not match")
+        return resource
+
+    def parental_control_insights_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return gated online-usage insights for one parental-control profile."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_insights",
+            "parental-control insights",
+            "0x402F",
+            normalized_owner_id,
+        )
+        if resource.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control insights: owner_id does not match")
+        return resource
+
+    def parental_control_history_resource(self, owner_id: str) -> dict[str, JsonValue]:
+        """Return gated browsing history for one parental-control profile."""
+        normalized_owner_id = _validate_owner_id(owner_id)
+        resource = self._parameterized_parental_control_resource(
+            "parental_control_history",
+            "parental-control history",
+            "0x4031",
+            normalized_owner_id,
+        )
+        if resource.get("owner_id") != normalized_owner_id:
+            raise ValueError("Failed to read parental-control history: owner_id does not match")
+        return resource
+
+    def access_permissions_resource(self) -> dict[str, JsonValue]:
+        """Return gated manager roles and component-access policies."""
+        return self._semantic_capability_resource(
+            "access_permissions",
+            "access permissions",
+        )
+
+    def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 WAN and LAN configuration."""
+        return self._semantic_capability_resource("ipv6_configuration", "IPv6 configuration")
+
+    def ipv6_firewall_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 inbound-firewall rule table."""
+        return self._semantic_capability_resource("ipv6_firewall", "IPv6 firewall")
+
+    def ipv6_devices_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv6 client and neighbor inventory."""
+        return self._semantic_capability_resource("ipv6_clients", "IPv6 clients")
+
+    def lan_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic LAN addressing configuration."""
+        return self._semantic_capability_resource("lan_configuration", "LAN configuration")
+
+    def dhcp_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic DHCP configuration."""
+        return self._semantic_capability_resource("dhcp_configuration", "DHCP configuration")
+
+    def qos_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic QoS mode and bandwidth configuration."""
+        mode_capability = self.read_capability("qos_mode")
+        bandwidth_capability = self.read_capability("bandwidth_configuration")
+        mode, mode_provenance = _capability_resource_parts(mode_capability, "QoS mode")
+        bandwidth, bandwidth_provenance = _capability_resource_parts(
+            bandwidth_capability,
+            "bandwidth configuration",
+        )
+        mode_interface = _json_string(mode_provenance, "source_interface")
+        bandwidth_interface = _json_string(bandwidth_provenance, "source_interface")
+        if mode_interface != bandwidth_interface:
+            raise ValueError("Failed to read QoS: capability sources do not match")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            "mode": dict(mode),
+            "bandwidth": dict(bandwidth),
+            "provenance": {
+                "source_interface": mode_interface,
+                "source_operations": [
+                    _json_string(mode_provenance, "source_operation"),
+                    _json_string(bandwidth_provenance, "source_operation"),
+                ],
+                "single_source_interface": True,
+                "capabilities": {
+                    "qos_mode": dict(mode_provenance),
+                    "bandwidth_configuration": dict(bandwidth_provenance),
+                },
+            },
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def vlan_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic Internet VLAN state."""
+        return self._semantic_capability_resource("vlan_configuration", "VLAN configuration")
+
+    def port_forwarding_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic port-forwarding table."""
+        return self._semantic_capability_resource("port_forwarding", "port forwarding")
+
+    def iptv_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPTV configuration."""
+        return self._semantic_capability_resource("iptv_configuration", "IPTV configuration")
+
+    def sip_alg_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic SIP ALG state."""
+        return self._semantic_capability_resource("sip_alg", "SIP ALG")
+
+    def mac_clone_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic WAN MAC-clone state."""
+        return self._semantic_capability_resource("mac_clone", "MAC clone")
+
+    def _semantic_capability_resource(
+        self,
+        name: str,
+        dataset: str,
+    ) -> dict[str, JsonValue]:
+        capability = self.read_capability(name)
+        data, provenance = _capability_resource_parts(capability, dataset)
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": dict(provenance),
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def _parameterized_parental_control_resource(
+        self,
+        name: str,
+        dataset: str,
+        operation: str,
+        owner_id: str,
+    ) -> dict[str, JsonValue]:
+        if not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read parental controls: DECO_ALLOW_SENSITIVE_READS is disabled"
+            )
+        if not self._config.allow_tmp_reads:
+            raise PermissionError(
+                "Failed to read parental controls: DECO_ALLOW_TMP_READS is disabled"
+            )
+        self._tmp_ssh_config()
+        inventory = self.device_inventory()
+        if _json_string(inventory, "profile_match") != "exact":
+            raise PermissionError(
+                "Failed to read parental controls: no exact compatibility evidence"
+            )
+        data = self._read_tmp_capability(name, params={"owner_id": owner_id})
+        if not isinstance(data, Mapping):
+            raise ValueError(f"Failed to read {dataset}: data is not an object")
+        return {
+            "schema_version": 1,
+            "status": "available",
+            **dict(data),
+            "provenance": {
+                "source_interface": "tmp_appv2",
+                "source_operation": operation,
+                "fallback_used": False,
+                "fallback_policy": "none",
+                "equivalence_evidence": "p9_live_confirmed_parameter_contract",
+                "attempts": [
+                    {
+                        "interface": "tmp_appv2",
+                        "operation": operation,
+                        "status": "ok",
+                    }
+                ],
+            },
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
     def client_devices_resource(self, view: str = "all") -> dict[str, JsonValue]:
         """Return one normalized live device view from every known client source."""
         valid_views = {"all", "active", "inactive", "blocked"}
         if view not in valid_views:
             raise ValueError(f"Failed to read client devices: unknown view {view!r}")
         capability = self.read_capability("clients")
+        provenance = capability.get("provenance")
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Failed to read client devices: provenance is not an object")
+        source_interface = _json_string(provenance, "source_interface")
         errors: list[dict[str, JsonValue]] = []
         node_clients: tuple[NodeClientList, ...] = ()
-        blocked_result: JsonValue = None
-        reservations = AddressReservationTable((), 0)
-        try:
-            node_clients = self.get_clients_by_node()
-        except _LIVE_READ_ERRORS as exc:
-            errors.append(_configuration_error("clients_by_node", exc))
-        with self._lock:
-            client = self._get_client()
+        blocked_data: JsonValue = None
+        traffic_data: JsonValue = None
+        reservation_rows: tuple[JsonObject, ...] = ()
+        if source_interface == "http_luci":
             try:
-                blocked_result = client.call(get_endpoint("admin.client.black_list.list")).result
+                node_clients = self.get_clients_by_node()
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("clients_by_node", exc))
+            try:
+                blocked_data = self._read_http_capability("blocked_clients")
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("blocked_devices", exc))
             try:
-                reservations = client.get_address_reservations()
+                traffic_data = self._read_http_capability("traffic")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("device_speeds", exc))
+            with self._lock:
+                try:
+                    reservations = self._get_client().get_address_reservations()
+                    reservation_rows = tuple(
+                        {"mac": reservation.mac, "ip": reservation.ip}
+                        for reservation in reservations.reservations
+                    )
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("address_reservations", exc))
+        elif source_interface == "tmp_appv2":
+            errors.append(_source_unavailable("clients_by_node"))
+            try:
+                blocked_data = self._read_tmp_capability("blocked_clients")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("blocked_devices", exc))
+            try:
+                traffic_data = self._read_tmp_capability("traffic")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("device_speeds", exc))
+            try:
+                reservation_data = self._read_tmp_capability("address_reservations")
+                if isinstance(reservation_data, Mapping):
+                    reservation_rows = _mapping_rows(reservation_data, "entries")
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("address_reservations", exc))
+        else:
+            raise ValueError("Failed to read client devices: unknown source interface")
 
         records: dict[str, dict[str, JsonValue]] = {}
         client_rows = _json_rows(capability.get("data"))
@@ -453,11 +894,18 @@ class DecoService:
                     "clients_by_node",
                     connected_node=node.node_mac,
                 )
-        if isinstance(blocked_result, Mapping):
-            for row in _mapping_rows(blocked_result, "client_list"):
-                _merge_blocked_device(records, ClientDevice.from_api(row))
-        for reservation in reservations.reservations:
-            _merge_reserved_device(records, reservation.mac, reservation.ip)
+        if isinstance(blocked_data, Mapping):
+            for row in _mapping_rows(blocked_data, "devices"):
+                _merge_blocked_device(records, _normalized_client_device(row))
+        if isinstance(traffic_data, Mapping):
+            for row in _mapping_rows(traffic_data, "device_speeds"):
+                _merge_device_speed(records, row)
+        for reservation in reservation_rows:
+            _merge_reserved_device(
+                records,
+                get_str(reservation, "mac"),
+                get_str(reservation, "ip"),
+            )
 
         devices = sorted(
             (record for record in records.values() if _device_record_matches_view(record, view)),
@@ -472,12 +920,15 @@ class DecoService:
             "source_counts": {
                 "client_list": len(client_rows),
                 "node_client_assignments": sum(len(node.clients) for node in node_clients),
-                "blocked_devices": len(_mapping_rows(blocked_result, "client_list"))
-                if isinstance(blocked_result, Mapping)
+                "blocked_devices": len(_mapping_rows(blocked_data, "devices"))
+                if isinstance(blocked_data, Mapping)
                 else 0,
-                "address_reservations": len(reservations.reservations),
+                "device_speeds": len(_mapping_rows(traffic_data, "device_speeds"))
+                if isinstance(traffic_data, Mapping)
+                else 0,
+                "address_reservations": len(reservation_rows),
             },
-            "provenance": capability.get("provenance"),
+            "provenance": provenance,
             "unavailable_sections": errors,
             "observed_at_epoch_seconds": time.time(),
             "router_contacted": True,
@@ -490,32 +941,28 @@ class DecoService:
             raise PermissionError(
                 "Failed to read traffic: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
-        errors: list[dict[str, JsonValue]] = []
-        traffic: JsonValue = None
-        with self._lock:
-            try:
-                traffic = self._get_client().get_traffic_statistics()
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("device_speeds", exc))
-        rows = _mapping_rows(traffic, "client_list_speed") if isinstance(traffic, Mapping) else ()
-        device_speeds: list[dict[str, JsonValue]] = [
-            {
-                "mac": ClientDevice.from_api(row).mac,
-                "up_speed": _record_integer(row, "up_speed"),
-                "down_speed": _record_integer(row, "down_speed"),
+        try:
+            capability = self.read_capability("traffic")
+            data, provenance = _capability_resource_parts(capability, "traffic")
+        except _LIVE_READ_ERRORS as exc:
+            return {
+                "schema_version": 1,
+                "device_speeds": [],
+                "device_count": 0,
+                "aggregate_speed": {"up_speed": 0, "down_speed": 0},
+                "status": "unavailable",
+                "provenance": None,
+                "unavailable_sections": [_configuration_error("device_speeds", exc)],
+                "observed_at_epoch_seconds": time.time(),
+                "router_contacted": True,
+                "mutation_invoked": False,
             }
-            for row in rows
-        ]
         return {
             "schema_version": 1,
-            "device_speeds": device_speeds,
-            "device_count": len(device_speeds),
-            "aggregate_speed": {
-                "up_speed": sum(_record_integer(row, "up_speed") for row in rows),
-                "down_speed": sum(_record_integer(row, "down_speed") for row in rows),
-            },
-            "status": "available" if not errors else "unavailable",
-            "unavailable_sections": errors,
+            **dict(data),
+            "status": "available",
+            "provenance": dict(provenance),
+            "unavailable_sections": [],
             "observed_at_epoch_seconds": time.time(),
             "router_contacted": True,
             "mutation_invoked": False,
@@ -590,6 +1037,7 @@ class DecoService:
     def network_status_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live health summary without client identities or secrets."""
         inventory = self.device_inventory(refresh=True)
+        context = _resource_read_context(inventory)
         devices = self._device_cache or ()
         controller = _controller_device(devices)
         online_nodes = tuple(device for device in devices if _device_is_online(device))
@@ -606,31 +1054,55 @@ class DecoService:
         speed_test: JsonValue = None
         client_count: JsonValue = None
         client_count_status = "gated"
-        with self._lock:
-            client = self._get_client()
+        try:
+            internet_capability = self.read_capability("internet_status")
+            internet = internet_capability.get("data")
+            context = _capability_read_context(internet_capability, inventory)
+        except _LIVE_READ_ERRORS as exc:
+            errors.append(_configuration_error("internet", exc))
+        if context.interface == "http_luci":
+            with self._lock:
+                client = self._get_client()
+                try:
+                    observed_performance = client.get_performance()
+                    performance = {
+                        "cpu_usage": observed_performance.cpu_usage,
+                        "memory_usage": observed_performance.mem_usage,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("performance", exc))
+                try:
+                    firmware = self._read_resource_capability("firmware_status", context)
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("firmware", exc))
+                try:
+                    speed_test = self._read_resource_capability("speed_test", context)
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("speed_test", exc))
+                if self._config.allow_sensitive_reads:
+                    try:
+                        client_count = len(
+                            _json_rows(self._read_resource_capability("clients", context))
+                        )
+                        client_count_status = "available"
+                    except _LIVE_READ_ERRORS as exc:
+                        client_count_status = "unavailable"
+                        errors.append(_configuration_error("client_count", exc))
+        else:
+            errors.append(_source_unavailable("performance"))
             try:
-                internet = _internet_status_view(client.get_internet_status())
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("internet", exc))
-            try:
-                observed_performance = client.get_performance()
-                performance = {
-                    "cpu_usage": observed_performance.cpu_usage,
-                    "memory_usage": observed_performance.mem_usage,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("performance", exc))
-            try:
-                firmware = client.call(get_endpoint("admin.cloud.firmware_status.read")).result
+                firmware = self._read_resource_capability("firmware_status", context)
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("firmware", exc))
             try:
-                speed_test = _speed_test_view(client.get_speed_test())
+                speed_test = self._read_resource_capability("speed_test", context)
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("speed_test", exc))
             if self._config.allow_sensitive_reads:
                 try:
-                    client_count = len(client.get_client_list())
+                    client_count = len(
+                        _json_rows(self._read_resource_capability("clients", context))
+                    )
                     client_count_status = "available"
                 except _LIVE_READ_ERRORS as exc:
                     client_count_status = "unavailable"
@@ -693,6 +1165,7 @@ class DecoService:
             "speed_test": speed_test,
             "client_count": client_count,
             "client_count_status": client_count_status,
+            "provenance": context.provenance(),
             "warnings": warnings,
             "unavailable_sections": errors,
             "observed_at_epoch_seconds": time.time(),
@@ -705,81 +1178,108 @@ class DecoService:
     def configuration_resource(self) -> dict[str, JsonValue]:
         """Return a sanitized live configuration overview without secret datasets."""
         inventory = self.device_inventory()
+        context = _resource_read_context(inventory)
         sections: dict[str, JsonValue] = {}
         errors: list[dict[str, JsonValue]] = []
         nickname: JsonValue = None
         nickname_status = "gated"
-        with self._lock:
-            client = self._get_client()
+        try:
+            internet_capability = self.read_capability("internet_status")
+            sections["internet"] = internet_capability.get("data")
+            context = _capability_read_context(internet_capability, inventory)
+        except _LIVE_READ_ERRORS as exc:
+            errors.append(_configuration_error("internet", exc))
+        if context.interface == "http_luci":
+            with self._lock:
+                client = self._get_client()
+                try:
+                    mode = client.get_device_mode()
+                    sections["operating_mode"] = {
+                        "workmode": mode.workmode,
+                        "sysmode": mode.sysmode,
+                        "region": mode.region,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("operating_mode", exc))
+                try:
+                    ipv4 = normalize_http_ipv4_configuration(client.get_wan_info())
+                    sections["wan"] = ipv4["wan"]
+                    sections["lan"] = ipv4["lan"]
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("wan_lan", exc))
+                try:
+                    sections["dhcp"] = client.get_dhcp_info()
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("dhcp", exc))
+                try:
+                    sections["network_features"] = {
+                        "wan_mode": client.call(get_endpoint("admin.network.wan_mode.read")).result,
+                        "lan_ipv4": client.get_lan_ipv4(),
+                        "lan_ip": client.get_lan_ip(),
+                        "vlan": client.call(get_endpoint("admin.network.vlan.read")).result,
+                        "mac_clone": client.call(
+                            get_endpoint("admin.network.mac_clone.read")
+                        ).result,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("network_features", exc))
+                try:
+                    time_settings = client.get_time_settings()
+                    sections["time_settings"] = {
+                        "time": time_settings.time,
+                        "date": time_settings.date,
+                        "timezone": time_settings.timezone,
+                        "tz_region": time_settings.tz_region,
+                        "continent": time_settings.continent,
+                        "dst_status": time_settings.dst_status,
+                    }
+                except _LIVE_READ_ERRORS as exc:
+                    errors.append(_configuration_error("time_settings", exc))
+                if self._config.allow_sensitive_reads:
+                    try:
+                        nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
+                        nickname_status = "available"
+                    except _LIVE_READ_ERRORS as exc:
+                        nickname_status = "unavailable"
+                        errors.append(_configuration_error("nickname", exc))
+        else:
+            errors.extend(
+                _source_unavailable(section)
+                for section in (
+                    "operating_mode",
+                    "dhcp",
+                    "network_features",
+                    "time_settings",
+                )
+            )
             try:
-                mode = client.get_device_mode()
-                sections["operating_mode"] = {
-                    "workmode": mode.workmode,
-                    "sysmode": mode.sysmode,
-                    "region": mode.region,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("operating_mode", exc))
-            try:
-                sections["internet"] = _internet_status_view(client.get_internet_status())
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("internet", exc))
-            try:
-                wan_info = client.get_wan_info()
-                sections["wan"] = {
-                    "ip_info": _ip_info(wan_info.wan.ip_info),
-                    "dial_type": wan_info.wan.dial_type,
-                    "enable_auto_dns": wan_info.wan.enable_auto_dns,
-                }
-                sections["lan"] = {"ip_info": _ip_info(wan_info.lan.ip_info)}
+                tmp_ipv4 = self._read_resource_capability("ipv4_configuration", context)
+                if not isinstance(tmp_ipv4, Mapping):
+                    raise ValueError(
+                        "Failed to read configuration: IPv4 configuration is not an object"
+                    )
+                sections["wan"] = tmp_ipv4.get("wan")
+                sections["lan"] = tmp_ipv4.get("lan")
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("wan_lan", exc))
-            try:
-                sections["dhcp"] = client.get_dhcp_info()
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("dhcp", exc))
-            try:
-                sections["network_features"] = {
-                    "wan_mode": client.call(get_endpoint("admin.network.wan_mode.read")).result,
-                    "lan_ipv4": client.get_lan_ipv4(),
-                    "lan_ip": client.get_lan_ip(),
-                    "vlan": client.call(get_endpoint("admin.network.vlan.read")).result,
-                    "mac_clone": client.call(get_endpoint("admin.network.mac_clone.read")).result,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("network_features", exc))
-            try:
-                time_settings = client.get_time_settings()
-                sections["time_settings"] = {
-                    "time": time_settings.time,
-                    "date": time_settings.date,
-                    "timezone": time_settings.timezone,
-                    "tz_region": time_settings.tz_region,
-                    "continent": time_settings.continent,
-                    "dst_status": time_settings.dst_status,
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("time_settings", exc))
-            try:
-                sections["wireless_features"] = {
-                    "operation_mode": client.get_wireless_operation_mode(),
-                    "bridge": client.get_bridge_status(),
-                    "fast_roaming": _boolean_setting_view(client.get_fast_roaming()),
-                    "beamforming": _boolean_setting_view(client.get_beamforming()),
-                }
-            except _LIVE_READ_ERRORS as exc:
-                errors.append(_configuration_error("wireless_features", exc))
             if self._config.allow_sensitive_reads:
-                try:
-                    nickname = client.call(get_endpoint("admin.cloud.nickname.read")).result
-                    nickname_status = "available"
-                except _LIVE_READ_ERRORS as exc:
-                    nickname_status = "unavailable"
-                    errors.append(_configuration_error("nickname", exc))
+                nickname_status = "unavailable"
+                errors.append(_source_unavailable("nickname"))
+        wireless_features: dict[str, JsonValue] = {}
+        for field_name, capability_name in _WIRELESS_FEATURE_CAPABILITIES:
+            try:
+                wireless_features[field_name] = self._read_resource_capability(
+                    capability_name, context
+                )
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error(f"wireless_features.{field_name}", exc))
+        if wireless_features:
+            sections["wireless_features"] = wireless_features
         return {
             "schema_version": 1,
             "controller": inventory["controller"],
             **sections,
+            "provenance": context.provenance(),
             "related_sections": [
                 "status",
                 "mesh",
@@ -814,9 +1314,15 @@ class DecoService:
             "routes": [
                 {
                     **route.to_dict(),
-                    "primary_available": bool(self._config.password),
-                    "fallback_configured": tmp_configured,
-                    "fallback_gate_enabled": self._tmp_fallback_available(route.sensitivity),
+                    "primary_configured": self._interface_configured(route.primary_interface),
+                    "primary_connected": self._interface_connected(route.primary_interface),
+                    "primary_gate_enabled": self._capability_gate_enabled(route),
+                    "primary_available": self._interface_configured(route.primary_interface)
+                    and self._capability_gate_enabled(route),
+                    "fallback_configured": route.fallback_interface == "tmp_appv2"
+                    and tmp_configured,
+                    "fallback_gate_enabled": route.fallback_interface == "tmp_appv2"
+                    and self._tmp_fallback_available(route.sensitivity),
                 }
                 for route in CAPABILITY_ROUTES
             ],
@@ -1086,8 +1592,17 @@ class DecoService:
         }
         return states[gate]
 
-    def read_capability(self, name: str) -> dict[str, JsonValue]:
+    def read_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+    ) -> dict[str, JsonValue]:
         """Read one logical capability and apply only proven read-only fallback."""
+        if include_passwords and name != "wlan_state":
+            raise ValueError(
+                "Failed to read capability: password inclusion is supported only for WLAN state"
+            )
         try:
             route = get_capability_route(name)
         except KeyError as exc:
@@ -1096,10 +1611,73 @@ class DecoService:
             raise PermissionError(
                 "Failed to read capability: DECO_ALLOW_SENSITIVE_READS is disabled"
             )
-        self.device_inventory()
+        if route.primary_interface == "tmp_appv2":
+            if not self._config.allow_tmp_reads:
+                raise PermissionError("Failed to read capability: DECO_ALLOW_TMP_READS is disabled")
+            self._tmp_ssh_config()
+        inventory = self.device_inventory()
+        if name == "mesh_nodes":
+            identity_attempts = [
+                dict(item) for item in _json_rows(inventory.get("identity_attempts"))
+            ]
+            if not identity_attempts:
+                identity_attempts.append(
+                    {
+                        "interface": "http_luci",
+                        "operation": route.primary_operation,
+                        "status": "ok",
+                    }
+                )
+            return _capability_response(
+                route,
+                inventory["nodes"],
+                identity_attempts,
+                fallback_used=get_bool(inventory, "fallback_used"),
+            )
+        if route.primary_interface == "tmp_appv2":
+            if _json_string(inventory, "profile_match") != "exact":
+                raise PermissionError("Failed to read capability: no exact compatibility evidence")
+            data = self._read_tmp_capability(name, include_passwords=include_passwords)
+            return _capability_response(
+                route,
+                data,
+                [
+                    {
+                        "interface": route.primary_interface,
+                        "operation": route.primary_operation,
+                        "status": "ok",
+                    }
+                ],
+                fallback_used=False,
+            )
+        context = _resource_read_context(inventory)
+        if (
+            context.interface == "tmp_appv2"
+            and route.fallback_interface == "tmp_appv2"
+            and self._tmp_fallback_available(route.sensitivity)
+        ):
+            data = self._read_tmp_capability(name, include_passwords=include_passwords)
+            return _capability_response(
+                route,
+                data,
+                [
+                    {
+                        "interface": route.primary_interface,
+                        "operation": route.primary_operation,
+                        "status": "skipped",
+                        "reason": "identity_bootstrap_selected_tmp",
+                    },
+                    {
+                        "interface": route.fallback_interface,
+                        "operation": route.fallback_operation,
+                        "status": "ok",
+                    },
+                ],
+                fallback_used=True,
+            )
         attempts: list[dict[str, JsonValue]] = []
         try:
-            data = self._read_http_capability(name)
+            data = self._read_http_capability(name, include_passwords=include_passwords)
         except (ApiError, TransportError, ValueError) as primary_error:
             attempts.append(
                 {
@@ -1116,7 +1694,7 @@ class DecoService:
             ):
                 raise
             try:
-                data = self._read_tmp_capability(name)
+                data = self._read_tmp_capability(name, include_passwords=include_passwords)
             except (DecoError, OSError, TimeoutError, ValueError) as fallback_error:
                 raise fallback_error from primary_error
             attempts.append(
@@ -1136,7 +1714,28 @@ class DecoService:
         )
         return _capability_response(route, data, attempts, fallback_used=False)
 
-    def _read_http_capability(self, name: str) -> JsonValue:
+    def _read_resource_capability(
+        self,
+        name: str,
+        context: _ResourceReadContext,
+    ) -> JsonValue:
+        route = get_capability_route(name)
+        if route.sensitivity == "secret" and not self._config.allow_sensitive_reads:
+            raise PermissionError(
+                "Failed to read resource capability: DECO_ALLOW_SENSITIVE_READS is disabled"
+            )
+        if context.interface == "http_luci":
+            return self._read_http_capability(name)
+        if not self._tmp_fallback_available(route.sensitivity):
+            raise PermissionError("Failed to read resource capability: TMP route is not eligible")
+        return self._read_tmp_capability(name)
+
+    def _read_http_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+    ) -> JsonValue:
         with self._lock:
             client = self._get_client()
             if name == "mesh_nodes":
@@ -1154,9 +1753,49 @@ class DecoService:
                 return _boolean_setting_view(client.get_fast_roaming())
             if name == "beamforming":
                 return _boolean_setting_view(client.get_beamforming())
+            if name == "wireless_operation_mode":
+                return normalize_http_wireless_operation_mode(client.get_wireless_operation_mode())
+            if name == "wireless_bridge":
+                return normalize_http_wireless_bridge(client.get_bridge_status())
+            if name == "traffic":
+                return normalize_client_traffic(client.get_traffic_statistics())
+            if name == "blocked_clients":
+                result = client.call(get_endpoint("admin.client.black_list.list")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError(
+                        "Failed to read HTTP capability: blocked clients result is not an object"
+                    )
+                return normalize_blocked_clients(result)
+            if name == "speed_test":
+                return _speed_test_view(client.get_speed_test())
+            if name == "firmware_status":
+                result = client.call(get_endpoint("admin.cloud.firmware_status.check")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError(
+                        "Failed to read HTTP capability: firmware status result is not an object"
+                    )
+                return normalize_http_firmware_status(result)
+            if name == "ddns":
+                result = client.call(get_endpoint("admin.cloud.ddns.get")).result
+                if not isinstance(result, Mapping):
+                    raise ValueError("Failed to read HTTP capability: DDNS result is not an object")
+                return dict(result)
+            if name == "wlan_state":
+                return normalize_http_wlan_configuration(
+                    client.get_wlan_config(),
+                    include_passwords=include_passwords,
+                )
+            if name == "ipv4_configuration":
+                return normalize_http_ipv4_configuration(client.get_wan_info())
         raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
 
-    def _read_tmp_capability(self, name: str) -> JsonValue:
+    def _read_tmp_capability(
+        self,
+        name: str,
+        *,
+        include_passwords: bool = False,
+        params: JsonValue = None,
+    ) -> JsonValue:
         opcodes = {
             "mesh_nodes": 0x400F,
             "clients": 0x4012,
@@ -1164,12 +1803,51 @@ class DecoService:
             "address_reservations": 0x40C0,
             "fast_roaming": 0x4208,
             "beamforming": 0x421B,
+            "wireless_operation_mode": 0x40A0,
+            "wireless_bridge": 0x400A,
+            "traffic": 0x4014,
+            "blocked_clients": 0x4018,
+            "speed_test": 0x4010,
+            "firmware_status": 0x401C,
+            "ddns": 0x40D0,
+            "wlan_state": 0x4009,
+            "ipv4_configuration": 0x4004,
+            "led_configuration": 0x401A,
+            "mesh_traffic": 0x422F,
+            "wps_status": 0x4215,
+            "monthly_report_settings": 0x4222,
+            "monthly_reports": 0x40E0,
+            "notifications": 0x4028,
+            "speed_test_servers": 0x4228,
+            "parental_control_profiles": 0x4029,
+            "parental_control_filter_levels": 0x4035,
+            "parental_control_catalog": 0x403A,
+            "parental_control_profile": 0x402D,
+            "parental_control_insights": 0x402F,
+            "parental_control_history": 0x4031,
+            "access_permissions": 0x4229,
+            "ipv6_configuration": 0x4006,
+            "ipv6_firewall": 0x4230,
+            "ipv6_clients": 0x4234,
+            "lan_configuration": 0x4211,
+            "dhcp_configuration": 0x4213,
+            "qos_mode": 0x4036,
+            "bandwidth_configuration": 0x4219,
+            "vlan_configuration": 0x420D,
+            "port_forwarding": 0x40B0,
+            "iptv_configuration": 0x4224,
+            "sip_alg": 0x421D,
+            "mac_clone": 0x4226,
         }
         code = opcodes.get(name)
         if code is None:
             raise ValueError(f"Failed to read TMP capability: unknown capability {name!r}")
-        payload = self.tmp_read(code)
+        if name == "parental_control_catalog" and params is None:
+            params = {"version": 1029}
+        payload = self.tmp_read(code, params)
         result = payload.get("result")
+        if name == "monthly_reports":
+            return normalize_monthly_reports(result)
         if not isinstance(result, Mapping):
             raise ValueError(f"Failed to read TMP capability: {name} result is not an object")
         if name == "mesh_nodes":
@@ -1185,6 +1863,77 @@ class DecoService:
             return _internet_status_view(InternetStatus.from_api(result))
         if name == "address_reservations":
             return _address_reservation_view(AddressReservationTable.from_api(result))
+        if name == "wireless_operation_mode":
+            return normalize_tmp_wireless_operation_mode(result)
+        if name == "wireless_bridge":
+            return normalize_tmp_wireless_bridge(result)
+        if name == "traffic":
+            return normalize_client_traffic(result)
+        if name == "blocked_clients":
+            return normalize_blocked_clients(result)
+        if name == "speed_test":
+            return _speed_test_view(SpeedTest.from_api(result))
+        if name == "firmware_status":
+            return normalize_tmp_firmware_status(result)
+        if name == "ddns":
+            return dict(result)
+        if name == "wlan_state":
+            return normalize_tmp_wlan_configuration(
+                result,
+                include_passwords=include_passwords,
+            )
+        if name == "ipv4_configuration":
+            return normalize_tmp_ipv4_configuration(result)
+        if name == "led_configuration":
+            return normalize_led_configuration(result)
+        if name == "mesh_traffic":
+            return normalize_mesh_traffic(result)
+        if name == "wps_status":
+            return normalize_wps_status(result)
+        if name == "monthly_report_settings":
+            return normalize_monthly_report_settings(result)
+        if name == "notifications":
+            return normalize_notifications(result)
+        if name == "speed_test_servers":
+            return normalize_speed_test_servers(result)
+        if name == "parental_control_profiles":
+            return normalize_parental_control_profiles(result)
+        if name == "parental_control_filter_levels":
+            return normalize_parental_control_filter_levels(result)
+        if name == "parental_control_catalog":
+            return normalize_parental_control_catalog(result)
+        if name == "parental_control_profile":
+            return normalize_parental_control_profile(result)
+        if name == "parental_control_insights":
+            return normalize_parental_control_insights(result)
+        if name == "parental_control_history":
+            return normalize_parental_control_history(result)
+        if name == "access_permissions":
+            return normalize_access_permissions(result)
+        if name == "ipv6_configuration":
+            return normalize_ipv6_configuration(result)
+        if name == "ipv6_firewall":
+            return normalize_ipv6_firewall(result)
+        if name == "ipv6_clients":
+            return normalize_ipv6_clients(result)
+        if name == "lan_configuration":
+            return normalize_lan_configuration(result)
+        if name == "dhcp_configuration":
+            return normalize_dhcp_configuration(result)
+        if name == "qos_mode":
+            return normalize_qos_mode(result)
+        if name == "bandwidth_configuration":
+            return normalize_bandwidth_configuration(result)
+        if name == "vlan_configuration":
+            return normalize_vlan_configuration(result)
+        if name == "port_forwarding":
+            return normalize_port_forwarding(result)
+        if name == "iptv_configuration":
+            return normalize_iptv_configuration(result)
+        if name == "sip_alg":
+            return normalize_sip_alg(result)
+        if name == "mac_clone":
+            return normalize_mac_clone(result)
         return _boolean_setting_view(result)
 
     def _tmp_fallback_available(self, sensitivity: str) -> bool:
@@ -2601,21 +3350,33 @@ class DecoService:
             raise PermissionError(
                 "Failed to read WLAN state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
-        with self._lock:
-            client = self._get_client()
-            config = client.get_wlan_config()
-            operation_mode = client.get_wireless_operation_mode()
-            bridge = client.get_bridge_status()
-            fast_roaming = client.get_fast_roaming()
-            beamforming = client.get_beamforming()
-        result = _wlan_view(config, include_passwords=include_passwords)
-        result["features"] = {
-            "operation_mode": operation_mode,
-            "bridge": bridge,
-            "fast_roaming": fast_roaming,
-            "beamforming": beamforming,
+        capability = self.read_capability(
+            "wlan_state",
+            include_passwords=include_passwords,
+        )
+        data, provenance = _capability_resource_parts(capability, "WLAN state")
+        inventory = self.device_inventory()
+        context = _capability_read_context(capability, inventory)
+        features: dict[str, JsonValue] = {
+            field_name: None for field_name, _ in _WIRELESS_FEATURE_CAPABILITIES
         }
-        return result
+        unavailable_sections: list[dict[str, JsonValue]] = []
+        for field_name, capability_name in _WIRELESS_FEATURE_CAPABILITIES:
+            try:
+                features[field_name] = self._read_resource_capability(capability_name, context)
+            except _LIVE_READ_ERRORS as exc:
+                unavailable_sections.append(_configuration_error(f"features.{field_name}", exc))
+        return {
+            "schema_version": 1,
+            "status": "available" if not unavailable_sections else "partial",
+            **dict(data),
+            "features": features,
+            "provenance": dict(provenance),
+            "unavailable_sections": unavailable_sections,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
 
     def cloud_state(self) -> dict[str, JsonValue]:
         """Return observed DDNS and cloud-manager state behind the sensitive-read gate."""
@@ -2623,9 +3384,27 @@ class DecoService:
             raise PermissionError(
                 "Failed to read cloud state: DECO_ALLOW_SENSITIVE_READS=1 is required"
             )
+        capability = self.read_capability("ddns")
+        ddns, provenance = _capability_resource_parts(capability, "DDNS")
+        unavailable_sections: list[dict[str, JsonValue]] = []
+        manager: JsonValue = None
+        if _json_string(provenance, "source_interface") == "http_luci":
+            try:
+                manager = self.read_endpoint("admin.cloud.manager.get").result
+            except _LIVE_READ_ERRORS as exc:
+                unavailable_sections.append(_configuration_error("manager", exc))
+        else:
+            unavailable_sections.append(_source_unavailable("manager"))
         return {
-            "ddns": self.read_endpoint("admin.cloud.ddns.get").result,
-            "manager": self.read_endpoint("admin.cloud.manager.get").result,
+            "schema_version": 1,
+            "status": "available" if not unavailable_sections else "partial",
+            "ddns": dict(ddns),
+            "manager": manager,
+            "provenance": dict(provenance),
+            "unavailable_sections": unavailable_sections,
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
         }
 
     def client_overview(self) -> dict[str, JsonValue]:
@@ -3531,6 +4310,53 @@ def _capability_response(
     }
 
 
+def _capability_resource_parts(
+    capability: Mapping[str, JsonValue],
+    dataset: str,
+) -> tuple[JsonObject, JsonObject]:
+    data = capability.get("data")
+    provenance = capability.get("provenance")
+    if not isinstance(data, Mapping):
+        raise ValueError(f"Failed to read {dataset}: data is not an object")
+    if not isinstance(provenance, Mapping):
+        raise ValueError(f"Failed to read {dataset}: provenance is not an object")
+    return data, provenance
+
+
+def _resource_read_context(
+    inventory: Mapping[str, JsonValue],
+) -> _ResourceReadContext:
+    interface = _json_string(inventory, "identity_interface")
+    if interface not in {"http_luci", "tmp_appv2"}:
+        raise ValueError("Failed to select resource interface: unknown identity interface")
+    return _ResourceReadContext(
+        interface=cast("CapabilityInterface", interface),
+        source_operation=_json_string(inventory, "identity_source"),
+        attempts=_json_rows(inventory.get("identity_attempts")),
+        identity_attempts=_json_rows(inventory.get("identity_attempts")),
+        fallback_used=get_bool(inventory, "fallback_used"),
+    )
+
+
+def _capability_read_context(
+    capability: Mapping[str, JsonValue],
+    inventory: Mapping[str, JsonValue],
+) -> _ResourceReadContext:
+    provenance = capability.get("provenance")
+    if not isinstance(provenance, Mapping):
+        raise ValueError("Failed to select resource interface: provenance is not an object")
+    interface = _json_string(provenance, "source_interface")
+    if interface not in {"http_luci", "tmp_appv2"}:
+        raise ValueError("Failed to select resource interface: unknown capability interface")
+    return _ResourceReadContext(
+        interface=cast("CapabilityInterface", interface),
+        source_operation=_json_string(provenance, "source_operation"),
+        attempts=_json_rows(provenance.get("attempts")),
+        identity_attempts=_json_rows(inventory.get("identity_attempts")),
+        fallback_used=get_bool(provenance, "fallback_used"),
+    )
+
+
 def _mapping_rows(data: Mapping[str, JsonValue], key: str) -> tuple[JsonObject, ...]:
     value = data.get(key)
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
@@ -3617,6 +4443,19 @@ def _merge_blocked_device(
     record["blocked"] = True
     record["access_status"] = "blocked"
     _append_device_source(record, "blocked_devices")
+
+
+def _merge_device_speed(
+    records: dict[str, dict[str, JsonValue]],
+    speed: JsonObject,
+) -> None:
+    client = ClientDevice.from_api({"mac": get_str(speed, "mac")})
+    if not client.mac:
+        return
+    record = records.setdefault(client.mac, _client_device_record(client))
+    record["up_speed"] = get_int(speed, "up_speed")
+    record["down_speed"] = get_int(speed, "down_speed")
+    _append_device_source(record, "device_speeds")
 
 
 def _merge_reserved_device(
@@ -3879,6 +4718,14 @@ def _controller_device(devices: tuple[Device, ...]) -> Device:
     return next((device for device in devices if device.role == "master"), devices[0])
 
 
+def _validate_device_inventory(devices: tuple[Device, ...]) -> None:
+    controller = _controller_device(devices)
+    if not controller.mac or not controller.device_model.strip():
+        raise ValueError(
+            "Failed to resolve controller identity: controller model and MAC are required"
+        )
+
+
 def _profile_match(controller: Device) -> str:
     if controller.device_model.strip().upper() != "P9":
         return "unknown"
@@ -3919,6 +4766,38 @@ def _capability_category(name: str) -> str:
         "address_reservations": "clients",
         "fast_roaming": "wireless",
         "beamforming": "wireless",
+        "wireless_operation_mode": "wireless",
+        "wireless_bridge": "wireless",
+        "traffic": "clients",
+        "blocked_clients": "clients",
+        "speed_test": "network",
+        "firmware_status": "system",
+        "ddns": "network",
+        "wlan_state": "wireless",
+        "ipv4_configuration": "network",
+        "led_configuration": "system",
+        "mesh_traffic": "mesh",
+        "wps_status": "wireless",
+        "monthly_report_settings": "reports",
+        "monthly_reports": "reports",
+        "notifications": "system",
+        "speed_test_servers": "network",
+        "parental_control_profiles": "parental_control",
+        "parental_control_filter_levels": "parental_control",
+        "parental_control_catalog": "parental_control",
+        "access_permissions": "access",
+        "ipv6_configuration": "network",
+        "ipv6_firewall": "security",
+        "ipv6_clients": "clients",
+        "lan_configuration": "network",
+        "dhcp_configuration": "network",
+        "qos_mode": "qos",
+        "bandwidth_configuration": "qos",
+        "vlan_configuration": "network",
+        "port_forwarding": "nat",
+        "iptv_configuration": "network",
+        "sip_alg": "nat",
+        "mac_clone": "network",
     }
     return categories[name]
 
@@ -3941,62 +4820,11 @@ def _configuration_error(section: str, error: BaseException) -> dict[str, JsonVa
     }
 
 
-def _wlan_band_view(
-    band: WlanBand,
-    *,
-    include_passwords: bool,
-) -> dict[str, JsonValue]:
-    host: dict[str, JsonValue] = {
-        "ssid": band.host.ssid,
-        "channel": band.host.channel,
-        "enabled": band.host.enable,
-        "mode": band.host.mode,
-        "channel_width": band.host.channel_width,
-        "hidden": band.host.enable_hide_ssid,
-    }
-    guest: dict[str, JsonValue] = {
-        "ssid": band.guest.ssid,
-        "enabled": band.guest.enable,
-        "vlan_id": band.guest.vlan_id,
-        "need_set_vlan": band.guest.need_set_vlan,
-    }
-    if include_passwords:
-        host["password"] = band.host.password
-        guest["password"] = band.guest.password
+def _source_unavailable(section: str) -> dict[str, JsonValue]:
     return {
-        "host": host,
-        "guest": guest,
-        "backhaul": {"channel": band.backhaul.channel},
-    }
-
-
-def _wlan_view(config: WlanConfig, *, include_passwords: bool) -> dict[str, JsonValue]:
-    iot: dict[str, JsonValue] = {
-        "ssid": config.iot_host.ssid,
-        "enabled": config.iot_host.enable,
-        "enable_2g": config.iot_host.enable_2g,
-        "enable_5g": config.iot_host.enable_5g,
-        "encryption_mode": config.iot_host.encryption_mode,
-    }
-    mlo: dict[str, JsonValue] = {
-        "ssid": config.mlo_host.ssid,
-        "enabled": config.mlo_host.enable,
-        "bands": list(config.mlo_host.band),
-        "hidden": config.mlo_host.enable_hide_ssid,
-    }
-    if include_passwords:
-        iot["password"] = config.iot_host.password
-        mlo["password"] = config.mlo_host.password
-    return {
-        "passwords_included": include_passwords,
-        "is_eg": config.is_eg,
-        "bands": {
-            "2.4ghz": _wlan_band_view(config.band2_4, include_passwords=include_passwords),
-            "5ghz": _wlan_band_view(config.band5_1, include_passwords=include_passwords),
-            "6ghz": _wlan_band_view(config.band6, include_passwords=include_passwords),
-        },
-        "iot": iot,
-        "mlo": mlo,
+        "section": section,
+        "status": "unavailable",
+        "error_type": "SourceUnavailable",
     }
 
 
@@ -4294,6 +5122,16 @@ def _tmp_parameterized_requests(
     if params is None:
         return ()
     return ((params, "signed_app_confirmed_static_contract"),)
+
+
+def _validate_owner_id(owner_id: str) -> str:
+    if not owner_id or not owner_id.strip():
+        raise ValueError("Failed to read parental controls: owner_id must be non-empty")
+    if len(owner_id) > 256:
+        raise ValueError("Failed to read parental controls: owner_id is too long")
+    if any(ord(character) < 32 or ord(character) == 127 for character in owner_id):
+        raise ValueError("Failed to read parental controls: owner_id contains a control character")
+    return owner_id
 
 
 def _validate_tmp_read_params(

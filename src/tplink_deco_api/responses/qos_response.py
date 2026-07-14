@@ -1,4 +1,4 @@
-"""Response contract for gated WLAN state."""
+"""Response contract for semantic quality-of-service state."""
 
 from __future__ import annotations
 
@@ -9,19 +9,14 @@ from .response_dto import ResponseDto
 
 
 @dataclass(frozen=True)
-class WlanResponse(ResponseDto):
-    """Describe WLAN bands and features with explicit password inclusion state."""
+class QosResponse(ResponseDto):
+    """Describe QoS mode details and configured bandwidth values."""
 
     schema_version: int
     status: str
-    passwords_included: bool
-    is_eg: bool
-    bands: JsonObject
-    iot: JsonObject
-    mlo: JsonObject
-    features: JsonObject
+    mode: JsonObject
+    bandwidth: JsonObject
     provenance: JsonObject
-    unavailable_sections: list[JsonObject]
     observed_at_epoch_seconds: float
     router_contacted: bool
     mutation_invoked: bool

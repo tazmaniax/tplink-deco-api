@@ -39,13 +39,36 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://mcp",
         "deco://status",
         "deco://configuration",
+        "deco://system/led",
         "deco://mesh",
+        "deco://mesh/traffic",
+        "deco://wireless/wps",
+        "deco://reports/monthly/settings",
+        "deco://reports/monthly",
+        "deco://notifications",
+        "deco://speed-test/servers",
+        "deco://parental-controls",
+        "deco://parental-controls/filter-levels",
+        "deco://parental-controls/catalog",
+        "deco://access/permissions",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
         "deco://devices/blocked",
+        "deco://devices/ipv6",
         "deco://traffic",
         "deco://address-reservations",
+        "deco://network/lan",
+        "deco://network/dhcp",
+        "deco://network/qos",
+        "deco://network/vlan",
+        "deco://network/port-forwarding",
+        "deco://network/iptv",
+        "deco://network/sip-alg",
+        "deco://network/mac-clone",
+        "deco://network/ipv4",
+        "deco://network/ipv6",
+        "deco://network/ipv6/firewall",
         "deco://logs",
         "deco://capabilities",
         "deco://mutations",
@@ -189,10 +212,80 @@ def create_server(
         """Return a sanitized live overview of the connected Deco configuration."""
         return _json_text(service.configuration_resource())
 
+    @server.resource("deco://system/led")
+    def led_configuration_resource() -> str:
+        """Return the gated system LED and night-mode state."""
+        return _json_text(service.led_configuration_resource())
+
     @server.resource("deco://mesh")
     def mesh_resource() -> str:
         """Return a fresh connected-controller and mesh-node inventory."""
         return _json_text(service.device_inventory(refresh=True))
+
+    @server.resource("deco://mesh/traffic")
+    def mesh_traffic_resource() -> str:
+        """Return firmware-native traffic rates for each mesh node."""
+        return _json_text(service.mesh_traffic_resource())
+
+    @server.resource("deco://wireless/wps")
+    def wps_status_resource() -> str:
+        """Return the current Wi-Fi Protected Setup session status."""
+        return _json_text(service.wps_status_resource())
+
+    @server.resource("deco://reports/monthly/settings")
+    def monthly_report_settings_resource() -> str:
+        """Return whether monthly report generation is enabled."""
+        return _json_text(service.monthly_report_settings_resource())
+
+    @server.resource("deco://reports/monthly")
+    def monthly_reports_resource() -> str:
+        """Return gated monthly client, parental-control, and security reports."""
+        return _json_text(service.monthly_reports_resource())
+
+    @server.resource("deco://notifications")
+    def notifications_resource() -> str:
+        """Return gated notifications from the Deco message centre."""
+        return _json_text(service.notifications_resource())
+
+    @server.resource("deco://speed-test/servers")
+    def speed_test_servers_resource() -> str:
+        """Return speed-test server selection and inventory."""
+        return _json_text(service.speed_test_servers_resource())
+
+    @server.resource("deco://parental-controls")
+    def parental_controls_resource() -> str:
+        """Return gated parental-control profile policies and schedules."""
+        return _json_text(service.parental_controls_resource())
+
+    @server.resource("deco://parental-controls/filter-levels")
+    def parental_control_filter_levels_resource() -> str:
+        """Return gated default parental-control filtering policies."""
+        return _json_text(service.parental_control_filter_levels_resource())
+
+    @server.resource("deco://parental-controls/catalog")
+    def parental_control_catalog_resource() -> str:
+        """Return the gated website and application filter catalogue."""
+        return _json_text(service.parental_control_catalog_resource())
+
+    @server.resource("deco://parental-controls/{owner_id}")
+    def parental_control_profile_resource(owner_id: str) -> str:
+        """Return one gated parental-control profile policy."""
+        return _json_text(service.parental_control_profile_resource(owner_id))
+
+    @server.resource("deco://parental-controls/{owner_id}/insights")
+    def parental_control_insights_resource(owner_id: str) -> str:
+        """Return gated online-usage insights for one parental-control profile."""
+        return _json_text(service.parental_control_insights_resource(owner_id))
+
+    @server.resource("deco://parental-controls/{owner_id}/history")
+    def parental_control_history_resource(owner_id: str) -> str:
+        """Return gated browsing history for one parental-control profile."""
+        return _json_text(service.parental_control_history_resource(owner_id))
+
+    @server.resource("deco://access/permissions")
+    def access_permissions_resource() -> str:
+        """Return gated manager roles and component-access policies."""
+        return _json_text(service.access_permissions_resource())
 
     @server.resource("deco://devices")
     def devices_resource() -> str:
@@ -223,6 +316,66 @@ def create_server(
     def address_reservations_resource() -> str:
         """Return the gated live address-reservation table."""
         return _json_text(service.address_reservations_resource())
+
+    @server.resource("deco://network/lan")
+    def lan_configuration_resource() -> str:
+        """Return the gated semantic LAN addressing configuration."""
+        return _json_text(service.lan_configuration_resource())
+
+    @server.resource("deco://network/dhcp")
+    def dhcp_configuration_resource() -> str:
+        """Return the gated semantic DHCP configuration."""
+        return _json_text(service.dhcp_configuration_resource())
+
+    @server.resource("deco://network/qos")
+    def qos_resource() -> str:
+        """Return the gated semantic QoS mode and bandwidth configuration."""
+        return _json_text(service.qos_resource())
+
+    @server.resource("deco://network/vlan")
+    def vlan_configuration_resource() -> str:
+        """Return the gated semantic Internet VLAN state."""
+        return _json_text(service.vlan_configuration_resource())
+
+    @server.resource("deco://network/port-forwarding")
+    def port_forwarding_resource() -> str:
+        """Return the gated semantic port-forwarding table."""
+        return _json_text(service.port_forwarding_resource())
+
+    @server.resource("deco://network/iptv")
+    def iptv_configuration_resource() -> str:
+        """Return the gated semantic IPTV configuration."""
+        return _json_text(service.iptv_configuration_resource())
+
+    @server.resource("deco://network/sip-alg")
+    def sip_alg_resource() -> str:
+        """Return the gated semantic SIP ALG state."""
+        return _json_text(service.sip_alg_resource())
+
+    @server.resource("deco://network/mac-clone")
+    def mac_clone_resource() -> str:
+        """Return the gated semantic WAN MAC-clone state."""
+        return _json_text(service.mac_clone_resource())
+
+    @server.resource("deco://network/ipv4")
+    def ipv4_configuration_resource() -> str:
+        """Return the gated semantic IPv4 WAN and LAN configuration."""
+        return _json_text(service.ipv4_configuration_resource())
+
+    @server.resource("deco://network/ipv6")
+    def ipv6_configuration_resource() -> str:
+        """Return the gated semantic IPv6 WAN and LAN configuration."""
+        return _json_text(service.ipv6_configuration_resource())
+
+    @server.resource("deco://network/ipv6/firewall")
+    def ipv6_firewall_resource() -> str:
+        """Return the gated semantic IPv6 inbound-firewall rules."""
+        return _json_text(service.ipv6_firewall_resource())
+
+    @server.resource("deco://devices/ipv6")
+    def ipv6_devices_resource() -> str:
+        """Return the gated semantic IPv6 client and neighbor inventory."""
+        return _json_text(service.ipv6_devices_resource())
 
     @server.resource("deco://logs")
     def logs_resource() -> str:

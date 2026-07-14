@@ -66,21 +66,90 @@ a trusted network without TLS.
 | `GET` | `/api/v1/service` | Sanitized server settings, gates and connection state. |
 | `GET` | `/api/v1/status` | Normalized internet, controller and mesh health. |
 | `GET` | `/api/v1/configuration` | Sanitized network and system configuration. |
+| `GET` | `/api/v1/system/led` | System LED state and firmware-native night-mode schedule values. |
 | `GET` | `/api/v1/mesh?refresh=false` | Controller and mesh-node inventory. |
+| `GET` | `/api/v1/mesh/traffic` | Firmware-native upload and download rates for each Deco node. |
+| `GET` | `/api/v1/wireless/wps` | Current WPS scan timer and per-node session state. |
+| `GET` | `/api/v1/reports/monthly/settings` | Whether monthly report generation is enabled. |
+| `GET` | `/api/v1/reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `GET` | `/api/v1/notifications` | Gated notifications from the Deco message centre. |
+| `GET` | `/api/v1/speed-test/servers` | Automatic selection and available speed-test servers. |
+| `GET` | `/api/v1/parental-controls` | Parental-control profiles, filters, schedules and time limits. |
+| `GET` | `/api/v1/parental-controls/filter-levels` | Default filtering policies. |
+| `GET` | `/api/v1/parental-controls/catalog` | Website and application filter catalogue. |
+| `GET` | `/api/v1/parental-controls/{owner_id}` | One parental-control profile policy. |
+| `GET` | `/api/v1/parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
+| `GET` | `/api/v1/parental-controls/{owner_id}/history` | Browsing history for one profile. |
+| `GET` | `/api/v1/access/permissions` | Manager roles and component-access policies. |
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
+| `GET` | `/api/v1/network/lan` | LAN address, subnet, DNS and upstream addresses. |
+| `GET` | `/api/v1/network/dhcp` | DHCP pool, gateway, DNS and address usage. |
+| `GET` | `/api/v1/network/qos` | QoS mode details and configured bandwidth values. |
+| `GET` | `/api/v1/network/vlan` | Internet VLAN state. |
+| `GET` | `/api/v1/network/port-forwarding` | Port-forwarding rules and capacity. |
+| `GET` | `/api/v1/network/iptv` | IPTV state and mode. |
+| `GET` | `/api/v1/network/sip-alg` | SIP application-layer gateway state. |
+| `GET` | `/api/v1/network/mac-clone` | WAN MAC-clone state. |
+| `GET` | `/api/v1/network/ipv4` | Normalized IPv4 WAN and LAN configuration. |
+| `GET` | `/api/v1/network/ipv6` | Normalized IPv6 WAN and LAN configuration. |
+| `GET` | `/api/v1/network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
+| `GET` | `/api/v1/clients/ipv6` | IPv6 client and neighbor inventory. |
 | `GET` | `/api/v1/log-types` | Available levels and snapshot-preparation metadata without log contents. |
 | `GET` | `/api/v1/logs/{index}?limit=100` | One gated page from the currently prepared secret system-log snapshot. |
 | `GET` | `/api/v1/capabilities` | Read capability inventory and support evidence. |
 | `GET` | `/api/v1/capabilities/{name}` | One capability value with routing provenance. |
-| `GET` | `/api/v1/wlan?include_passwords=false` | Gated WLAN state. |
-| `GET` | `/api/v1/cloud` | Gated DDNS and cloud-manager state. |
+| `GET` | `/api/v1/wlan?include_passwords=false` | Gated normalized WLAN state with HTTP-to-TMP fallback. |
+| `GET` | `/api/v1/cloud` | Gated DDNS with HTTP-to-TMP fallback and HTTP-only cloud-manager state when available. |
 | `GET` | `/api/v1/mutations` | Mutation inventory and eligibility. |
 | `GET` | `/api/v1/mutations/{name}` | One mutation candidate. |
 
 Responses retain `schema_version` where the semantic service defines it.
 Private and secret responses must not be cached or persisted unintentionally.
+Status, configuration, client and traffic responses bind each read to one
+selected interface. If HTTP is unavailable at cold start and gated TMP routing
+is eligible, they return the validated TMP-backed subset with provenance and
+explicit unavailable-section evidence instead of mixing values from both
+interfaces. Client blocking and speed enrichment stays on that selected
+interface; a failed subread never falls back across transports independently.
+The latest speed-test result follows the selected status interface. DDNS is an
+independent schema-equivalent capability with HTTP-to-TMP fallback; a TMP-backed
+cloud response reports the HTTP-only manager section as unavailable.
+IPv4 WAN/LAN configuration has normalized HTTP-to-TMP fallback. TMP supplies
+inbound-ping state; HTTP reports that source-specific field as unavailable.
+WLAN normalizes the common P9 band, host, guest, backhaul and radio fields. A
+TMP-backed response keeps HTTP-only wireless operation mode and bridge state
+unavailable instead of contacting HTTP for enrichment.
+The eleven network and IPv6 resources are backed by twelve positively evidenced
+TMP-only semantic reads and do not require diagnostic tools to be exposed. They
+require the TMP gate; LAN, DHCP, port forwarding and the three IPv6 resources
+also require the sensitive-read gate. TMP remains disconnected until one of
+these resources is actually read.
+The independently evidenced system LED resource also requires the TMP gate but
+does not require the sensitive-read gate.
+Per-node mesh traffic follows the same lazy TMP-only policy. Its rate values are
+left in firmware-native units and are not summed because forwarded mesh traffic
+could be double-counted.
+WPS status also follows that policy and normalizes the firmware countdown field.
+The route is read-only and cannot start or cancel a WPS session.
+Monthly report settings are private, while report history requires the
+sensitive-read gate because it contains identities and app or website activity.
+Both reads are TMP-only; settings writes and report removal remain unavailable.
+Parental-control reads are also TMP-only. Profiles, owner-specific insights and
+browsing history require the sensitive-read gate; default filter levels and the
+filter catalogue are private reads. Owner-specific routes accept the opaque
+`owner_id` returned by the profile collection and use only its live-confirmed
+request shape. They do not expose parental-control writes.
+Manager permissions are a separate secret TMP-only read. Component lock values
+remain firmware-native integers, and no permission mutation is exposed.
+Notifications are a secret TMP-only read. Their ID, type and firmware-native
+integer timestamp are normalized while type-specific content remains a
+structured JSON object. No message mutation is exposed.
+Speed-test server selection is a private TMP-only read. Its automatic-selection
+flag and list envelope are normalized, while server objects remain
+model-specific because the P9 returned an empty list. No selection or clear
+mutation is exposed.
 
 ## Response contracts
 
