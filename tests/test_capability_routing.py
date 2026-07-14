@@ -44,6 +44,8 @@ from tplink_deco_api.responses import (
     MacCloneResponse,
     MeshResponse,
     MeshTrafficResponse,
+    MonthlyReportSettingsResponse,
+    MonthlyReportsResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
     MutationPlanStatusResponse,
@@ -226,6 +228,37 @@ def _tmp_wlan_payload() -> JsonObject:
     return {"band2_4": band("6"), "band5_1": band("36")}
 
 
+def _tmp_monthly_reports_payload() -> list[JsonObject]:
+    return [
+        {
+            "year": 2026,
+            "month": 6,
+            "calculat_daily_clients": {
+                "client_count_list": [10, 11],
+                "new_client_list": [
+                    {
+                        "date": "2026-06-12",
+                        "mac": "aa-bb-cc-dd-ee-ff",
+                        "name": "TmV3IERldmljZQ==",
+                    }
+                ],
+            },
+            "parental_control": {
+                "has_app_filter": True,
+                "owners": [
+                    {
+                        "owner_id": "owner-1",
+                        "owner_name": "Household member",
+                        "app_web_list": [{"url": "example.test", "online_duration": 120}],
+                        "forbidden_app_web_list": ["blocked.test"],
+                    }
+                ],
+            },
+            "security": {"security_issue_list": ["weak_password"]},
+        }
+    ]
+
+
 def test_capability_registry_contains_only_read_fallbacks() -> None:
     assert [route.name for route in CAPABILITY_ROUTES] == [
         "mesh_nodes",
@@ -246,6 +279,8 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "led_configuration",
         "mesh_traffic",
         "wps_status",
+        "monthly_report_settings",
+        "monthly_reports",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -303,7 +338,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 30
+    assert len(result["routes"]) == 32
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -1744,6 +1779,114 @@ def test_wps_status_resource_rejects_tmp_contract_drift() -> None:
         service.wps_status_resource()
 
 
+def test_monthly_report_resources_apply_separate_sensitivity_gates() -> None:
+    base = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    private_service = DecoService(base)
+    private_service._device_cache = (_p9_device(),)
+    private_tmp_client = mock.Mock()
+    private_tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"enable": True},
+    }
+
+    with mock.patch.object(
+        private_service,
+        "_get_tmp_client",
+        return_value=private_tmp_client,
+    ):
+        settings = private_service.monthly_report_settings_resource()
+        with pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"):
+            private_service.monthly_reports_resource()
+
+    assert_response_contract(MonthlyReportSettingsResponse, settings)
+    assert settings["enabled"] is True
+    assert settings["provenance"]["source_operation"] == "0x4222"
+    private_tmp_client.request_read_json.assert_called_once_with(0x4222, None)
+
+
+def test_monthly_reports_resource_normalizes_secret_p9_tmp_contract() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": _tmp_monthly_reports_payload(),
+    }
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        reports = service.monthly_reports_resource()
+
+    assert_response_contract(MonthlyReportsResponse, reports)
+    assert reports["report_count"] == 1
+    report = reports["reports"][0]
+    assert report["year"] == 2026
+    assert report["month"] == 6
+    assert report["daily_clients"] == {
+        "client_counts": [10, 11],
+        "new_clients": [
+            {
+                "date": "2026-06-12",
+                "mac": "AA:BB:CC:DD:EE:FF",
+                "name": "New Device",
+            }
+        ],
+    }
+    assert report["parental_control"] == {
+        "has_app_filter": True,
+        "owners": [
+            {
+                "owner_id": "owner-1",
+                "name": "Household member",
+                "app_web_activity": [{"url": "example.test", "online_duration": 120}],
+                "forbidden_app_web_list": ["blocked.test"],
+            }
+        ],
+    }
+    assert report["security"] == {"issues": ["weak_password"]}
+    assert reports["provenance"]["source_interface"] == "tmp_appv2"
+    assert reports["provenance"]["source_operation"] == "0x40E0"
+    get_client.assert_not_called()
+    tmp_client.request_read_json.assert_called_once_with(0x40E0, None)
+
+
+def test_monthly_reports_resource_rejects_non_array_result() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"reports": []},
+    }
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="monthly reports: value is not an array"),
+    ):
+        service.monthly_reports_resource()
+
+
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
     config = replace(
         _config(),
@@ -2349,7 +2492,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 30
+    assert capabilities["supported_count"] == 32
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -2425,7 +2568,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 30
+    assert capabilities["unknown_count"] == 32
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2533,6 +2676,8 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://mesh",
         "deco://mesh/traffic",
         "deco://wireless/wps",
+        "deco://reports/monthly/settings",
+        "deco://reports/monthly",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",

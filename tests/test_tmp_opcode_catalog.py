@@ -154,6 +154,14 @@ def test_tmp_catalog_separates_immediate_observation_from_safety() -> None:
         assert additional.p9_mutation_evidence_artifact.endswith(artifact)
 
 
+def test_monthly_report_history_is_secret_despite_private_settings() -> None:
+    history = get_tmp_opcode(0x40E0)
+    settings = get_tmp_opcode(0x4222)
+
+    assert history.sensitivity == "secret"
+    assert settings.sensitivity == "private"
+
+
 def test_tmp_catalog_recovers_indirect_virtual_set_contracts() -> None:
     base = get_tmp_opcode(0x42C1)
     hybrid = get_tmp_opcode(0x4351)

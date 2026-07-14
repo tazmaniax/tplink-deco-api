@@ -85,6 +85,10 @@ from ._ipv6_normalization import (
     normalize_ipv6_firewall,
 )
 from ._mesh_normalization import normalize_mesh_traffic
+from ._monthly_report_normalization import (
+    normalize_monthly_report_settings,
+    normalize_monthly_reports,
+)
 from ._network_normalization import (
     normalize_bandwidth_configuration,
     normalize_dhcp_configuration,
@@ -581,6 +585,17 @@ class DecoService:
     def wps_status_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic Wi-Fi Protected Setup status."""
         return self._semantic_capability_resource("wps_status", "WPS status")
+
+    def monthly_report_settings_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic monthly report generation state."""
+        return self._semantic_capability_resource(
+            "monthly_report_settings",
+            "monthly report settings",
+        )
+
+    def monthly_reports_resource(self) -> dict[str, JsonValue]:
+        """Return gated monthly client, parental-control, and security reports."""
+        return self._semantic_capability_resource("monthly_reports", "monthly reports")
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
@@ -1662,6 +1677,8 @@ class DecoService:
             "led_configuration": 0x401A,
             "mesh_traffic": 0x422F,
             "wps_status": 0x4215,
+            "monthly_report_settings": 0x4222,
+            "monthly_reports": 0x40E0,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1680,6 +1697,8 @@ class DecoService:
             raise ValueError(f"Failed to read TMP capability: unknown capability {name!r}")
         payload = self.tmp_read(code)
         result = payload.get("result")
+        if name == "monthly_reports":
+            return normalize_monthly_reports(result)
         if not isinstance(result, Mapping):
             raise ValueError(f"Failed to read TMP capability: {name} result is not an object")
         if name == "mesh_nodes":
@@ -1722,6 +1741,8 @@ class DecoService:
             return normalize_mesh_traffic(result)
         if name == "wps_status":
             return normalize_wps_status(result)
+        if name == "monthly_report_settings":
+            return normalize_monthly_report_settings(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4590,6 +4611,8 @@ def _capability_category(name: str) -> str:
         "led_configuration": "system",
         "mesh_traffic": "mesh",
         "wps_status": "wireless",
+        "monthly_report_settings": "reports",
+        "monthly_reports": "reports",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",

@@ -58,6 +58,8 @@ from ..responses import (
     MacCloneResponse,
     MeshResponse,
     MeshTrafficResponse,
+    MonthlyReportSettingsResponse,
+    MonthlyReportsResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
     MutationPlanStatusResponse,
@@ -317,6 +319,24 @@ def _create_rest_router(
     def wps_status() -> dict[str, JsonValue]:
         """Return the current Wi-Fi Protected Setup session status."""
         return service.wps_status_resource()
+
+    @router.get(
+        "/reports/monthly/settings",
+        response_model=MonthlyReportSettingsResponse,
+        operation_id="getMonthlyReportSettings",
+    )
+    def monthly_report_settings() -> dict[str, JsonValue]:
+        """Return whether monthly report generation is enabled."""
+        return service.monthly_report_settings_resource()
+
+    @router.get(
+        "/reports/monthly",
+        response_model=MonthlyReportsResponse,
+        operation_id="getMonthlyReports",
+    )
+    def monthly_reports() -> dict[str, JsonValue]:
+        """Return monthly client, parental-control, and security reports."""
+        return service.monthly_reports_resource()
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(

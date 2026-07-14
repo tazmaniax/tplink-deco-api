@@ -43,6 +43,8 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://mesh",
         "deco://mesh/traffic",
         "deco://wireless/wps",
+        "deco://reports/monthly/settings",
+        "deco://reports/monthly",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -223,6 +225,16 @@ def create_server(
     def wps_status_resource() -> str:
         """Return the current Wi-Fi Protected Setup session status."""
         return _json_text(service.wps_status_resource())
+
+    @server.resource("deco://reports/monthly/settings")
+    def monthly_report_settings_resource() -> str:
+        """Return whether monthly report generation is enabled."""
+        return _json_text(service.monthly_report_settings_resource())
+
+    @server.resource("deco://reports/monthly")
+    def monthly_reports_resource() -> str:
+        """Return gated monthly client, parental-control, and security reports."""
+        return _json_text(service.monthly_reports_resource())
 
     @server.resource("deco://devices")
     def devices_resource() -> str:

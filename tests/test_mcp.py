@@ -487,7 +487,7 @@ def test_mcp_service_reports_unified_p9_access_coverage_offline() -> None:
     get_tmp_client.assert_not_called()
     assert coverage["offline"] is True
     assert coverage["router_contacted"] is False
-    assert coverage["unified_semantic_surface"]["capability_count"] == 30
+    assert coverage["unified_semantic_surface"]["capability_count"] == 32
     assert coverage["unified_semantic_surface"]["mutation_capability_count"] == 3
     assert coverage["unified_semantic_surface"]["caller_selects_protocol"] is False
     assert coverage["unified_semantic_surface"]["automatic_mutation_fallback"] is False
@@ -951,6 +951,8 @@ def test_mcp_tmp_read_enforces_independent_model_and_sensitivity_gates() -> None
             service.tmp_read(0x401E)
         with pytest.raises(PermissionError, match="SENSITIVE_READS"):
             service.tmp_read(0x4009)
+        with pytest.raises(PermissionError, match="SENSITIVE_READS"):
+            service.tmp_read(0x40E0)
     get_client.assert_not_called()
 
 
@@ -3135,7 +3137,7 @@ async def test_mcp_server_registers_resources_and_tools() -> None:
     } <= tool_names
     assert "deco_invoke_mutation" not in tool_names
     assert len(tool_names) == 47
-    assert len(resources) == 37
+    assert len(resources) == 39
     assert "admin.network.wan_mode.write" in str(catalog_result)
     assert "password_configured" in str(status_result)
     assert "admin.network.performance.read" in str(catalog_resource)

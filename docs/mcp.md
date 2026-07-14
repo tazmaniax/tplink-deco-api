@@ -218,19 +218,21 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current fifteen HTTP-primary overlap
-routes, fifteen TMP-only routes and directly implemented canonical resources
+routes, seventeen TMP-only routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
 ## Resources
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices, traffic, address reservations, IPv4, LAN, DHCP, port forwarding and
-all three IPv6 resources additionally require `DECO_ALLOW_SENSITIVE_READS=1`.
+devices, traffic, address reservations, monthly report history, IPv4, LAN, DHCP,
+port forwarding and all three IPv6 resources additionally require
+`DECO_ALLOW_SENSITIVE_READS=1`.
 Every resource under the TMP-only network set requires
 `DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
-`deco://system/led`, `deco://mesh/traffic` and `deco://wireless/wps` require the
-same TMP configuration but not the sensitive-read gate.
+`deco://system/led`, `deco://mesh/traffic`, `deco://wireless/wps` and
+`deco://reports/monthly/settings` require the same TMP configuration but not the
+sensitive-read gate.
 System-log pages require both the sensitive gate and
 `DECO_ALLOW_BULK_SECRET_READS=1`.
 
@@ -243,6 +245,8 @@ System-log pages require both the sensitive gate and
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh/traffic` | Current firmware-native upload and download rates for each Deco node. | `schema_version`, `status`, `node_speeds`, `node_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://wireless/wps` | Current WPS scan timer and normalized per-node session state. | `schema_version`, `status`, `scanning_time`, `sessions`, `session_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://reports/monthly/settings` | Current monthly report generation state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://reports/monthly` | Monthly client, parental-control and security reports. | `schema_version`, `status`, `reports`, `report_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
@@ -293,6 +297,12 @@ Each WPS `sessions[]` item contains `device_id`, `state`, `remaining_time`,
 `client_accessed` and `last_error_code`. The P9 HTTP WPS read returned 404, so
 the resource uses validated TMP opcode `0x4215` without claiming fallback.
 The corresponding write opcode is not exposed by this resource.
+Each monthly `reports[]` item contains `year`, `month`, `daily_clients`,
+`parental_control` and `security`. New-client identities contain normalized
+`date`, `mac` and `name`; parental-control owners retain app or website activity
+and forbidden-list values. Report history uses secret TMP opcode `0x40E0` and
+requires `DECO_ALLOW_SENSITIVE_READS=1`; the separate private settings resource
+uses `0x4222`. Report removal and settings writes remain unavailable.
 The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
 normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
 fallback. `deco://devices` reads blocking, traffic and reservations only from

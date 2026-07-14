@@ -19,6 +19,8 @@ from .log_types_response import LogTypesResponse
 from .mac_clone_response import MacCloneResponse
 from .mesh_response import MeshResponse
 from .mesh_traffic_response import MeshTrafficResponse
+from .monthly_report_settings_response import MonthlyReportSettingsResponse
+from .monthly_reports_response import MonthlyReportsResponse
 from .mutation_execution_response import MutationExecutionResponse
 from .mutation_plan_created_response import MutationPlanCreatedResponse
 from .mutation_plan_status_response import MutationPlanStatusResponse
@@ -55,6 +57,8 @@ __all__ = [
     "MacCloneResponse",
     "MeshResponse",
     "MeshTrafficResponse",
+    "MonthlyReportSettingsResponse",
+    "MonthlyReportsResponse",
     "MutationExecutionResponse",
     "MutationPlanCreatedResponse",
     "MutationPlanStatusResponse",
