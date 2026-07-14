@@ -46,6 +46,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
         "deco://notifications",
+        "deco://speed-test/servers",
         "deco://parental-controls",
         "deco://parental-controls/filter-levels",
         "deco://parental-controls/catalog",
@@ -245,6 +246,11 @@ def create_server(
     def notifications_resource() -> str:
         """Return gated notifications from the Deco message centre."""
         return _json_text(service.notifications_resource())
+
+    @server.resource("deco://speed-test/servers")
+    def speed_test_servers_resource() -> str:
+        """Return speed-test server selection and inventory."""
+        return _json_text(service.speed_test_servers_resource())
 
     @server.resource("deco://parental-controls")
     def parental_controls_resource() -> str:

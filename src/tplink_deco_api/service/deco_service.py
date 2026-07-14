@@ -114,6 +114,7 @@ from ._parental_control_normalization import (
 )
 from ._pending_mutation_plan import _PendingMutationPlan
 from ._resource_read_context import _ResourceReadContext
+from ._speed_test_normalization import normalize_speed_test_servers
 from ._system_normalization import normalize_led_configuration
 from ._wlan_normalization import (
     normalize_http_wireless_bridge,
@@ -610,6 +611,13 @@ class DecoService:
     def notifications_resource(self) -> dict[str, JsonValue]:
         """Return gated notifications from the Deco message centre."""
         return self._semantic_capability_resource("notifications", "notifications")
+
+    def speed_test_servers_resource(self) -> dict[str, JsonValue]:
+        """Return the gated speed-test server selection and inventory."""
+        return self._semantic_capability_resource(
+            "speed_test_servers",
+            "speed-test servers",
+        )
 
     def parental_controls_resource(self) -> dict[str, JsonValue]:
         """Return gated parental-control profile policies and schedules."""
@@ -1810,6 +1818,7 @@ class DecoService:
             "monthly_report_settings": 0x4222,
             "monthly_reports": 0x40E0,
             "notifications": 0x4028,
+            "speed_test_servers": 0x4228,
             "parental_control_profiles": 0x4029,
             "parental_control_filter_levels": 0x4035,
             "parental_control_catalog": 0x403A,
@@ -1885,6 +1894,8 @@ class DecoService:
             return normalize_monthly_report_settings(result)
         if name == "notifications":
             return normalize_notifications(result)
+        if name == "speed_test_servers":
+            return normalize_speed_test_servers(result)
         if name == "parental_control_profiles":
             return normalize_parental_control_profiles(result)
         if name == "parental_control_filter_levels":
@@ -4770,6 +4781,7 @@ def _capability_category(name: str) -> str:
         "monthly_report_settings": "reports",
         "monthly_reports": "reports",
         "notifications": "system",
+        "speed_test_servers": "network",
         "parental_control_profiles": "parental_control",
         "parental_control_filter_levels": "parental_control",
         "parental_control_catalog": "parental_control",

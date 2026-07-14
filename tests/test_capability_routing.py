@@ -64,6 +64,7 @@ from tplink_deco_api.responses import (
     PortForwardingResponse,
     QosResponse,
     SipAlgResponse,
+    SpeedTestServersResponse,
     VlanConfigurationResponse,
     WlanResponse,
     WpsStatusResponse,
@@ -321,6 +322,7 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "monthly_report_settings",
         "monthly_reports",
         "notifications",
+        "speed_test_servers",
         "parental_control_profiles",
         "parental_control_filter_levels",
         "parental_control_catalog",
@@ -382,7 +384,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 37
+    assert len(result["routes"]) == 38
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -2319,6 +2321,111 @@ def test_notifications_resource_rejects_malformed_contract(
         service.notifications_resource()
 
 
+def test_speed_test_servers_resource_normalizes_private_p9_contract() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {"is_auto": True, "server_list": []},
+    }
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        servers = service.speed_test_servers_resource()
+
+    assert_response_contract(SpeedTestServersResponse, servers)
+    assert servers["automatic_selection"] is True
+    assert servers["servers"] == []
+    assert servers["server_count"] == 0
+    assert servers["provenance"]["source_operation"] == "0x4228"
+    tmp_client.request_read_json.assert_called_once_with(0x4228, None)
+
+
+def test_speed_test_servers_resource_preserves_model_specific_server_records() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {
+            "is_auto": False,
+            "server_list": [
+                {
+                    "server_id": "model-specific-id",
+                    "location": {"country": "GB"},
+                }
+            ],
+        },
+    }
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        servers = service.speed_test_servers_resource()
+
+    assert servers["servers"] == [
+        {
+            "server_id": "model-specific-id",
+            "location": {"country": "GB"},
+        }
+    ]
+
+
+def test_speed_test_servers_resource_requires_tmp_read_gate() -> None:
+    service = DecoService(_config())
+
+    with (
+        mock.patch.object(service, "device_inventory") as inventory,
+        pytest.raises(PermissionError, match="ALLOW_TMP_READS"),
+    ):
+        service.speed_test_servers_resource()
+
+    inventory.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("result", "message"),
+    [
+        ({"server_list": []}, "is_auto is not a boolean"),
+        ({"is_auto": True}, "server_list is not an array"),
+        (
+            {"is_auto": True, "server_list": [1]},
+            "server_list contains a non-object",
+        ),
+    ],
+)
+def test_speed_test_servers_resource_rejects_malformed_contract(
+    result: JsonObject,
+    message: str,
+) -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": result}
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match=message),
+    ):
+        service.speed_test_servers_resource()
+
+
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
     config = replace(
         _config(),
@@ -2924,7 +3031,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 37
+    assert capabilities["supported_count"] == 38
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -3000,7 +3107,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 37
+    assert capabilities["unknown_count"] == 38
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -3111,6 +3218,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
         "deco://notifications",
+        "deco://speed-test/servers",
         "deco://parental-controls",
         "deco://parental-controls/filter-levels",
         "deco://parental-controls/catalog",

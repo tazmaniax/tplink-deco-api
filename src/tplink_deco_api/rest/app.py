@@ -79,6 +79,7 @@ from ..responses import (
     QosResponse,
     ServiceStatusResponse,
     SipAlgResponse,
+    SpeedTestServersResponse,
     SystemLogPageResponse,
     TrafficResponse,
     VlanConfigurationResponse,
@@ -354,6 +355,15 @@ def _create_rest_router(
     def notifications() -> dict[str, JsonValue]:
         """Return notifications from the Deco message centre."""
         return service.notifications_resource()
+
+    @router.get(
+        "/speed-test/servers",
+        response_model=SpeedTestServersResponse,
+        operation_id="getSpeedTestServers",
+    )
+    def speed_test_servers() -> dict[str, JsonValue]:
+        """Return speed-test server selection and inventory."""
+        return service.speed_test_servers_resource()
 
     @router.get(
         "/parental-controls",

@@ -32,7 +32,7 @@ transport, compatibility evidence and a conservative mutation workflow.
 ### MCP server
 
 * added a protocol-neutral MCP server over stdio and authenticated Streamable HTTP
-* exposed 35 canonical resources for MCP state, network status, configuration,
+* exposed 36 canonical resources for MCP state, network status, configuration,
   mesh nodes and per-node traffic, WPS status, all/active/inactive/blocked
   devices, client traffic, address reservations, system LED state, LAN/DHCP/
   QoS/VLAN/NAT/IPTV/SIP ALG/MAC-clone state, IPv4 and IPv6 configuration/
@@ -85,6 +85,9 @@ transport, compatibility evidence and a conservative mutation workflow.
 * exposed validated P9 message-centre notifications as a secret protocol-neutral
   read while preserving type-specific structured content and leaving message
   mutations unavailable
+* exposed the validated P9 speed-test server selection envelope as a private
+  protocol-neutral read while preserving model-specific server objects and
+  leaving selection and clear mutations unavailable
 * enriched TMP-backed device records with blocking and live speed data instead
   of hiding those positively evidenced reads behind diagnostics
 * promoted twelve positively evidenced TMP-only network datasets into eleven

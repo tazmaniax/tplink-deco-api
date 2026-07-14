@@ -41,6 +41,7 @@ from .qos_response import QosResponse
 from .response_dto import ResponseDto
 from .service_status_response import ServiceStatusResponse
 from .sip_alg_response import SipAlgResponse
+from .speed_test_servers_response import SpeedTestServersResponse
 from .system_log_page_response import SystemLogPageResponse
 from .traffic_response import TrafficResponse
 from .vlan_configuration_response import VlanConfigurationResponse
@@ -87,6 +88,7 @@ __all__ = [
     "ResponseDto",
     "ServiceStatusResponse",
     "SipAlgResponse",
+    "SpeedTestServersResponse",
     "SystemLogPageResponse",
     "TrafficResponse",
     "VlanConfigurationResponse",

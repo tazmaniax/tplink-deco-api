@@ -153,9 +153,9 @@ environment and can print those values.
 
 The P9 registration was audited on 2026-07-11 through a fresh MCP stdio client.
 That historical live audit covered the then-current 43 tools and nine resources.
-The current default surface exposes five protocol-neutral tools and 35
+The current default surface exposes five protocol-neutral tools and 36
 semantic resources. Setting `DECO_MCP_EXPOSE_DIAGNOSTIC_TOOLS=1` exposes 48
-tools and 44 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
+tools and 45 resources. `DECO_MCP_EXPOSE_RAW_MUTATION_TOOLS=1` independently
 adds the raw endpoint executor. With HTTP risk gates disabled and only
 verified TMP reads enabled, the audit
 confirmed lazy authentication, rejected sensitive WLAN access, rejected a
@@ -218,7 +218,7 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current fifteen HTTP-primary overlap
-routes, twenty-two TMP-only routes and directly implemented canonical resources
+routes, twenty-three TMP-only routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
 ## Resources
@@ -232,8 +232,8 @@ LAN, DHCP, port forwarding and all three IPv6 resources additionally require
 Every resource under the TMP-only network set requires
 `DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
 `deco://system/led`, `deco://mesh/traffic`, `deco://wireless/wps` and
-`deco://reports/monthly/settings` require the same TMP configuration but not the
-sensitive-read gate.
+`deco://reports/monthly/settings` and `deco://speed-test/servers` require the
+same TMP configuration but not the sensitive-read gate.
 System-log pages require both the sensitive gate and
 `DECO_ALLOW_BULK_SECRET_READS=1`.
 
@@ -249,6 +249,7 @@ System-log pages require both the sensitive gate and
 | `deco://reports/monthly/settings` | Current monthly report generation state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://reports/monthly` | Monthly client, parental-control and security reports. | `schema_version`, `status`, `reports`, `report_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://notifications` | Notifications from the Deco message centre. | `schema_version`, `status`, `notifications`, `notification_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://speed-test/servers` | Automatic selection and available speed-test servers. | `schema_version`, `status`, `automatic_selection`, `servers`, `server_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://parental-controls` | Parental-control profiles with filtering, bedtime and time-limit policies. | `schema_version`, `status`, `profiles`, `profile_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://parental-controls/filter-levels` | Default parental-control filtering policies. | `schema_version`, `status`, `filter_levels`, `filter_level_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://parental-controls/catalog` | Website and application filter catalogue. | `schema_version`, `status`, `has_app_filter`, `needs_update`, `version`, `entries`, `entry_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |

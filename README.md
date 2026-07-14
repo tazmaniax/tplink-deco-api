@@ -64,6 +64,7 @@ Resources are the canonical read-only state views:
 | `deco://reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `deco://reports/monthly` | Gated monthly client, parental-control and security reports. |
 | `deco://notifications` | Gated notifications from the Deco message centre. |
+| `deco://speed-test/servers` | Automatic selection and available speed-test servers. |
 | `deco://parental-controls` | Parental-control profiles, filters, schedules and time limits. |
 | `deco://parental-controls/filter-levels` | Available default filtering policies. |
 | `deco://parental-controls/catalog` | Website and application filter catalogue. |
@@ -125,6 +126,9 @@ semantics, and no permission mutation is exposed.
 Message-centre notifications are also a secret TMP-only read. Stable envelope
 fields are normalized while type-specific content remains structured firmware
 data, and no message mutation is exposed.
+Speed-test server selection is a private TMP-only read. The P9 established the
+automatic-selection flag and list envelope but returned no server entries, so
+model-specific server objects are preserved without inventing common fields.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

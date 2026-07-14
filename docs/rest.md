@@ -73,6 +73,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `GET` | `/api/v1/reports/monthly` | Gated monthly client, parental-control and security reports. |
 | `GET` | `/api/v1/notifications` | Gated notifications from the Deco message centre. |
+| `GET` | `/api/v1/speed-test/servers` | Automatic selection and available speed-test servers. |
 | `GET` | `/api/v1/parental-controls` | Parental-control profiles, filters, schedules and time limits. |
 | `GET` | `/api/v1/parental-controls/filter-levels` | Default filtering policies. |
 | `GET` | `/api/v1/parental-controls/catalog` | Website and application filter catalogue. |
@@ -145,6 +146,10 @@ remain firmware-native integers, and no permission mutation is exposed.
 Notifications are a secret TMP-only read. Their ID, type and firmware-native
 integer timestamp are normalized while type-specific content remains a
 structured JSON object. No message mutation is exposed.
+Speed-test server selection is a private TMP-only read. Its automatic-selection
+flag and list envelope are normalized, while server objects remain
+model-specific because the P9 returned an empty list. No selection or clear
+mutation is exposed.
 
 ## Response contracts
 
