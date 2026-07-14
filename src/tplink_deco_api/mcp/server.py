@@ -45,6 +45,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://wireless/wps",
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
+        "deco://notifications",
         "deco://parental-controls",
         "deco://parental-controls/filter-levels",
         "deco://parental-controls/catalog",
@@ -239,6 +240,11 @@ def create_server(
     def monthly_reports_resource() -> str:
         """Return gated monthly client, parental-control, and security reports."""
         return _json_text(service.monthly_reports_resource())
+
+    @server.resource("deco://notifications")
+    def notifications_resource() -> str:
+        """Return gated notifications from the Deco message centre."""
+        return _json_text(service.notifications_resource())
 
     @server.resource("deco://parental-controls")
     def parental_controls_resource() -> str:

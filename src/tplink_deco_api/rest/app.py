@@ -68,6 +68,7 @@ from ..responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    NotificationsResponse,
     ParentalControlCatalogResponse,
     ParentalControlFilterLevelsResponse,
     ParentalControlHistoryResponse,
@@ -344,6 +345,15 @@ def _create_rest_router(
     def monthly_reports() -> dict[str, JsonValue]:
         """Return monthly client, parental-control, and security reports."""
         return service.monthly_reports_resource()
+
+    @router.get(
+        "/notifications",
+        response_model=NotificationsResponse,
+        operation_id="getNotifications",
+    )
+    def notifications() -> dict[str, JsonValue]:
+        """Return notifications from the Deco message centre."""
+        return service.notifications_resource()
 
     @router.get(
         "/parental-controls",

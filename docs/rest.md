@@ -72,6 +72,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/wireless/wps` | Current WPS scan timer and per-node session state. |
 | `GET` | `/api/v1/reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `GET` | `/api/v1/reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `GET` | `/api/v1/notifications` | Gated notifications from the Deco message centre. |
 | `GET` | `/api/v1/parental-controls` | Parental-control profiles, filters, schedules and time limits. |
 | `GET` | `/api/v1/parental-controls/filter-levels` | Default filtering policies. |
 | `GET` | `/api/v1/parental-controls/catalog` | Website and application filter catalogue. |
@@ -141,6 +142,9 @@ filter catalogue are private reads. Owner-specific routes accept the opaque
 request shape. They do not expose parental-control writes.
 Manager permissions are a separate secret TMP-only read. Component lock values
 remain firmware-native integers, and no permission mutation is exposed.
+Notifications are a secret TMP-only read. Their ID, type and firmware-native
+integer timestamp are normalized while type-specific content remains a
+structured JSON object. No message mutation is exposed.
 
 ## Response contracts
 

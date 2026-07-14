@@ -54,6 +54,7 @@ from tplink_deco_api.responses import (
     MutationResponse,
     MutationsResponse,
     NetworkStatusResponse,
+    NotificationsResponse,
     ParentalControlCatalogResponse,
     ParentalControlFilterLevelsResponse,
     ParentalControlHistoryResponse,
@@ -319,6 +320,7 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "wps_status",
         "monthly_report_settings",
         "monthly_reports",
+        "notifications",
         "parental_control_profiles",
         "parental_control_filter_levels",
         "parental_control_catalog",
@@ -380,7 +382,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 36
+    assert len(result["routes"]) == 37
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -2185,6 +2187,138 @@ def test_access_permissions_resource_requires_sensitive_read_gate() -> None:
     inventory.assert_not_called()
 
 
+def test_notifications_resource_normalizes_secret_p9_contract() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": {
+            "message_list": [
+                {
+                    "message_id": "message-1",
+                    "type": "monthly_report",
+                    "timestamp": 1_720_000_000,
+                    "content": {
+                        "month": "06",
+                        "year": "2026",
+                        "summary": {"new_clients": 2},
+                    },
+                }
+            ]
+        },
+    }
+
+    with mock.patch.object(service, "_get_tmp_client", return_value=tmp_client):
+        notifications = service.notifications_resource()
+
+    assert_response_contract(NotificationsResponse, notifications)
+    assert notifications["notifications"] == [
+        {
+            "id": "message-1",
+            "type": "monthly_report",
+            "timestamp": 1_720_000_000,
+            "content": {
+                "month": "06",
+                "year": "2026",
+                "summary": {"new_clients": 2},
+            },
+        }
+    ]
+    assert notifications["notification_count"] == 1
+    assert notifications["provenance"]["source_operation"] == "0x4028"
+    tmp_client.request_read_json.assert_called_once_with(0x4028, None)
+
+
+def test_notifications_resource_requires_sensitive_read_gate() -> None:
+    config = replace(
+        _config(),
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+
+    with (
+        mock.patch.object(service, "device_inventory") as inventory,
+        pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"),
+    ):
+        service.notifications_resource()
+
+    inventory.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("result", "message"),
+    [
+        ({}, "message_list is not an array"),
+        ({"message_list": [1]}, "message_list contains a non-object"),
+        (
+            {"message_list": [{"message_id": 1, "type": "report", "timestamp": 1, "content": {}}]},
+            "message_id is not a string",
+        ),
+        (
+            {"message_list": [{"message_id": "1", "type": 1, "timestamp": 1, "content": {}}]},
+            "type is not a string",
+        ),
+        (
+            {
+                "message_list": [
+                    {
+                        "message_id": "1",
+                        "type": "report",
+                        "timestamp": True,
+                        "content": {},
+                    }
+                ]
+            },
+            "timestamp is not an integer",
+        ),
+        (
+            {
+                "message_list": [
+                    {
+                        "message_id": "1",
+                        "type": "report",
+                        "timestamp": 1,
+                        "content": [],
+                    }
+                ]
+            },
+            "content is not an object",
+        ),
+    ],
+)
+def test_notifications_resource_rejects_malformed_contract(
+    result: JsonObject,
+    message: str,
+) -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": result}
+
+    with (
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match=message),
+    ):
+        service.notifications_resource()
+
+
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
     config = replace(
         _config(),
@@ -2790,7 +2924,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 36
+    assert capabilities["supported_count"] == 37
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -2866,7 +3000,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 36
+    assert capabilities["unknown_count"] == 37
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2976,6 +3110,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://wireless/wps",
         "deco://reports/monthly/settings",
         "deco://reports/monthly",
+        "deco://notifications",
         "deco://parental-controls",
         "deco://parental-controls/filter-levels",
         "deco://parental-controls/catalog",

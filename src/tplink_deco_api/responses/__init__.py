@@ -29,6 +29,7 @@ from .mutation_preflight_response import MutationPreflightResponse
 from .mutation_response import MutationResponse
 from .mutations_response import MutationsResponse
 from .network_status_response import NetworkStatusResponse
+from .notifications_response import NotificationsResponse
 from .parental_control_catalog_response import ParentalControlCatalogResponse
 from .parental_control_filter_levels_response import ParentalControlFilterLevelsResponse
 from .parental_control_history_response import ParentalControlHistoryResponse
@@ -74,6 +75,7 @@ __all__ = [
     "MutationResponse",
     "MutationsResponse",
     "NetworkStatusResponse",
+    "NotificationsResponse",
     "ParentalControlCatalogResponse",
     "ParentalControlFilterLevelsResponse",
     "ParentalControlHistoryResponse",

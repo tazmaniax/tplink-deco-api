@@ -63,6 +63,7 @@ Resources are the canonical read-only state views:
 | `deco://wireless/wps` | Current WPS scan timer and per-node session state. |
 | `deco://reports/monthly/settings` | Whether monthly report generation is enabled. |
 | `deco://reports/monthly` | Gated monthly client, parental-control and security reports. |
+| `deco://notifications` | Gated notifications from the Deco message centre. |
 | `deco://parental-controls` | Parental-control profiles, filters, schedules and time limits. |
 | `deco://parental-controls/filter-levels` | Available default filtering policies. |
 | `deco://parental-controls/catalog` | Website and application filter catalogue. |
@@ -121,6 +122,9 @@ private TMP-only reads. No parental-control mutation is exposed.
 Manager permissions are exposed separately as a secret TMP-only read. The
 firmware-native component lock value is retained without inferring boolean
 semantics, and no permission mutation is exposed.
+Message-centre notifications are also a secret TMP-only read. Stable envelope
+fields are normalized while type-specific content remains structured firmware
+data, and no message mutation is exposed.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

@@ -227,6 +227,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_schema_contract",
     ),
     CapabilityRoute(
+        name="notifications",
+        description="Deco message-centre notifications",
+        sensitivity="secret",
+        primary_interface="tmp_appv2",
+        primary_operation="0x4028",
+        fallback_interface=None,
+        fallback_operation="",
+        fallback_policy="none",
+        equivalence_evidence="p9_live_schema_contract",
+    ),
+    CapabilityRoute(
         name="parental_control_profiles",
         description="Parental-control profile policies and schedules",
         sensitivity="secret",

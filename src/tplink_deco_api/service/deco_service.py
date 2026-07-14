@@ -103,6 +103,7 @@ from ._network_normalization import (
     normalize_tmp_ipv4_configuration,
     normalize_vlan_configuration,
 )
+from ._notification_normalization import normalize_notifications
 from ._parental_control_normalization import (
     normalize_parental_control_catalog,
     normalize_parental_control_filter_levels,
@@ -605,6 +606,10 @@ class DecoService:
     def monthly_reports_resource(self) -> dict[str, JsonValue]:
         """Return gated monthly client, parental-control, and security reports."""
         return self._semantic_capability_resource("monthly_reports", "monthly reports")
+
+    def notifications_resource(self) -> dict[str, JsonValue]:
+        """Return gated notifications from the Deco message centre."""
+        return self._semantic_capability_resource("notifications", "notifications")
 
     def parental_controls_resource(self) -> dict[str, JsonValue]:
         """Return gated parental-control profile policies and schedules."""
@@ -1804,6 +1809,7 @@ class DecoService:
             "wps_status": 0x4215,
             "monthly_report_settings": 0x4222,
             "monthly_reports": 0x40E0,
+            "notifications": 0x4028,
             "parental_control_profiles": 0x4029,
             "parental_control_filter_levels": 0x4035,
             "parental_control_catalog": 0x403A,
@@ -1877,6 +1883,8 @@ class DecoService:
             return normalize_wps_status(result)
         if name == "monthly_report_settings":
             return normalize_monthly_report_settings(result)
+        if name == "notifications":
+            return normalize_notifications(result)
         if name == "parental_control_profiles":
             return normalize_parental_control_profiles(result)
         if name == "parental_control_filter_levels":
@@ -4761,6 +4769,7 @@ def _capability_category(name: str) -> str:
         "wps_status": "wireless",
         "monthly_report_settings": "reports",
         "monthly_reports": "reports",
+        "notifications": "system",
         "parental_control_profiles": "parental_control",
         "parental_control_filter_levels": "parental_control",
         "parental_control_catalog": "parental_control",
