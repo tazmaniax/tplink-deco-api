@@ -78,6 +78,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/parental-controls/{owner_id}` | One parental-control profile policy. |
 | `GET` | `/api/v1/parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
 | `GET` | `/api/v1/parental-controls/{owner_id}/history` | Browsing history for one profile. |
+| `GET` | `/api/v1/access/permissions` | Manager roles and component-access policies. |
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
@@ -138,6 +139,8 @@ browsing history require the sensitive-read gate; default filter levels and the
 filter catalogue are private reads. Owner-specific routes accept the opaque
 `owner_id` returned by the profile collection and use only its live-confirmed
 request shape. They do not expose parental-control writes.
+Manager permissions are a separate secret TMP-only read. Component lock values
+remain firmware-native integers, and no permission mutation is exposed.
 
 ## Response contracts
 

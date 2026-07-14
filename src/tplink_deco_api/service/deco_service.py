@@ -73,6 +73,7 @@ from ..tmp_opcode_catalog import TMP_OPCODE_CATALOG, get_tmp_opcode
 from ..tmp_read_contract_probe import probe_tmp_read_contracts
 from ..tmp_ssh_config import TmpSshConfig
 from ..tmp_unverified_read_probe import probe_tmp_unverified_reads
+from ._access_normalization import normalize_access_permissions
 from ._client_read_normalization import normalize_blocked_clients, normalize_client_traffic
 from ._device_inventory_resolution import _DeviceInventoryResolution
 from ._firmware_normalization import (
@@ -665,6 +666,13 @@ class DecoService:
         if resource.get("owner_id") != normalized_owner_id:
             raise ValueError("Failed to read parental-control history: owner_id does not match")
         return resource
+
+    def access_permissions_resource(self) -> dict[str, JsonValue]:
+        """Return gated manager roles and component-access policies."""
+        return self._semantic_capability_resource(
+            "access_permissions",
+            "access permissions",
+        )
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
@@ -1802,6 +1810,7 @@ class DecoService:
             "parental_control_profile": 0x402D,
             "parental_control_insights": 0x402F,
             "parental_control_history": 0x4031,
+            "access_permissions": 0x4229,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1880,6 +1889,8 @@ class DecoService:
             return normalize_parental_control_insights(result)
         if name == "parental_control_history":
             return normalize_parental_control_history(result)
+        if name == "access_permissions":
+            return normalize_access_permissions(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4753,6 +4764,7 @@ def _capability_category(name: str) -> str:
         "parental_control_profiles": "parental_control",
         "parental_control_filter_levels": "parental_control",
         "parental_control_catalog": "parental_control",
+        "access_permissions": "access",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",

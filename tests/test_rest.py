@@ -23,6 +23,7 @@ from tplink_deco_api.exceptions import (
 from tplink_deco_api.mcp.server import create_server
 from tplink_deco_api.models import Device
 from tplink_deco_api.responses import (
+    AccessPermissionsResponse,
     CapabilitiesResponse,
     CapabilityResponse,
     ClientsResponse,
@@ -460,6 +461,24 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             router_contacted=True,
             mutation_invoked=False,
         ),
+        "access_permissions_resource": AccessPermissionsResponse(
+            schema_version=1,
+            status="available",
+            roles=[{"role": "owner", "enabled": True}],
+            role_count=1,
+            permission_profiles=[
+                {
+                    "role": "manager",
+                    "forbidden_components": ["firmware"],
+                    "component_locks": [{"component": "wireless", "lock": 1}],
+                }
+            ],
+            permission_profile_count=1,
+            provenance={**tmp_provenance, "source_operation": "0x4229"},
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
         "client_devices_resource": ClientsResponse(
             schema_version=1,
             view="all",
@@ -798,6 +817,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/parental-controls/{owner_id}", "get"): "getParentalControlProfile",
         ("/api/v1/parental-controls/{owner_id}/insights", "get"): ("getParentalControlInsights"),
         ("/api/v1/parental-controls/{owner_id}/history", "get"): ("getParentalControlHistory"),
+        ("/api/v1/access/permissions", "get"): "getAccessPermissions",
         ("/api/v1/clients", "get"): "getClients",
         ("/api/v1/traffic", "get"): "getTraffic",
         ("/api/v1/address-reservations", "get"): "getAddressReservations",
@@ -844,6 +864,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
             "ParentalControlInsightsResponse"
         ),
         ("/api/v1/parental-controls/{owner_id}/history", "get"): ("ParentalControlHistoryResponse"),
+        ("/api/v1/access/permissions", "get"): "AccessPermissionsResponse",
         ("/api/v1/clients", "get"): "ClientsResponse",
         ("/api/v1/traffic", "get"): "TrafficResponse",
         ("/api/v1/address-reservations", "get"): "CapabilityResponse",
@@ -1019,6 +1040,11 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
             "deco://parental-controls/catalog",
             "/api/v1/parental-controls/catalog",
         ),
+        (
+            "access_permissions_resource",
+            "deco://access/permissions",
+            "/api/v1/access/permissions",
+        ),
         ("client_devices_resource", "deco://devices", "/api/v1/clients"),
         ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
         (
@@ -1150,6 +1176,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
         "parental_control_profile_resource",
         "parental_control_insights_resource",
         "parental_control_history_resource",
+        "access_permissions_resource",
         "client_devices_resource",
         "traffic_resource",
         "address_reservations_resource",
@@ -1183,6 +1210,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
                 client.get("/api/v1/parental-controls/owner-1", headers=_AUTH),
                 client.get("/api/v1/parental-controls/owner-1/insights", headers=_AUTH),
                 client.get("/api/v1/parental-controls/owner-1/history", headers=_AUTH),
+                client.get("/api/v1/access/permissions", headers=_AUTH),
                 client.get("/api/v1/clients?view=blocked", headers=_AUTH),
                 client.get("/api/v1/traffic", headers=_AUTH),
                 client.get("/api/v1/address-reservations", headers=_AUTH),

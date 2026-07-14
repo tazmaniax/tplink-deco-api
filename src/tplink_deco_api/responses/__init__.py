@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .access_permissions_response import AccessPermissionsResponse
 from .capabilities_response import CapabilitiesResponse
 from .capability_response import CapabilityResponse
 from .clients_response import ClientsResponse
@@ -46,6 +47,7 @@ from .wlan_response import WlanResponse
 from .wps_status_response import WpsStatusResponse
 
 __all__ = [
+    "AccessPermissionsResponse",
     "CapabilitiesResponse",
     "CapabilityResponse",
     "ClientsResponse",

@@ -69,6 +69,7 @@ Resources are the canonical read-only state views:
 | `deco://parental-controls/{owner_id}` | One parental-control profile policy. |
 | `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
 | `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. |
+| `deco://access/permissions` | Manager roles and component-access policies. |
 | `deco://devices` | All known client devices with connectivity and access state. |
 | `deco://devices/active` | Devices currently online. |
 | `deco://devices/inactive` | Known devices currently offline. |
@@ -117,6 +118,9 @@ secret TMP-only reads. Owner-specific templates use only the confirmed
 `owner_id` request contract; reading the profile list does not implicitly fetch
 activity or history. Default filter policies and the application catalogue are
 private TMP-only reads. No parental-control mutation is exposed.
+Manager permissions are exposed separately as a secret TMP-only read. The
+firmware-native component lock value is retained without inferring boolean
+semantics, and no permission mutation is exposed.
 
 Read-only resource templates provide bounded pagination without introducing a
 duplicate tool. Tools are reserved for semantic reads that require richer

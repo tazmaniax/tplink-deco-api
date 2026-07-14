@@ -41,6 +41,7 @@ from ..exceptions import (
 )
 from ..mcp.server import create_server
 from ..responses import (
+    AccessPermissionsResponse,
     CapabilitiesResponse,
     CapabilityResponse,
     ClientsResponse,
@@ -403,6 +404,15 @@ def _create_rest_router(
     ) -> dict[str, JsonValue]:
         """Return browsing history for one parental-control profile."""
         return service.parental_control_history_resource(owner_id)
+
+    @router.get(
+        "/access/permissions",
+        response_model=AccessPermissionsResponse,
+        operation_id="getAccessPermissions",
+    )
+    def access_permissions() -> dict[str, JsonValue]:
+        """Return manager roles and component-access policies."""
+        return service.access_permissions_resource()
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(

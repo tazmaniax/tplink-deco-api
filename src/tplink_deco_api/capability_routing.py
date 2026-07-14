@@ -260,6 +260,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_confirmed_parameter_contract",
     ),
     CapabilityRoute(
+        name="access_permissions",
+        description="Manager roles and component-access policies",
+        sensitivity="secret",
+        primary_interface="tmp_appv2",
+        primary_operation="0x4229",
+        fallback_interface=None,
+        fallback_operation="",
+        fallback_policy="none",
+        equivalence_evidence="p9_live_schema_contract",
+    ),
+    CapabilityRoute(
         name="ipv6_configuration",
         description="IPv6 WAN and LAN configuration",
         sensitivity="secret",

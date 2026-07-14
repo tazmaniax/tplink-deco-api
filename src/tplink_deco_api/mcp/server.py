@@ -48,6 +48,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://parental-controls",
         "deco://parental-controls/filter-levels",
         "deco://parental-controls/catalog",
+        "deco://access/permissions",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -268,6 +269,11 @@ def create_server(
     def parental_control_history_resource(owner_id: str) -> str:
         """Return gated browsing history for one parental-control profile."""
         return _json_text(service.parental_control_history_resource(owner_id))
+
+    @server.resource("deco://access/permissions")
+    def access_permissions_resource() -> str:
+        """Return gated manager roles and component-access policies."""
+        return _json_text(service.access_permissions_resource())
 
     @server.resource("deco://devices")
     def devices_resource() -> str:
