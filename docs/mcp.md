@@ -218,7 +218,7 @@ ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
 bootstrap now follows that policy; the current fifteen HTTP-primary overlap
-routes, thirteen TMP-only routes and directly implemented canonical resources
+routes, fourteen TMP-only routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
 ## Resources
@@ -229,8 +229,8 @@ devices, traffic, address reservations, IPv4, LAN, DHCP, port forwarding and
 all three IPv6 resources additionally require `DECO_ALLOW_SENSITIVE_READS=1`.
 Every resource under the TMP-only network set requires
 `DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
-`deco://system/led` requires the same TMP configuration but not the
-sensitive-read gate.
+`deco://system/led` and `deco://mesh/traffic` require the same TMP configuration
+but not the sensitive-read gate.
 System-log pages require both the sensitive gate and
 `DECO_ALLOW_BULK_SECRET_READS=1`.
 
@@ -241,6 +241,7 @@ System-log pages require both the sensitive gate and
 | `deco://configuration` | Sanitized current system configuration without passwords, clients or reservations. | `schema_version`, `controller`, `operating_mode`, `internet`, `wan`, `lan`, `dhcp`, `network_features`, `time_settings`, `wireless_features`, `nickname`, `nickname_status`, `provenance`, `related_sections`, `unavailable_sections`, `passwords_included`, `client_identities_included`, `address_reservations_included`, `router_contacted`, `mutation_invoked` |
 | `deco://system/led` | Current system LED state and firmware-native night-mode schedule values. | `schema_version`, `status`, `enabled`, `night_mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://mesh` | Fresh controller identity and all Deco mesh nodes. | `schema_version`, `resolution_status`, `controller`, `nodes`, `node_count`, `mixed_model_mesh`, `identity_source`, `identity_interface`, `identity_attempts`, `fallback_used`, `profile_match`, `profile_name`, `cached`, `router_contacted`, `mutation_invoked` |
+| `deco://mesh/traffic` | Current firmware-native upload and download rates for each Deco node. | `schema_version`, `status`, `node_speeds`, `node_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices` | Every known device normalized from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `view`, `devices`, `device_count`, `all_device_count`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/active` | Normalized devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Normalized known devices not currently reported online. | Same as `deco://devices`, with `view="inactive"`. |
@@ -283,6 +284,10 @@ Each `devices[]` item contains `mac`, `ip`, `name`, `client_type`, `status`,
 `active` or `inactive`; blocking is an independent access state. Each
 `device_speeds[]` item contains `mac`, `up_speed` and `down_speed`. Each log
 `categories[]` item contains a firmware level `name` and `value`.
+Each mesh `node_speeds[]` item contains `device_id`, `up_speed` and `down_speed`.
+These rates retain firmware-native integer values because the unit has not been
+validated. The resource does not calculate an aggregate because forwarded mesh
+traffic could otherwise be counted more than once.
 The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
 normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
 fallback. `deco://devices` reads blocking, traffic and reservations only from

@@ -41,6 +41,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://configuration",
         "deco://system/led",
         "deco://mesh",
+        "deco://mesh/traffic",
         "deco://devices",
         "deco://devices/active",
         "deco://devices/inactive",
@@ -211,6 +212,11 @@ def create_server(
     def mesh_resource() -> str:
         """Return a fresh connected-controller and mesh-node inventory."""
         return _json_text(service.device_inventory(refresh=True))
+
+    @server.resource("deco://mesh/traffic")
+    def mesh_traffic_resource() -> str:
+        """Return firmware-native traffic rates for each mesh node."""
+        return _json_text(service.mesh_traffic_resource())
 
     @server.resource("deco://devices")
     def devices_resource() -> str:

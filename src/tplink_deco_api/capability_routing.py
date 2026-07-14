@@ -183,6 +183,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_schema_contract",
     ),
     CapabilityRoute(
+        name="mesh_traffic",
+        description="Per-node mesh traffic speeds",
+        sensitivity="private",
+        primary_interface="tmp_appv2",
+        primary_operation="0x422F",
+        fallback_interface=None,
+        fallback_operation="",
+        fallback_policy="none",
+        equivalence_evidence="p9_live_schema_contract",
+    ),
+    CapabilityRoute(
         name="ipv6_configuration",
         description="IPv6 WAN and LAN configuration",
         sensitivity="secret",

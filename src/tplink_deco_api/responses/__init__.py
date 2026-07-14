@@ -18,6 +18,7 @@ from .led_configuration_response import LedConfigurationResponse
 from .log_types_response import LogTypesResponse
 from .mac_clone_response import MacCloneResponse
 from .mesh_response import MeshResponse
+from .mesh_traffic_response import MeshTrafficResponse
 from .mutation_execution_response import MutationExecutionResponse
 from .mutation_plan_created_response import MutationPlanCreatedResponse
 from .mutation_plan_status_response import MutationPlanStatusResponse
@@ -52,6 +53,7 @@ __all__ = [
     "LogTypesResponse",
     "MacCloneResponse",
     "MeshResponse",
+    "MeshTrafficResponse",
     "MutationExecutionResponse",
     "MutationPlanCreatedResponse",
     "MutationPlanStatusResponse",

@@ -68,6 +68,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/configuration` | Sanitized network and system configuration. |
 | `GET` | `/api/v1/system/led` | System LED state and firmware-native night-mode schedule values. |
 | `GET` | `/api/v1/mesh?refresh=false` | Controller and mesh-node inventory. |
+| `GET` | `/api/v1/mesh/traffic` | Firmware-native upload and download rates for each Deco node. |
 | `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
@@ -115,6 +116,9 @@ also require the sensitive-read gate. TMP remains disconnected until one of
 these resources is actually read.
 The independently evidenced system LED resource also requires the TMP gate but
 does not require the sensitive-read gate.
+Per-node mesh traffic follows the same lazy TMP-only policy. Its rate values are
+left in firmware-native units and are not summed because forwarded mesh traffic
+could be double-counted.
 
 ## Response contracts
 

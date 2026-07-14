@@ -45,9 +45,10 @@ batching live in the protocol pages.
 | [`architecture/semantic-resource-routing.md`](./architecture/semantic-resource-routing.md) | Required source selection, fallback, resource boundaries and provenance policy |
 
 The default MCP surface is protocol-neutral: agents see five semantic tools and
-26 resources covering MCP state, live network status, sanitized configuration,
-system LED state, mesh nodes, normalized and filtered network-device views,
-traffic, address reservations, LAN, DHCP, QoS, VLAN, NAT, IPTV, SIP ALG, MAC
+27 resources covering MCP state, live network status, sanitized configuration,
+system LED state, mesh nodes and per-node traffic, normalized and filtered
+network-device views, client traffic, address reservations, LAN, DHCP, QoS,
+VLAN, NAT, IPTV, SIP ALG, MAC
 cloning, IPv4, IPv6
 configuration/firewall/clients, log categories, capabilities and mutations. The server resolves
 the connected controller and chooses HTTP/LuCI or TMP/AppV2; agents never supply

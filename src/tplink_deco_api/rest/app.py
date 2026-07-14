@@ -57,6 +57,7 @@ from ..responses import (
     LogTypesResponse,
     MacCloneResponse,
     MeshResponse,
+    MeshTrafficResponse,
     MutationExecutionResponse,
     MutationPlanCreatedResponse,
     MutationPlanStatusResponse,
@@ -297,6 +298,15 @@ def _create_rest_router(
     def mesh(refresh: Annotated[bool, Query()] = False) -> dict[str, JsonValue]:
         """Return the controller and mesh-node inventory."""
         return service.device_inventory(refresh=refresh)
+
+    @router.get(
+        "/mesh/traffic",
+        response_model=MeshTrafficResponse,
+        operation_id="getMeshTraffic",
+    )
+    def mesh_traffic() -> dict[str, JsonValue]:
+        """Return firmware-native traffic rates for each mesh node."""
+        return service.mesh_traffic_resource()
 
     @router.get("/clients", response_model=ClientsResponse, operation_id="getClients")
     def clients(
