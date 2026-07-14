@@ -186,9 +186,9 @@ attempts, validates the controller shape before caching it, permits unknown-mode
 identity reporting, and does not authorize P9-specific reads for an unmatched
 profile.
 
-The current registry has fourteen HTTP-primary, TMP-fallback read contracts and
+The current registry has fifteen HTTP-primary, TMP-fallback read contracts and
 twelve TMP-only network contracts. Mesh, network status, configuration, client
-devices, traffic, blocked clients, address reservations, LAN, DHCP, VLAN, port
+devices, traffic, blocked clients, address reservations, IPv4, LAN, DHCP, VLAN, port
 forwarding, IPTV, SIP ALG, MAC cloning, QoS mode and bandwidth configuration,
 IPv6 configuration, IPv6 firewall and IPv6 clients now use the semantic selection
 boundary. A compound resource binds
@@ -203,10 +203,11 @@ the cloud tool; when it selects TMP, HTTP-only cloud-manager state is explicitly
 unavailable. WLAN normalizes the P9 HTTP host radio fields and TMP `radio`
 aliases into one contract. Operation mode and bridge/PLC status now follow the
 same selected interface; TMP retains its additional supported-mode list while
-HTTP reports that field as unavailable.
+HTTP reports that field as unavailable. IPv4 normalizes the common WAN/LAN
+address fields and declares TMP-only inbound-ping state unavailable on HTTP.
 
 Logs and other datasets without a validated alternative remain HTTP-only.
 Other positively observed TMP-only datasets remain diagnostic until they receive
-dedicated semantic contracts and response models. The 26
+dedicated semantic contracts and response models. The 27
 registered routes and migrated canonical resources are therefore still a subset
 of the wider design.

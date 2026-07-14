@@ -26,7 +26,7 @@ developers and contributors.
 
 ## What it provides
 
-- A protocol-neutral default MCP surface: 24 resources and five tools.
+- A protocol-neutral default MCP surface: 25 resources and five tools.
 - An authenticated OpenAPI 3.1 REST surface under `/api/v1` with explicit
   typed response schemas, preflight, planning and idempotent execution resources.
 - Frozen protocol-neutral response dataclasses shared by REST and MCP without a
@@ -72,6 +72,7 @@ Resources are the canonical read-only state views:
 | `deco://network/iptv` | IPTV state and mode. |
 | `deco://network/sip-alg` | SIP application-layer gateway state. |
 | `deco://network/mac-clone` | WAN MAC-clone state. |
+| `deco://network/ipv4` | Normalized IPv4 WAN and LAN configuration. |
 | `deco://network/ipv6` | IPv6 WAN and LAN configuration. |
 | `deco://network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
 | `deco://devices/ipv6` | IPv6 client and neighbor inventory. |
@@ -87,6 +88,9 @@ explicit unavailable fields, without merging live data from both transports.
 Wireless operation mode and bridge/PLC status use the same semantic source as
 their surrounding WLAN or configuration response, including during TMP-only
 startup.
+IPv4 configuration uses normalized HTTP-to-TMP fallback, retaining TMP's
+additional inbound-ping state and declaring that field unavailable when HTTP
+is selected.
 Eleven network and IPv6 resources use positively evidenced TMP-only routes and
 remain lazy: startup validates configuration but opens TMP only when one is
 read.
@@ -196,7 +200,7 @@ separate concerns:
   gates.
 - Semantic mutations follow discover → plan → authorize → execute. Plans expire
   after five minutes, bind to the resolved controller and are consumed once.
-- Fallback is allowed only for fourteen positively evidenced read capabilities.
+- Fallback is allowed only for fifteen positively evidenced read capabilities.
   Mutations never fall back between protocols.
 
 The repository inventories 21 semantic mutation intents, including blocked and

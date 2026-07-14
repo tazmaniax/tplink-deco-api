@@ -9,6 +9,7 @@ from .cloud_response import CloudResponse
 from .configuration_response import ConfigurationResponse
 from .dhcp_configuration_response import DhcpConfigurationResponse
 from .iptv_configuration_response import IptvConfigurationResponse
+from .ipv4_configuration_response import Ipv4ConfigurationResponse
 from .ipv6_configuration_response import Ipv6ConfigurationResponse
 from .ipv6_devices_response import Ipv6DevicesResponse
 from .ipv6_firewall_response import Ipv6FirewallResponse
@@ -41,6 +42,7 @@ __all__ = [
     "ConfigurationResponse",
     "DhcpConfigurationResponse",
     "IptvConfigurationResponse",
+    "Ipv4ConfigurationResponse",
     "Ipv6ConfigurationResponse",
     "Ipv6DevicesResponse",
     "Ipv6FirewallResponse",

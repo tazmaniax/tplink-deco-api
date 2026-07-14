@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
+from ..models import WanInfo
+
 if TYPE_CHECKING:
     from .._json import JsonObject, JsonValue
 
@@ -18,6 +20,35 @@ def normalize_lan_configuration(data: JsonObject) -> dict[str, JsonValue]:
         "dns_servers": _required_string_list(data, "dns_server_ip", "LAN configuration"),
         "wan_addresses": _required_string_list(data, "wan_ip", "LAN configuration"),
     }
+
+
+def normalize_http_ipv4_configuration(data: WanInfo) -> dict[str, JsonValue]:
+    """Return canonical IPv4 state with the HTTP-only field gap declared."""
+    return _ipv4_configuration_view(
+        data,
+        ping_enabled=None,
+        unavailable_fields=("wan.ping_enabled",),
+    )
+
+
+def normalize_tmp_ipv4_configuration(data: JsonObject) -> dict[str, JsonValue]:
+    """Return canonical IPv4 state from the validated TMP contract."""
+    wan = _required_object(data, "wan", "TMP IPv4 configuration")
+    wan_ip = _required_object(wan, "ip_info", "TMP IPv4 WAN configuration")
+    lan = _required_object(data, "lan", "TMP IPv4 configuration")
+    lan_ip = _required_object(lan, "ip_info", "TMP IPv4 LAN configuration")
+    for key in ("ip", "mask", "mac", "gateway", "dns1", "dns2"):
+        _required_string(wan_ip, key, "TMP IPv4 WAN address")
+    for key in ("ip", "mask", "mac"):
+        _required_string(lan_ip, key, "TMP IPv4 LAN address")
+    _required_string(wan, "dial_type", "TMP IPv4 WAN configuration")
+    _required_bool(wan, "enable_auto_dns", "TMP IPv4 WAN configuration")
+    ping_enabled = _required_bool(wan, "enable_ping", "TMP IPv4 WAN configuration")
+    return _ipv4_configuration_view(
+        WanInfo.from_api(data),
+        ping_enabled=ping_enabled,
+        unavailable_fields=(),
+    )
 
 
 def normalize_dhcp_configuration(data: JsonObject) -> dict[str, JsonValue]:
@@ -128,6 +159,32 @@ def normalize_sip_alg(data: JsonObject) -> dict[str, JsonValue]:
 def normalize_mac_clone(data: JsonObject) -> dict[str, JsonValue]:
     """Return canonical WAN MAC-clone state."""
     return {"enabled": _required_bool(data, "enable", "MAC clone")}
+
+
+def _ipv4_configuration_view(
+    data: WanInfo,
+    *,
+    ping_enabled: bool | None,
+    unavailable_fields: tuple[str, ...],
+) -> dict[str, JsonValue]:
+    return {
+        "wan": {
+            "ip": data.wan.ip_info.ip,
+            "subnet_mask": data.wan.ip_info.mask,
+            "mac": data.wan.ip_info.mac,
+            "gateway": data.wan.ip_info.gateway,
+            "dns_servers": [data.wan.ip_info.dns1, data.wan.ip_info.dns2],
+            "dial_type": data.wan.dial_type,
+            "automatic_dns": data.wan.enable_auto_dns,
+            "ping_enabled": ping_enabled,
+        },
+        "lan": {
+            "ip": data.lan.ip_info.ip,
+            "subnet_mask": data.lan.ip_info.mask,
+            "mac": data.lan.ip_info.mac,
+        },
+        "unavailable_fields": list(unavailable_fields),
+    }
 
 
 def _required_object(data: JsonObject, key: str, dataset: str) -> JsonObject:

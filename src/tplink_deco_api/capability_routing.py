@@ -161,6 +161,17 @@ CAPABILITY_ROUTES: tuple[CapabilityRoute, ...] = (
         equivalence_evidence="p9_live_normalized_field_equivalence",
     ),
     CapabilityRoute(
+        name="ipv4_configuration",
+        description="IPv4 WAN and LAN configuration",
+        sensitivity="secret",
+        primary_interface="http_luci",
+        primary_operation="admin.network.wan_ipv4.read",
+        fallback_interface="tmp_appv2",
+        fallback_operation="0x4004",
+        fallback_policy="equivalent_read_only",
+        equivalence_evidence="p9_live_normalized_field_equivalence",
+    ),
+    CapabilityRoute(
         name="ipv6_configuration",
         description="IPv6 WAN and LAN configuration",
         sensitivity="secret",

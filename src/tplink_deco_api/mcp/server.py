@@ -55,6 +55,7 @@ _PRIMARY_RESOURCE_URIS: frozenset[str] = frozenset(
         "deco://network/iptv",
         "deco://network/sip-alg",
         "deco://network/mac-clone",
+        "deco://network/ipv4",
         "deco://network/ipv6",
         "deco://network/ipv6/firewall",
         "deco://logs",
@@ -274,6 +275,11 @@ def create_server(
     def mac_clone_resource() -> str:
         """Return the gated semantic WAN MAC-clone state."""
         return _json_text(service.mac_clone_resource())
+
+    @server.resource("deco://network/ipv4")
+    def ipv4_configuration_resource() -> str:
+        """Return the gated semantic IPv4 WAN and LAN configuration."""
+        return _json_text(service.ipv4_configuration_resource())
 
     @server.resource("deco://network/ipv6")
     def ipv6_configuration_resource() -> str:

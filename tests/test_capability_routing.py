@@ -16,8 +16,12 @@ from tplink_deco_api import (
     ApiResponse,
     AuthenticationError,
     Device,
+    IpInfo,
+    LanDetails,
     SpeedTest,
     TransportError,
+    WanDetails,
+    WanInfo,
     get_capability_route,
     get_mutation_capability_route,
 )
@@ -31,6 +35,7 @@ from tplink_deco_api.responses import (
     ConfigurationResponse,
     DhcpConfigurationResponse,
     IptvConfigurationResponse,
+    Ipv4ConfigurationResponse,
     Ipv6ConfigurationResponse,
     Ipv6DevicesResponse,
     Ipv6FirewallResponse,
@@ -99,6 +104,52 @@ def _speed_test_payload() -> JsonObject:
         "status": "idle",
         "ever_tested": True,
         "last_speed_test_time": 123,
+    }
+
+
+def _wan_info() -> WanInfo:
+    wan_ip = IpInfo(
+        "198.51.100.10",
+        "255.255.255.0",
+        "AA:BB:CC:DD:EE:FF",
+        "198.51.100.1",
+        "1.1.1.1",
+        "8.8.8.8",
+    )
+    lan_ip = IpInfo(
+        "192.168.68.1",
+        "255.255.255.0",
+        "AA:BB:CC:DD:EE:00",
+        "",
+        "",
+        "",
+    )
+    return WanInfo(WanDetails(wan_ip, "dynamic", True), LanDetails(lan_ip))
+
+
+def _tmp_ipv4_payload() -> JsonObject:
+    return {
+        "wan": {
+            "ip_info": {
+                "ip": "198.51.100.10",
+                "mask": "255.255.255.0",
+                "mac": "AA:BB:CC:DD:EE:FF",
+                "gateway": "198.51.100.1",
+                "dns1": "1.1.1.1",
+                "dns2": "8.8.8.8",
+            },
+            "dial_type": "dynamic",
+            "enable_auto_dns": True,
+            "enable_ping": False,
+            "info": [],
+        },
+        "lan": {
+            "ip_info": {
+                "ip": "192.168.68.1",
+                "mask": "255.255.255.0",
+                "mac": "AA:BB:CC:DD:EE:00",
+            }
+        },
     }
 
 
@@ -188,6 +239,7 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "firmware_status",
         "ddns",
         "wlan_state",
+        "ipv4_configuration",
         "ipv6_configuration",
         "ipv6_firewall",
         "ipv6_clients",
@@ -201,9 +253,9 @@ def test_capability_registry_contains_only_read_fallbacks() -> None:
         "sip_alg",
         "mac_clone",
     ]
-    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:14])
-    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[14:])
-    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[14:])
+    assert all(route.fallback_policy == "equivalent_read_only" for route in CAPABILITY_ROUTES[:15])
+    assert all(route.fallback_policy == "none" for route in CAPABILITY_ROUTES[15:])
+    assert all(route.primary_interface == "tmp_appv2" for route in CAPABILITY_ROUTES[15:])
     assert all(
         route.to_dict()["automatic_mutation_fallback"] is False for route in CAPABILITY_ROUTES
     )
@@ -245,7 +297,7 @@ def test_capability_routes_are_offline_and_report_fallback_readiness() -> None:
     assert result["caller_selects_protocol"] is False
     assert result["automatic_mutation_fallback"] is False
     assert result["diagnostics_exposed"] is False
-    assert len(result["routes"]) == 26
+    assert len(result["routes"]) == 27
     assert len(result["mutation_routes"]) == 3
     assert not any(route["fallback_gate_enabled"] for route in result["routes"])
     assert not any(route["all_environment_gates_enabled"] for route in result["mutation_routes"])
@@ -1169,9 +1221,10 @@ def test_cloud_state_uses_tmp_ddns_and_marks_http_manager_unavailable() -> None:
     http_client.call.assert_not_called()
 
 
-def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
+def test_configuration_uses_tmp_ipv4_after_tmp_identity_bootstrap() -> None:
     config = replace(
         _config(),
+        allow_sensitive_reads=True,
         allow_tmp_reads=True,
         tp_link_id="owner@example.com",
         tmp_host_key_sha256="SHA256:test",
@@ -1183,6 +1236,7 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     tmp_client.request_read_json.side_effect = [
         {"error_code": 0, "result": {"device_list": [_device_payload()]}},
         {"error_code": 0, "result": _internet_payload()},
+        {"error_code": 0, "result": _tmp_ipv4_payload()},
         {
             "error_code": 0,
             "result": {"mode": "router", "modeList": ["router", "access_point"]},
@@ -1222,12 +1276,15 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
         "beamforming": {"enabled": False},
     }
     assert configuration["provenance"]["source_interface"] == "tmp_appv2"
+    assert configuration["wan"]["ip"] == "198.51.100.10"
+    assert configuration["wan"]["ping_enabled"] is False
+    assert configuration["lan"]["ip"] == "192.168.68.1"
     assert {item["section"] for item in configuration["unavailable_sections"]} == {
         "operating_mode",
-        "wan_lan",
         "dhcp",
         "network_features",
         "time_settings",
+        "nickname",
     }
     http_client.get_device_mode.assert_not_called()
     http_client.get_internet_status.assert_not_called()
@@ -1236,6 +1293,7 @@ def test_configuration_uses_only_tmp_after_tmp_identity_bootstrap() -> None:
     assert tmp_client.request_read_json.call_args_list == [
         mock.call(0x400F, None),
         mock.call(0x400C, None),
+        mock.call(0x4004, None),
         mock.call(0x40A0, None),
         mock.call(0x400A, None),
         mock.call(0x4208, None),
@@ -1383,6 +1441,90 @@ def test_http_device_enrichment_does_not_cross_transport_after_partial_failure()
     assert devices["source_counts"]["device_speeds"] == 1
     assert {item["section"] for item in devices["unavailable_sections"]} == {"blocked_devices"}
     get_tmp_client.assert_not_called()
+
+
+def test_ipv4_resource_normalizes_http_and_tmp_common_fields() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    http_service = DecoService(config)
+    http_service._device_cache = (_p9_device(),)
+    http_client = mock.Mock()
+    http_client.get_wan_info.return_value = _wan_info()
+    with mock.patch.object(http_service, "_get_client", return_value=http_client):
+        http_ipv4 = http_service.ipv4_configuration_resource()
+
+    tmp_service = DecoService(config)
+    tmp_service._device_cache = (_p9_device(),)
+    unavailable_http_client = mock.Mock()
+    unavailable_http_client.get_wan_info.side_effect = TransportError("HTTP unavailable")
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {
+        "error_code": 0,
+        "result": _tmp_ipv4_payload(),
+    }
+    with (
+        mock.patch.object(tmp_service, "_get_client", return_value=unavailable_http_client),
+        mock.patch.object(tmp_service, "_get_tmp_client", return_value=tmp_client),
+    ):
+        tmp_ipv4 = tmp_service.ipv4_configuration_resource()
+
+    assert_response_contract(Ipv4ConfigurationResponse, http_ipv4)
+    assert_response_contract(Ipv4ConfigurationResponse, tmp_ipv4)
+    assert http_ipv4["wan"] == {**tmp_ipv4["wan"], "ping_enabled": None}
+    assert http_ipv4["lan"] == tmp_ipv4["lan"]
+    assert http_ipv4["unavailable_fields"] == ["wan.ping_enabled"]
+    assert tmp_ipv4["unavailable_fields"] == []
+    assert http_ipv4["provenance"]["source_interface"] == "http_luci"
+    assert http_ipv4["provenance"]["fallback_used"] is False
+    assert tmp_ipv4["provenance"]["source_interface"] == "tmp_appv2"
+    assert tmp_ipv4["provenance"]["fallback_used"] is True
+    tmp_client.request_read_json.assert_called_once_with(0x4004, None)
+
+
+def test_ipv4_resource_enforces_sensitive_gate_before_transport() -> None:
+    service = DecoService(_config())
+
+    with (
+        mock.patch.object(service, "_get_client") as get_client,
+        mock.patch.object(service, "_get_tmp_client") as get_tmp_client,
+        pytest.raises(PermissionError, match="ALLOW_SENSITIVE_READS"),
+    ):
+        service.ipv4_configuration_resource()
+
+    get_client.assert_not_called()
+    get_tmp_client.assert_not_called()
+
+
+def test_ipv4_resource_rejects_tmp_contract_drift() -> None:
+    config = replace(
+        _config(),
+        allow_sensitive_reads=True,
+        allow_tmp_reads=True,
+        tp_link_id="owner@example.com",
+        tmp_host_key_sha256="SHA256:test",
+    )
+    service = DecoService(config)
+    service._device_cache = (_p9_device(),)
+    http_client = mock.Mock()
+    http_client.get_wan_info.side_effect = TransportError("HTTP unavailable")
+    payload = _tmp_ipv4_payload()
+    wan = payload["wan"]
+    assert isinstance(wan, dict)
+    wan["enable_ping"] = "false"
+    tmp_client = mock.Mock()
+    tmp_client.request_read_json.return_value = {"error_code": 0, "result": payload}
+
+    with (
+        mock.patch.object(service, "_get_client", return_value=http_client),
+        mock.patch.object(service, "_get_tmp_client", return_value=tmp_client),
+        pytest.raises(ValueError, match="enable_ping is not a boolean"),
+    ):
+        service.ipv4_configuration_resource()
 
 
 def test_ipv6_semantic_resources_normalize_positive_p9_tmp_contracts() -> None:
@@ -1990,7 +2132,7 @@ def test_semantic_resources_report_supported_and_blocked_mutations() -> None:
 
     assert_response_contract(CapabilitiesResponse, capabilities)
     assert_response_contract(MutationsResponse, mutations)
-    assert capabilities["supported_count"] == 26
+    assert capabilities["supported_count"] == 27
     assert capabilities["router_contacted"] is False
     assert all(item["read_operation"] == "get_capability" for item in capabilities["capabilities"])
     ipv6_clients = next(
@@ -2066,7 +2208,7 @@ def test_unknown_deco_model_is_described_without_inheriting_p9_mutation_evidence
     assert mesh["profile_match"] == "unknown"
     assert mesh["profile_name"] is None
     assert capabilities["supported_count"] == 0
-    assert capabilities["unknown_count"] == 26
+    assert capabilities["unknown_count"] == 27
     assert mutations["execution_counts"] == {"blocked": 22}
     assert all(item["support_status"] == "unverified" for item in mutations["mutations"])
 
@@ -2186,6 +2328,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://network/iptv",
         "deco://network/sip-alg",
         "deco://network/mac-clone",
+        "deco://network/ipv4",
         "deco://network/ipv6",
         "deco://network/ipv6/firewall",
         "deco://logs",

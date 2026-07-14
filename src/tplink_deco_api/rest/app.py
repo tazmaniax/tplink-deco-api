@@ -48,6 +48,7 @@ from ..responses import (
     ConfigurationResponse,
     DhcpConfigurationResponse,
     IptvConfigurationResponse,
+    Ipv4ConfigurationResponse,
     Ipv6ConfigurationResponse,
     Ipv6DevicesResponse,
     Ipv6FirewallResponse,
@@ -382,6 +383,15 @@ def _create_rest_router(
     def mac_clone() -> dict[str, JsonValue]:
         """Return the current semantic WAN MAC-clone state."""
         return service.mac_clone_resource()
+
+    @router.get(
+        "/network/ipv4",
+        response_model=Ipv4ConfigurationResponse,
+        operation_id="getIpv4Configuration",
+    )
+    def ipv4_configuration() -> dict[str, JsonValue]:
+        """Return the current semantic IPv4 WAN and LAN configuration."""
+        return service.ipv4_configuration_resource()
 
     @router.get(
         "/network/ipv6",

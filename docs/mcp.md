@@ -217,7 +217,7 @@ It requires one data-producing interface per successful read, completeness-
 ranked source selection, fallback only after an eligible failure, TMP identity
 bootstrap for cold-start failover, and separate resources for single-source
 datasets that would otherwise force a dual-interface fetch. Cold-start identity
-bootstrap now follows that policy; the current fourteen HTTP-primary overlap
+bootstrap now follows that policy; the current fifteen HTTP-primary overlap
 routes, twelve TMP-only network routes and directly implemented canonical resources
 remain a transitional subset of the wider design.
 
@@ -225,8 +225,8 @@ remain a transitional subset of the wider design.
 
 The default resources describe the configured Deco mesh rather than a protocol.
 Except for `deco://mcp`, reading one can authenticate to the router. Client
-devices, traffic, address reservations, LAN, DHCP, port forwarding and all
-three IPv6 resources additionally require `DECO_ALLOW_SENSITIVE_READS=1`.
+devices, traffic, address reservations, IPv4, LAN, DHCP, port forwarding and
+all three IPv6 resources additionally require `DECO_ALLOW_SENSITIVE_READS=1`.
 Every resource under the TMP-only network set requires
 `DECO_ALLOW_TMP_READS=1`, configured TMP credentials and a pinned host key.
 System-log pages require both the sensitive gate and
@@ -252,6 +252,7 @@ System-log pages require both the sensitive gate and
 | `deco://network/iptv` | Current IPTV state and mode. | `schema_version`, `status`, `enabled`, `mode`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/sip-alg` | Current SIP application-layer gateway state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/mac-clone` | Current WAN MAC-clone state. | `schema_version`, `status`, `enabled`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://network/ipv4` | Current normalized IPv4 WAN and LAN configuration. | `schema_version`, `status`, `wan`, `lan`, `unavailable_fields`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/ipv6` | Current normalized IPv6 WAN and LAN configuration. | `schema_version`, `status`, `enabled`, `wan`, `lan`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://network/ipv6/firewall` | Current inbound IPv6 firewall rules and firmware capacity. | `schema_version`, `status`, `rules`, `rule_count`, `rule_limit`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://devices/ipv6` | Current IPv6 client and neighbor inventory. | `schema_version`, `status`, `devices`, `device_count`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |

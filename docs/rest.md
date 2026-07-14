@@ -78,6 +78,7 @@ a trusted network without TLS.
 | `GET` | `/api/v1/network/iptv` | IPTV state and mode. |
 | `GET` | `/api/v1/network/sip-alg` | SIP application-layer gateway state. |
 | `GET` | `/api/v1/network/mac-clone` | WAN MAC-clone state. |
+| `GET` | `/api/v1/network/ipv4` | Normalized IPv4 WAN and LAN configuration. |
 | `GET` | `/api/v1/network/ipv6` | Normalized IPv6 WAN and LAN configuration. |
 | `GET` | `/api/v1/network/ipv6/firewall` | Inbound IPv6 firewall rules and capacity. |
 | `GET` | `/api/v1/clients/ipv6` | IPv6 client and neighbor inventory. |
@@ -101,6 +102,8 @@ interface; a failed subread never falls back across transports independently.
 The latest speed-test result follows the selected status interface. DDNS is an
 independent schema-equivalent capability with HTTP-to-TMP fallback; a TMP-backed
 cloud response reports the HTTP-only manager section as unavailable.
+IPv4 WAN/LAN configuration has normalized HTTP-to-TMP fallback. TMP supplies
+inbound-ping state; HTTP reports that source-specific field as unavailable.
 WLAN normalizes the common P9 band, host, guest, backhaul and radio fields. A
 TMP-backed response keeps HTTP-only wireless operation mode and bridge state
 unavailable instead of contacting HTTP for enrichment.

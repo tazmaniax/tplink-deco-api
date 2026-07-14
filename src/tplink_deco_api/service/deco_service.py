@@ -87,12 +87,14 @@ from ._ipv6_normalization import (
 from ._network_normalization import (
     normalize_bandwidth_configuration,
     normalize_dhcp_configuration,
+    normalize_http_ipv4_configuration,
     normalize_iptv_configuration,
     normalize_lan_configuration,
     normalize_mac_clone,
     normalize_port_forwarding,
     normalize_qos_mode,
     normalize_sip_alg,
+    normalize_tmp_ipv4_configuration,
     normalize_vlan_configuration,
 )
 from ._pending_mutation_plan import _PendingMutationPlan
@@ -560,6 +562,10 @@ class DecoService:
         result = self.read_capability("address_reservations")
         result["router_contacted"] = True
         return result
+
+    def ipv4_configuration_resource(self) -> dict[str, JsonValue]:
+        """Return the gated semantic IPv4 WAN and LAN configuration."""
+        return self._semantic_capability_resource("ipv4_configuration", "IPv4 configuration")
 
     def ipv6_configuration_resource(self) -> dict[str, JsonValue]:
         """Return the gated semantic IPv6 WAN and LAN configuration."""
@@ -1029,13 +1035,9 @@ class DecoService:
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("operating_mode", exc))
                 try:
-                    wan_info = client.get_wan_info()
-                    sections["wan"] = {
-                        "ip_info": _ip_info(wan_info.wan.ip_info),
-                        "dial_type": wan_info.wan.dial_type,
-                        "enable_auto_dns": wan_info.wan.enable_auto_dns,
-                    }
-                    sections["lan"] = {"ip_info": _ip_info(wan_info.lan.ip_info)}
+                    ipv4 = normalize_http_ipv4_configuration(client.get_wan_info())
+                    sections["wan"] = ipv4["wan"]
+                    sections["lan"] = ipv4["lan"]
                 except _LIVE_READ_ERRORS as exc:
                     errors.append(_configuration_error("wan_lan", exc))
                 try:
@@ -1078,12 +1080,21 @@ class DecoService:
                 _source_unavailable(section)
                 for section in (
                     "operating_mode",
-                    "wan_lan",
                     "dhcp",
                     "network_features",
                     "time_settings",
                 )
             )
+            try:
+                tmp_ipv4 = self._read_resource_capability("ipv4_configuration", context)
+                if not isinstance(tmp_ipv4, Mapping):
+                    raise ValueError(
+                        "Failed to read configuration: IPv4 configuration is not an object"
+                    )
+                sections["wan"] = tmp_ipv4.get("wan")
+                sections["lan"] = tmp_ipv4.get("lan")
+            except _LIVE_READ_ERRORS as exc:
+                errors.append(_configuration_error("wan_lan", exc))
             if self._config.allow_sensitive_reads:
                 nickname_status = "unavailable"
                 errors.append(_source_unavailable("nickname"))
@@ -1607,6 +1618,8 @@ class DecoService:
                     client.get_wlan_config(),
                     include_passwords=include_passwords,
                 )
+            if name == "ipv4_configuration":
+                return normalize_http_ipv4_configuration(client.get_wan_info())
         raise ValueError(f"Failed to read HTTP capability: unknown capability {name!r}")
 
     def _read_tmp_capability(
@@ -1630,6 +1643,7 @@ class DecoService:
             "firmware_status": 0x401C,
             "ddns": 0x40D0,
             "wlan_state": 0x4009,
+            "ipv4_configuration": 0x4004,
             "ipv6_configuration": 0x4006,
             "ipv6_firewall": 0x4230,
             "ipv6_clients": 0x4234,
@@ -1682,6 +1696,8 @@ class DecoService:
                 result,
                 include_passwords=include_passwords,
             )
+        if name == "ipv4_configuration":
+            return normalize_tmp_ipv4_configuration(result)
         if name == "ipv6_configuration":
             return normalize_ipv6_configuration(result)
         if name == "ipv6_firewall":
@@ -4546,6 +4562,7 @@ def _capability_category(name: str) -> str:
         "firmware_status": "system",
         "ddns": "network",
         "wlan_state": "wireless",
+        "ipv4_configuration": "network",
         "ipv6_configuration": "network",
         "ipv6_firewall": "security",
         "ipv6_clients": "clients",
