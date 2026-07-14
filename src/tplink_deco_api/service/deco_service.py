@@ -827,14 +827,57 @@ class DecoService:
         }
 
     def client_devices_resource(self, view: str = "all") -> dict[str, JsonValue]:
-        """Return one normalized live device view from every known client source."""
+        """Return one lightweight device collection from its authoritative source."""
         valid_views = {"all", "active", "inactive", "blocked"}
         if view not in valid_views:
             raise ValueError(f"Failed to read client devices: unknown view {view!r}")
-        capability = self.read_capability("clients")
+        capability_name = "blocked_clients" if view == "blocked" else "clients"
+        capability = self.read_capability(capability_name)
         provenance = capability.get("provenance")
         if not isinstance(provenance, Mapping):
             raise ValueError("Failed to read client devices: provenance is not an object")
+        records: list[dict[str, JsonValue]] = []
+        if view == "blocked":
+            blocked_data = capability.get("data")
+            blocked_rows = (
+                _mapping_rows(blocked_data, "devices") if isinstance(blocked_data, Mapping) else ()
+            )
+            records = [_blocked_client_summary(row) for row in blocked_rows]
+            source_counts: JsonObject = {"blocked_devices": len(blocked_rows)}
+            all_device_count = len(blocked_rows)
+        else:
+            client_rows = _json_rows(capability.get("data"))
+            records = [_client_summary(_normalized_client_device(row)) for row in client_rows]
+            source_counts = {"client_list": len(client_rows)}
+            all_device_count = len(client_rows)
+
+        devices = sorted(
+            (record for record in records if _device_record_matches_view(record, view)),
+            key=lambda record: _record_string(record, "mac"),
+        )
+        return {
+            "schema_version": 1,
+            "view": view,
+            "devices": devices,
+            "device_count": len(devices),
+            "all_device_count": all_device_count,
+            "source_counts": source_counts,
+            "provenance": provenance,
+            "unavailable_sections": [],
+            "observed_at_epoch_seconds": time.time(),
+            "router_contacted": True,
+            "mutation_invoked": False,
+        }
+
+    def client_device_resource(self, mac: str) -> dict[str, JsonValue]:
+        """Return multi-source enrichment for one explicitly selected device."""
+        normalized_mac = ClientDevice.from_api({"mac": mac}).mac
+        if re.fullmatch(r"(?:[0-9A-F]{2}:){5}[0-9A-F]{2}", normalized_mac) is None:
+            raise ValueError("Failed to read client device: MAC address is invalid")
+        capability = self.read_capability("clients")
+        provenance = capability.get("provenance")
+        if not isinstance(provenance, Mapping):
+            raise ValueError("Failed to read client device: provenance is not an object")
         source_interface = _json_string(provenance, "source_interface")
         errors: list[dict[str, JsonValue]] = []
         node_clients: tuple[NodeClientList, ...] = ()
@@ -880,7 +923,7 @@ class DecoService:
             except _LIVE_READ_ERRORS as exc:
                 errors.append(_configuration_error("address_reservations", exc))
         else:
-            raise ValueError("Failed to read client devices: unknown source interface")
+            raise ValueError("Failed to read client device: unknown source interface")
 
         records: dict[str, dict[str, JsonValue]] = {}
         client_rows = _json_rows(capability.get("data"))
@@ -907,16 +950,12 @@ class DecoService:
                 get_str(reservation, "ip"),
             )
 
-        devices = sorted(
-            (record for record in records.values() if _device_record_matches_view(record, view)),
-            key=lambda record: _record_string(record, "mac"),
-        )
+        device = records.get(normalized_mac)
+        if device is None:
+            raise KeyError(normalized_mac)
         return {
             "schema_version": 1,
-            "view": view,
-            "devices": devices,
-            "device_count": len(devices),
-            "all_device_count": len(records),
+            "device": device,
             "source_counts": {
                 "client_list": len(client_rows),
                 "node_client_assignments": sum(len(node.clients) for node in node_clients),
@@ -4427,6 +4466,34 @@ def _normalized_client_device(row: JsonObject) -> ClientDevice:
         client_mesh=get_bool(row, "client_mesh"),
         enable_priority=get_bool(row, "enable_priority"),
     )
+
+
+def _client_summary(client: ClientDevice) -> dict[str, JsonValue]:
+    record = _client_device_record(client)
+    for key in (
+        "access_status",
+        "blocked",
+        "reserved",
+        "reservation_ip",
+        "connected_node",
+    ):
+        record.pop(key)
+    record["sources"] = ["client_list"]
+    record["detail_resource"] = f"deco://device-details/{client.mac}"
+    return record
+
+
+def _blocked_client_summary(row: JsonObject) -> dict[str, JsonValue]:
+    client = _normalized_client_device(row)
+    return {
+        "mac": client.mac,
+        "name": client.name,
+        "client_type": client.client_type,
+        "access_status": "blocked",
+        "blocked": True,
+        "sources": ["blocked_devices"],
+        "detail_resource": f"deco://device-details/{client.mac}",
+    }
 
 
 def _merge_blocked_device(

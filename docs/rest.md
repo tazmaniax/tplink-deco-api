@@ -81,7 +81,8 @@ a trusted network without TLS.
 | `GET` | `/api/v1/parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
 | `GET` | `/api/v1/parental-controls/{owner_id}/history` | Browsing history for one profile. |
 | `GET` | `/api/v1/access/permissions` | Manager roles and component-access policies. |
-| `GET` | `/api/v1/clients?view=all` | `all`, `active`, `inactive` or `blocked` clients. |
+| `GET` | `/api/v1/clients?view=all` | Lightweight `all`, `active`, `inactive` or `blocked` clients. |
+| `GET` | `/api/v1/clients/{mac}` | One selected client enriched with topology, access, traffic and reservation data. |
 | `GET` | `/api/v1/traffic` | Per-device and aggregate traffic rates. |
 | `GET` | `/api/v1/address-reservations` | DHCP address reservations. |
 | `GET` | `/api/v1/network/lan` | LAN address, subnet, DNS and upstream addresses. |
@@ -111,8 +112,10 @@ Status, configuration, client and traffic responses bind each read to one
 selected interface. If HTTP is unavailable at cold start and gated TMP routing
 is eligible, they return the validated TMP-backed subset with provenance and
 explicit unavailable-section evidence instead of mixing values from both
-interfaces. Client blocking and speed enrichment stays on that selected
-interface; a failed subread never falls back across transports independently.
+interfaces. Client collections use one authoritative capability without
+implicit enrichment. The client-detail route performs blocking, topology,
+traffic and reservation enrichment on demand, stays on the selected interface,
+and never falls back across transports independently for a failed subread.
 The latest speed-test result follows the selected status interface. DDNS is an
 independent schema-equivalent capability with HTTP-to-TMP fallback; a TMP-backed
 cloud response reports the HTTP-only manager section as unavailable.

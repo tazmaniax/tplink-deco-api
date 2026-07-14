@@ -54,6 +54,7 @@ from tplink_deco_api import (
 from tplink_deco_api.mcp._static_token_verifier import _StaticTokenVerifier
 from tplink_deco_api.mcp.server import create_server, main
 from tplink_deco_api.responses import (
+    ClientResponse,
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
@@ -68,7 +69,7 @@ from tplink_deco_api.server import ServerConfig
 from tplink_deco_api.service import DecoService
 
 if TYPE_CHECKING:
-    from tplink_deco_api._json import JsonObject
+    from tplink_deco_api._json import JsonObject, JsonValue
 
 
 def _config(**overrides: bool) -> ServerConfig:
@@ -1638,7 +1639,87 @@ def test_mcp_configuration_resource_is_sanitized_and_separates_related_data() ->
     assert configuration["unavailable_sections"] == []
 
 
-def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -> None:
+def test_mcp_device_collections_read_only_the_required_capability() -> None:
+    service = DecoService(_config(allow_sensitive_reads=True))
+    client_capability: dict[str, JsonValue] = {
+        "capability": "clients",
+        "data": [
+            {
+                "mac": "AA:BB:CC:DD:EE:01",
+                "ip": "192.0.2.10",
+                "name": "Active",
+                "online": True,
+            },
+            {
+                "mac": "AA:BB:CC:DD:EE:02",
+                "ip": "192.0.2.20",
+                "name": "Inactive",
+                "online": False,
+            },
+        ],
+        "provenance": {"source_interface": "http_luci"},
+    }
+    blocked_capability: dict[str, JsonValue] = {
+        "capability": "blocked_clients",
+        "data": {
+            "devices": [
+                {
+                    "mac": "AA:BB:CC:DD:EE:03",
+                    "name": "Blocked",
+                    "client_type": "iot",
+                }
+            ]
+        },
+        "provenance": {"source_interface": "http_luci"},
+    }
+
+    def read_capability(name: str) -> dict[str, JsonValue]:
+        return blocked_capability if name == "blocked_clients" else client_capability
+
+    with (
+        mock.patch.object(service, "read_capability", side_effect=read_capability) as read,
+        mock.patch.object(service, "get_clients_by_node") as clients_by_node,
+        mock.patch.object(service, "_get_client") as get_client,
+    ):
+        devices = service.client_devices_resource("all")
+        active = service.client_devices_resource("active")
+        inactive = service.client_devices_resource("inactive")
+        blocked = service.client_devices_resource("blocked")
+
+    assert_response_contract(ClientsResponse, devices)
+    assert devices["device_count"] == devices["all_device_count"] == 2
+    assert devices["source_counts"] == {"client_list": 2}
+    assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
+    assert [record["mac"] for record in inactive["devices"]] == ["AA:BB:CC:DD:EE:02"]
+    assert active["devices"][0]["detail_resource"] == ("deco://device-details/AA:BB:CC:DD:EE:01")
+    assert "blocked" not in active["devices"][0]
+    assert "reserved" not in active["devices"][0]
+    assert blocked["devices"] == [
+        {
+            "mac": "AA:BB:CC:DD:EE:03",
+            "name": "Blocked",
+            "client_type": "iot",
+            "access_status": "blocked",
+            "blocked": True,
+            "sources": ["blocked_devices"],
+            "detail_resource": "deco://device-details/AA:BB:CC:DD:EE:03",
+        }
+    ]
+    assert blocked["source_counts"] == {"blocked_devices": 1}
+    assert read.call_args_list == [
+        mock.call("clients"),
+        mock.call("clients"),
+        mock.call("clients"),
+        mock.call("blocked_clients"),
+    ]
+    clients_by_node.assert_not_called()
+    get_client.assert_not_called()
+
+    with pytest.raises(ValueError, match="unknown view"):
+        service.client_devices_resource("unknown")
+
+
+def test_mcp_device_detail_enriches_one_selected_device() -> None:
     service = DecoService(_config(allow_sensitive_reads=True))
     client = mock.Mock()
     client.call.return_value = ApiResponse.from_api(
@@ -1658,7 +1739,7 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
     client.get_traffic_statistics.return_value = {
         "client_list_speed": [{"mac": "AA:BB:CC:DD:EE:01", "up_speed": 50, "down_speed": 100}]
     }
-    capability = {
+    capability: dict[str, JsonValue] = {
         "capability": "clients",
         "schema_version": 1,
         "data": [
@@ -1703,34 +1784,24 @@ def test_mcp_device_resources_normalize_and_filter_every_known_device_source() -
         mock.patch.object(service, "get_clients_by_node", return_value=clients_by_node),
         mock.patch.object(service, "_get_client", return_value=client),
     ):
-        devices = service.client_devices_resource("all")
-        active = service.client_devices_resource("active")
-        inactive = service.client_devices_resource("inactive")
-        blocked = service.client_devices_resource("blocked")
+        detail = service.client_device_resource("aa-bb-cc-dd-ee-01")
 
-    records = {record["mac"]: record for record in devices["devices"]}
-    assert_response_contract(ClientsResponse, devices)
-    assert devices["device_count"] == devices["all_device_count"] == 4
-    assert records["AA:BB:CC:DD:EE:01"]["status"] == "active"
-    assert records["AA:BB:CC:DD:EE:01"]["connected_node"] == "AA:BB:CC:DD:EE:FF"
-    assert records["AA:BB:CC:DD:EE:01"]["prioritized"] is True
-    assert records["AA:BB:CC:DD:EE:03"]["blocked"] is True
-    assert records["AA:BB:CC:DD:EE:03"]["access_status"] == "blocked"
-    assert records["AA:BB:CC:DD:EE:01"]["up_speed"] == 50
-    assert records["AA:BB:CC:DD:EE:01"]["down_speed"] == 100
-    assert records["AA:BB:CC:DD:EE:04"]["reserved"] is True
-    assert records["AA:BB:CC:DD:EE:04"]["reservation_ip"] == "192.0.2.40"
-    assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
-    assert {record["mac"] for record in inactive["devices"]} == {
-        "AA:BB:CC:DD:EE:02",
-        "AA:BB:CC:DD:EE:03",
-        "AA:BB:CC:DD:EE:04",
+    assert_response_contract(ClientResponse, detail)
+    assert detail["device"]["status"] == "active"
+    assert detail["device"]["connected_node"] == "AA:BB:CC:DD:EE:FF"
+    assert detail["device"]["prioritized"] is True
+    assert detail["device"]["up_speed"] == 50
+    assert detail["device"]["down_speed"] == 100
+    assert detail["source_counts"] == {
+        "client_list": 2,
+        "node_client_assignments": 1,
+        "blocked_devices": 1,
+        "device_speeds": 1,
+        "address_reservations": 1,
     }
-    assert [record["mac"] for record in blocked["devices"]] == ["AA:BB:CC:DD:EE:03"]
-    assert devices["unavailable_sections"] == []
 
-    with pytest.raises(ValueError, match="unknown view"):
-        service.client_devices_resource("unknown")
+    with pytest.raises(ValueError, match="MAC address is invalid"):
+        service.client_device_resource("not-a-mac")
 
 
 def test_mcp_traffic_resource_normalizes_device_and_aggregate_speeds() -> None:

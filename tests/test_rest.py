@@ -26,6 +26,7 @@ from tplink_deco_api.responses import (
     AccessPermissionsResponse,
     CapabilitiesResponse,
     CapabilityResponse,
+    ClientResponse,
     ClientsResponse,
     CloudResponse,
     ConfigurationResponse,
@@ -522,6 +523,16 @@ def _read_response_dtos(config: ServerConfig) -> dict[str, ResponseDto]:
             router_contacted=True,
             mutation_invoked=False,
         ),
+        "client_device_resource": ClientResponse(
+            schema_version=1,
+            device={"mac": "AA:BB:CC:DD:EE:01", "name": "Test"},
+            source_counts={"client_list": 1},
+            provenance={"source_interface": "http_luci"},
+            unavailable_sections=[],
+            observed_at_epoch_seconds=1.0,
+            router_contacted=True,
+            mutation_invoked=False,
+        ),
         "traffic_resource": TrafficResponse(
             schema_version=1,
             device_speeds=[],
@@ -851,6 +862,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/parental-controls/{owner_id}/history", "get"): ("getParentalControlHistory"),
         ("/api/v1/access/permissions", "get"): "getAccessPermissions",
         ("/api/v1/clients", "get"): "getClients",
+        ("/api/v1/clients/{mac}", "get"): "getClient",
         ("/api/v1/traffic", "get"): "getTraffic",
         ("/api/v1/address-reservations", "get"): "getAddressReservations",
         ("/api/v1/network/lan", "get"): "getLanConfiguration",
@@ -900,6 +912,7 @@ def test_openapi_contract_lists_the_complete_versioned_surface() -> None:
         ("/api/v1/parental-controls/{owner_id}/history", "get"): ("ParentalControlHistoryResponse"),
         ("/api/v1/access/permissions", "get"): "AccessPermissionsResponse",
         ("/api/v1/clients", "get"): "ClientsResponse",
+        ("/api/v1/clients/{mac}", "get"): "ClientResponse",
         ("/api/v1/traffic", "get"): "TrafficResponse",
         ("/api/v1/address-reservations", "get"): "CapabilityResponse",
         ("/api/v1/network/lan", "get"): "LanConfigurationResponse",
@@ -1090,6 +1103,11 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
             "/api/v1/access/permissions",
         ),
         ("client_devices_resource", "deco://devices", "/api/v1/clients"),
+        (
+            "client_device_resource",
+            "deco://device-details/AA:BB:CC:DD:EE:01",
+            "/api/v1/clients/AA:BB:CC:DD:EE:01",
+        ),
         ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
         (
             "address_reservations_resource",
@@ -1224,6 +1242,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
         "parental_control_history_resource",
         "access_permissions_resource",
         "client_devices_resource",
+        "client_device_resource",
         "traffic_resource",
         "address_reservations_resource",
         "logs_resource",
@@ -1260,6 +1279,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
                 client.get("/api/v1/parental-controls/owner-1/history", headers=_AUTH),
                 client.get("/api/v1/access/permissions", headers=_AUTH),
                 client.get("/api/v1/clients?view=blocked", headers=_AUTH),
+                client.get("/api/v1/clients/AA:BB:CC:DD:EE:01", headers=_AUTH),
                 client.get("/api/v1/traffic", headers=_AUTH),
                 client.get("/api/v1/address-reservations", headers=_AUTH),
                 client.get("/api/v1/log-types", headers=_AUTH),
@@ -1276,6 +1296,7 @@ def test_rest_read_routes_delegate_to_one_shared_service() -> None:
     ]
     patched["device_inventory"].assert_called_once_with(refresh=True)
     patched["client_devices_resource"].assert_called_once_with("blocked")
+    patched["client_device_resource"].assert_called_once_with("AA:BB:CC:DD:EE:01")
     patched["parental_control_profile_resource"].assert_called_once_with("owner-1")
     patched["parental_control_insights_resource"].assert_called_once_with("owner-1")
     patched["parental_control_history_resource"].assert_called_once_with("owner-1")

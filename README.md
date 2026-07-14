@@ -72,10 +72,11 @@ Resources are the canonical read-only state views:
 | `deco://parental-controls/{owner_id}/insights` | Online-usage insights for one profile. |
 | `deco://parental-controls/{owner_id}/history` | Browsing history for one profile. |
 | `deco://access/permissions` | Manager roles and component-access policies. |
-| `deco://devices` | All known client devices with connectivity and access state. |
-| `deco://devices/active` | Devices currently online. |
-| `deco://devices/inactive` | Known devices currently offline. |
-| `deco://devices/blocked` | Devices present in the block list. |
+| `deco://devices` | Lightweight client inventory from one live client-list read. |
+| `deco://devices/active` | Lightweight devices currently online. |
+| `deco://devices/inactive` | Lightweight known devices currently offline. |
+| `deco://devices/blocked` | Lightweight devices from one live block-list read. |
+| `deco://device-details/{mac}` | One explicitly selected device enriched with topology, access, traffic and reservation data. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
 | `deco://network/lan` | LAN address, subnet, DNS and upstream addresses. |

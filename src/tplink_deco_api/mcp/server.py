@@ -307,6 +307,11 @@ def create_server(
         """Return normalized client devices present in the block list."""
         return _json_text(service.client_devices_resource("blocked"))
 
+    @server.resource("deco://device-details/{mac}")
+    def device_resource(mac: str) -> str:
+        """Return optional multi-source enrichment for one client device."""
+        return _json_text(service.client_device_resource(mac))
+
     @server.resource("deco://traffic")
     def traffic_resource() -> str:
         """Return normalized per-device and aggregate traffic speeds."""
