@@ -4479,7 +4479,7 @@ def _client_summary(client: ClientDevice) -> dict[str, JsonValue]:
     ):
         record.pop(key)
     record["sources"] = ["client_list"]
-    record["detail_resource"] = f"deco://device-details/{client.mac}"
+    record["detail_resource"] = f"deco://devices/{client.mac}"
     return record
 
 
@@ -4492,7 +4492,7 @@ def _blocked_client_summary(row: JsonObject) -> dict[str, JsonValue]:
         "access_status": "blocked",
         "blocked": True,
         "sources": ["blocked_devices"],
-        "detail_resource": f"deco://device-details/{client.mac}",
+        "detail_resource": f"deco://devices/{client.mac}",
     }
 
 

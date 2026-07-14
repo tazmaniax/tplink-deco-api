@@ -1691,7 +1691,7 @@ def test_mcp_device_collections_read_only_the_required_capability() -> None:
     assert devices["source_counts"] == {"client_list": 2}
     assert [record["mac"] for record in active["devices"]] == ["AA:BB:CC:DD:EE:01"]
     assert [record["mac"] for record in inactive["devices"]] == ["AA:BB:CC:DD:EE:02"]
-    assert active["devices"][0]["detail_resource"] == ("deco://device-details/AA:BB:CC:DD:EE:01")
+    assert active["devices"][0]["detail_resource"] == ("deco://devices/AA:BB:CC:DD:EE:01")
     assert "blocked" not in active["devices"][0]
     assert "reserved" not in active["devices"][0]
     assert blocked["devices"] == [
@@ -1702,7 +1702,7 @@ def test_mcp_device_collections_read_only_the_required_capability() -> None:
             "access_status": "blocked",
             "blocked": True,
             "sources": ["blocked_devices"],
-            "detail_resource": "deco://device-details/AA:BB:CC:DD:EE:03",
+            "detail_resource": "deco://devices/AA:BB:CC:DD:EE:03",
         }
     ]
     assert blocked["source_counts"] == {"blocked_devices": 1}

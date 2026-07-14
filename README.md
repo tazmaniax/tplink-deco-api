@@ -76,7 +76,7 @@ Resources are the canonical read-only state views:
 | `deco://devices/active` | Lightweight devices currently online. |
 | `deco://devices/inactive` | Lightweight known devices currently offline. |
 | `deco://devices/blocked` | Lightweight devices from one live block-list read. |
-| `deco://device-details/{mac}` | One explicitly selected device enriched with topology, access, traffic and reservation data. |
+| `deco://devices/{mac}` | One explicitly selected device enriched with topology, access, traffic and reservation data. |
 | `deco://traffic` | Per-device and aggregate traffic rates. |
 | `deco://address-reservations` | DHCP address reservations. |
 | `deco://network/lan` | LAN address, subnet, DNS and upstream addresses. |

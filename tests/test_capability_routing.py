@@ -3237,7 +3237,7 @@ async def test_default_server_exposes_only_protocol_neutral_tools() -> None:
         "deco://mutations",
     }
     assert resource_templates == {
-        "deco://device-details/{mac}",
+        "deco://devices/{mac}",
         "deco://logs/{index}",
         "deco://parental-controls/{owner_id}",
         "deco://parental-controls/{owner_id}/insights",

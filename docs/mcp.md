@@ -261,7 +261,7 @@ System-log pages require both the sensitive gate and
 | `deco://devices/active` | Lightweight devices currently reported online. | Same as `deco://devices`, with `view="active"`. |
 | `deco://devices/inactive` | Lightweight known devices currently reported offline. | Same as `deco://devices`, with `view="inactive"`. |
 | `deco://devices/blocked` | Lightweight identities from one block-list read. | Same as `deco://devices`, with `view="blocked"`. |
-| `deco://device-details/{mac}` | One selected device enriched on demand from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `device`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
+| `deco://devices/{mac}` | One selected device enriched on demand from client, per-node, block-list, traffic and reservation sources. | `schema_version`, `device`, `source_counts`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://traffic` | Current normalized per-device and aggregate traffic speeds. | `schema_version`, `device_speeds`, `device_count`, `aggregate_speed`, `status`, `provenance`, `unavailable_sections`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
 | `deco://address-reservations` | Current DHCP address-reservation table. | `capability`, `schema_version`, `data`, `provenance`, `router_contacted`, `mutation_invoked` |
 | `deco://network/lan` | Current LAN address, subnet, DNS and upstream address inventory. | `schema_version`, `status`, `ip`, `subnet_mask`, `dns_servers`, `wan_addresses`, `provenance`, `observed_at_epoch_seconds`, `router_contacted`, `mutation_invoked` |
@@ -295,7 +295,7 @@ either transport at startup. Each
 Each client-list `devices[]` summary contains the fields supplied by that read,
 including `mac`, `ip`, `name`, `client_type`, `status`, `active`, connection
 metadata and `detail_resource`; block-list summaries contain identity and
-blocking fields. The device-detail resource can additionally contain
+blocking fields. The individual-device resource can additionally contain
 `access_status`, `blocked`, `reserved`, `reservation_ip`, `connected_node` and
 multi-source `sources`. `status` is the connectivity state `active` or
 `inactive`; blocking is an independent access state. Each
@@ -333,7 +333,7 @@ write.
 The P9 HTTP/TMP contracts for blocked clients and traffic expose identical
 normalized fields. `deco://traffic` therefore uses evidence-backed HTTP-to-TMP
 fallback. Device collections each read only their authoritative capability and
-include `detail_resource` links. `deco://device-details/{mac}` performs optional
+include `detail_resource` links. `deco://devices/{mac}` performs optional
 per-node, blocking, traffic and reservation enrichment only for an explicitly
 selected device, stays on the interface selected for client inventory and marks
 failed enrichment unavailable rather than mixing interfaces.

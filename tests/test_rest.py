@@ -1105,7 +1105,7 @@ async def test_mcp_resources_and_rest_routes_serialize_shared_results_identicall
         ("client_devices_resource", "deco://devices", "/api/v1/clients"),
         (
             "client_device_resource",
-            "deco://device-details/AA:BB:CC:DD:EE:01",
+            "deco://devices/AA:BB:CC:DD:EE:01",
             "/api/v1/clients/AA:BB:CC:DD:EE:01",
         ),
         ("traffic_resource", "deco://traffic", "/api/v1/traffic"),
