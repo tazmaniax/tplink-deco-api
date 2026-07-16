@@ -9,7 +9,13 @@ from unittest import mock
 import paramiko
 import pytest
 
-from tplink_deco_api import DecoTmpClient, TmpSshConfig, TmpSshStream, TransportError
+from tplink_deco_api import (
+    DecoTmpClient,
+    TmpProtocolError,
+    TmpSshConfig,
+    TmpSshStream,
+    TransportError,
+)
 
 
 def _fingerprint(key_bytes: bytes = b"router-key") -> str:
@@ -247,3 +253,65 @@ def test_tmp_client_probe_guards_and_failed_open_cleanup() -> None:
     with pytest.raises(RuntimeError, match="not connected"):
         disconnected.request_read(0x400F)
     disconnected.close()
+
+
+def test_tmp_client_reconnects_once_after_unexpected_eof() -> None:
+    first_stream = mock.Mock(connected=True)
+    first_session = mock.Mock(ready=True)
+    first_session.request_read.side_effect = TmpProtocolError(
+        "Failed to read TMP frame: unexpected EOF after 0 of 4 bytes"
+    )
+    second_stream = mock.Mock(connected=True)
+    second_session = mock.Mock(ready=True)
+    second_session.request_read.return_value = b"recovered"
+    client = DecoTmpClient(_config())
+
+    with (
+        mock.patch(
+            "tplink_deco_api.tmp_client._new_tmp_ssh_stream",
+            side_effect=[first_stream, second_stream],
+        ),
+        mock.patch(
+            "tplink_deco_api.tmp_client.TmpAppV2Session",
+            side_effect=[first_session, second_session],
+        ),
+    ):
+        client.open()
+        assert client.request_read(0x400F) == b"recovered"
+
+    first_session.close.assert_called_once()
+    second_stream.open.assert_called_once()
+    second_session.open.assert_called_once()
+    assert client.connected is True
+
+
+def test_tmp_client_does_not_reconnect_after_non_connection_protocol_error() -> None:
+    stream = mock.Mock(connected=True)
+    session = mock.Mock(ready=True)
+    session.request_read_json.side_effect = TmpProtocolError(
+        "Failed to request TMP operation 0x400F: AppV2 error 12"
+    )
+    client = DecoTmpClient(_config())
+
+    with (
+        mock.patch("tplink_deco_api.tmp_client._new_tmp_ssh_stream", return_value=stream),
+        mock.patch("tplink_deco_api.tmp_client.TmpAppV2Session", return_value=session),
+    ):
+        client.open()
+        with pytest.raises(TmpProtocolError, match="AppV2 error 12"):
+            client.request_read_json(0x400F)
+
+    session.close.assert_not_called()
+    stream.open.assert_called_once()
+
+
+def test_tmp_client_disconnect_state_includes_ssh_channel() -> None:
+    stream = mock.Mock(connected=False)
+    session = mock.Mock(ready=True)
+    client = DecoTmpClient(_config())
+    client._stream = stream
+    client._session = session
+
+    assert client.connected is False
+    with pytest.raises(RuntimeError, match="not connected"):
+        client.request_read(0x400F)

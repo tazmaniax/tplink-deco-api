@@ -2,16 +2,23 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import logging
+from typing import TYPE_CHECKING, TypeVar
 
+from .exceptions import TmpProtocolError, TransportError
 from .tmp_protocol import TmpAppV2Session
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from types import TracebackType
 
     from ._json import JsonObject, JsonValue
     from .tmp_ssh_config import TmpSshConfig
     from .tmp_ssh_stream import TmpSshStream
+
+log: logging.Logger = logging.getLogger("tplink_deco_api.tmp")
+
+_T = TypeVar("_T")
 
 
 def _new_tmp_ssh_stream(config: TmpSshConfig) -> TmpSshStream:
@@ -31,7 +38,12 @@ class DecoTmpClient:
     @property
     def connected(self) -> bool:
         """Return whether the AppV2 session is negotiated and ready."""
-        return self._session is not None and self._session.ready
+        return (
+            self._stream is not None
+            and self._stream.connected
+            and self._session is not None
+            and self._session.ready
+        )
 
     def probe_host_key(self) -> str:
         """Return the router SSH fingerprint without authenticating."""
@@ -54,11 +66,13 @@ class DecoTmpClient:
 
     def request_read(self, opcode: int, payload: bytes = b"") -> bytes:
         """Invoke one catalogued read-only opcode and return raw bytes."""
-        return self._require_session().request_read(opcode, payload)
+        return self._request_with_reconnect(lambda session: session.request_read(opcode, payload))
 
     def request_read_json(self, opcode: int, params: JsonValue = None) -> JsonObject:
         """Invoke one catalogued read-only opcode with a JSON parameter envelope."""
-        return self._require_session().request_read_json(opcode, params)
+        return self._request_with_reconnect(
+            lambda session: session.request_read_json(opcode, params)
+        )
 
     def _request_mutation_json(self, opcode: int, params: JsonValue) -> JsonObject:
         return self._require_session()._request_mutation_json(opcode, params)
@@ -87,6 +101,24 @@ class DecoTmpClient:
         self.close()
 
     def _require_session(self) -> TmpAppV2Session:
-        if self._session is None or not self._session.ready:
+        if not self.connected or self._session is None:
             raise RuntimeError("Failed to use TMP client: client is not connected")
         return self._session
+
+    def _request_with_reconnect(self, request: Callable[[TmpAppV2Session], _T]) -> _T:
+        for attempt in range(2):
+            try:
+                return request(self._require_session())
+            except (TmpProtocolError, TransportError) as exc:
+                if not self._is_connection_failure(exc):
+                    raise
+                self.close()
+                if attempt == 1:
+                    raise
+                log.warning("TMP connection closed during read; reconnecting once")
+                self.open()
+        raise AssertionError("Failed to request TMP read: retry loop exhausted")
+
+    @staticmethod
+    def _is_connection_failure(error: TmpProtocolError | TransportError) -> bool:
+        return isinstance(error, TransportError) or "unexpected EOF" in str(error)

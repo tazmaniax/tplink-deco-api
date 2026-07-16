@@ -11,7 +11,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING, TypeAlias, cast
 
 from ._json import loads
-from .exceptions import TmpProtocolError
+from .exceptions import TmpProtocolError, TransportError
 from .tmp_opcode_catalog import get_tmp_opcode
 
 if TYPE_CHECKING:
@@ -273,7 +273,7 @@ class TmpAppV2Session:
     def close(self) -> None:
         """Best-effort close the TMP session and its supplied stream."""
         self._ready = False
-        with suppress(OSError, TmpProtocolError):
+        with suppress(OSError, TmpProtocolError, TransportError):
             self._stream.sendall(_pack_frame(_BYE))
         self._stream.close()
 
